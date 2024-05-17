@@ -1,12 +1,11 @@
-import { ConsoleLogger, Injectable } from '@nestjs/common';
-import { createLogger } from 'winston';
+import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
-export class LoggerService extends ConsoleLogger {
+export class LoggerService extends Logger {
   private readonly logger: any;
   constructor() {
     super();
-    this.logger = createLogger();
+    this.logger = new Logger();
   }
 
   /**
