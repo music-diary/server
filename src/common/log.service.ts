@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 
 @Injectable()
-export class LoggerService extends Logger {
+export class LogService extends Logger {
   private readonly logger: any;
   constructor() {
     super();
