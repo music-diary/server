@@ -5,7 +5,7 @@ import {
   NestInterceptor,
 } from '@nestjs/common';
 import { Observable } from 'rxjs';
-import { LoggerService } from 'src/common/logger.service';
+import { LogService } from 'src/common/log.service';
 
 @Injectable()
 export class LoggerInterceptor implements NestInterceptor {
@@ -14,7 +14,7 @@ export class LoggerInterceptor implements NestInterceptor {
     const handler = context.getHandler().name;
     const request = context.switchToHttp().getRequest();
     const { method, url } = request;
-    LoggerService.verbose(`${method} ${url}`, `${className}.${handler}`);
+    LogService.verbose(`${method} ${url}`, `${className}.${handler}`);
     return next.handle();
   }
 }

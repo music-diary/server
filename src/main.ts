@@ -1,3 +1,4 @@
+import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
@@ -15,6 +16,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/v1/api-docs', app, document);
 
   app.useGlobalFilters(new HttpExceptionFilter());
+  app.useGlobalPipes(new ValidationPipe());
   app.useGlobalInterceptors(new LoggerInterceptor());
   app.setGlobalPrefix('api/v1');
   await app.listen(PORT);
