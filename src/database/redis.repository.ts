@@ -16,8 +16,8 @@ export class RedisRepository {
     await this.client.connect();
   }
 
-  async set(key: string, value: string, seconds: number): Promise<void> {
-    await this.client.set(key, value, 'EX', seconds);
+  async set(key: string, value: string, seconds?: number): Promise<void> {
+    await this.client.set(key, value, 'EX', seconds ?? Number.MAX_SAFE_INTEGER);
   }
 
   async get(key: string): Promise<string> {
