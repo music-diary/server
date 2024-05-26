@@ -42,7 +42,6 @@ enum UserStatus {
 
 model Users {
   id                      String     @id @default(uuid())
-  account                 String     @unique
   phoneNumber             String     @unique
   name                    String     @db.Char(6)
   birthDay                DateTime
@@ -52,8 +51,6 @@ model Users {
   isAgreedMarketing       Boolean // 마케팅 동의여부
   profileImageKey         String? // image file s3 key
   profileImageUrl         String? // s3 url
-  // friends: Friends[]
-  isAvailableFriendLetter Boolean    @default(false)
   useLimitCount           Int        @default(1) // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
   role                    Role       @default(USER)
   status                  UserStatus @default(ACTIVE)
