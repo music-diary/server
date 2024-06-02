@@ -6,12 +6,10 @@ import { AuthModule } from './auth/auth.module';
 import { LogService } from './common/log.service';
 import { validationSchema } from './config/validation-schema';
 import { PrismaService } from './database/prisma.service';
-import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
     AuthModule,
-    UsersModule,
     ConfigModule.forRoot({ validationSchema, isGlobal: true }),
   ],
   controllers: [AppController],
