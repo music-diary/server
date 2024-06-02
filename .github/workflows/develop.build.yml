@@ -29,7 +29,7 @@ jobs:
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
           REPOSITORY: scale-diary-server
-          IMAGE_TAG: ${{ github.sha.short }}
+          IMAGE_TAG: ${{ github.sha }}
         run: |
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
@@ -44,7 +44,7 @@ jobs:
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: scale-diary-server
           environment_name: scale-diary-server
-          version_label: 0.0.0-${{ github.sha.short }}
+          version_label: 0.0.1
           use_existing_version_if_available: true
           region: ${{ secrets.AWS_REGION }}
           deployment_package: deploy.zip
