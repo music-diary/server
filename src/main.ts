@@ -11,6 +11,16 @@ const PORT = process.env.PORT || 5000;
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // cors
+  const corsOptions = {
+    origin: ['http://localhost:5000', 'http://localhost:9988'],
+    methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
+    allowedHeaders: 'Content-Type, Authorization',
+    exposedHeaders: 'Content-Type, Authorization',
+    credentials: true,
+  };
+  app.enableCors(corsOptions);
+
   const config = swaggerConfig;
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/v1/api-docs', app, document);
