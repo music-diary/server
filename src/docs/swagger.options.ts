@@ -1,12 +1,14 @@
 import { DocumentBuilder } from '@nestjs/swagger';
 
 const PORT = process.env.PORT || 5000;
+const SERVER_DOMAIN = process.env.SERVER_DOMAIN;
+
 const localInfo = {
   url: `http://localhost:${PORT}/api/v1`,
   description: 'Local Server',
 };
 const developInfo = {
-  url: `http://localhost:${PORT}/api/v1`,
+  url: `https://dev.${SERVER_DOMAIN}/api/v1`,
   description: 'Develop Server',
 };
 
