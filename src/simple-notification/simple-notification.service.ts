@@ -3,7 +3,6 @@ import {
   PublishCommandInput,
   SNSClient,
 } from '@aws-sdk/client-sns';
-import { fromSSO } from '@aws-sdk/credential-providers';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { LogService } from 'src/common/log.service';
@@ -18,9 +17,12 @@ export class SimpleNotificationService {
   ) {
     // this.snsAwsRegion = this.configService.get<string>('SNS_AWS_REGION');
     this.snsClient = new SNSClient({
-      credentials: fromSSO({
-        profile: this.configService.get<string>('AWS_PROFILE'),
-      }),
+      credentials: {
+        accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
+        secretAccessKey: this.configService.get<string>(
+          'AWS_SECRET_ACCESS_KEY',
+        ),
+      },
       defaultsMode: 'cross-region',
       region: this.configService.get<string>('SNS_AWS_REGION'),
     });
