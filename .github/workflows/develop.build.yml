@@ -11,35 +11,20 @@ jobs:
       id-token: write
       contents: read
 
-    strategy:
-      matrix:
-        node-version: [20.x]
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
 
-      - name: Use Node.js ${{ matrix.node-version }}
-        uses: actions/setup-node@v4
-        with:
-          node-version: ${{ matrix.node-version }}
-
-      - name: Set variables
-        id: vars
-        run: |
-          echo ::set-output name=sha4::$(git rev-parse --short=4 ${{ github.sha }})
-
       - name: Generate deployment package
-        run: rm -rf deploy.zip && zip -r deploy.zip package*.json dist Procfile .env* -x '*.git*'
+        run: zip -r deploy.zip . -x '*.git*' 'node_modules/*'
 
       - name: Deploy to EB
         uses: einaregilsson/beanstalk-deploy@v22
-        env:
-          SHA4: ${{ steps.vars.outputs.sha4 }}
         with:
           aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
           application_name: scale-diary-server-develop
           environment_name: scale-diary-server-develop-env
-          version_label: develop-${{env.SHA4}}
+          version_label: develop-${{ github.sha }}
           region: ap-northeast-2
           deployment_package: deploy.zip
