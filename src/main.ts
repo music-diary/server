@@ -7,13 +7,18 @@ import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { LoggerInterceptor } from './interceptors/logger.interceptor';
 
 const PORT = process.env.PORT || 5000;
+const SERVER_DOMAIN = process.env.SERVER_DOMAIN;
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   // cors
   const corsOptions = {
-    origin: ['http://localhost:5000', 'http://localhost:9988'],
+    origin: [
+      'http://localhost:5000',
+      'http://localhost:9988',
+      `https://dev.${SERVER_DOMAIN}`,
+    ],
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     allowedHeaders: 'Content-Type, Authorization',
     exposedHeaders: 'Content-Type, Authorization',
