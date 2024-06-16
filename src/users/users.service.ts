@@ -1,53 +1,41 @@
-import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
-import { Users } from '@prisma/client';
-import { AuthService } from 'src/auth/auth.service';
+import { HttpStatus, Injectable } from '@nestjs/common';
+import { Prisma, Users } from '@prisma/client';
 import { LogService } from 'src/common/log.service';
-import { RedisRepository } from 'src/database/redis.repository';
 import { PrismaService } from '../database/prisma.service';
-import { CreateUserResponseDto } from './dto/create.dto';
+import { FindUserResponseDto } from './dto/find.dto';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly logService: LogService,
     private readonly prismaService: PrismaService,
-    private readonly redisRepository: RedisRepository,
-    private readonly authService: AuthService,
   ) {}
 
-  async create(body: any): Promise<CreateUserResponseDto> {
-    const { phoneNumber, birthDay, ...data } = body;
-    const birthDayDate = new Date(birthDay);
-
-    const key = `signUp:${phoneNumber}`;
-    const verifiedPhoneNumber = await this.redisRepository.get(key);
-    if (!verifiedPhoneNumber) {
-      throw new UnauthorizedException('Phone number is not verified');
-    }
-    const { isVerified } = JSON.parse(verifiedPhoneNumber);
-    if (!isVerified) {
-      throw new UnauthorizedException('Phone number is not verified');
-    }
-
-    const newUsers: Users = await this.prismaService.users.create({
-      data: {
-        phoneNumber,
-        birthDay: birthDayDate,
-        ...data,
-      },
-    });
+  async create(data: Users): Promise<Users> {
+    const query: Prisma.UsersCreateArgs = { data };
+    const newUser: Users = await this.prismaService.users.create(query);
     this.logService.verbose(
-      `New user created - ${newUsers.id} ${newUsers.name}`,
+      `New user created - ${newUser.id} ${newUser.name}`,
       UsersService.name,
     );
-    const { accessToken } = await this.authService.createAccessToken(
-      newUsers.id,
+    return newUser;
+  }
+
+  async findOne(
+    query: Prisma.UsersFindFirstArgs,
+  ): Promise<FindUserResponseDto> {
+    const { where, ...restQuery } = query;
+    const user: Users = await this.prismaService.users.findFirst({
+      where,
+    });
+    this.logService.verbose(
+      `Find user by id - ${user.id} ${user.name}`,
+      UsersService.name,
     );
     return {
-      statusCode: HttpStatus.CREATED,
-      message: 'User created',
-      data: newUsers.id,
-      token: accessToken,
+      statusCode: HttpStatus.OK,
+      message: 'User find by id',
+      data: user,
     };
   }
 }
