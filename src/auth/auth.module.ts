@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { LogService } from 'src/common/log.service';
 import { RedisRepository } from 'src/database/redis.repository';
 import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
@@ -12,6 +13,7 @@ import { AuthService } from './auth.service';
     LogService,
     RedisRepository,
     SimpleNotificationService,
+    JwtService,
   ],
 })
 export class AuthModule {}

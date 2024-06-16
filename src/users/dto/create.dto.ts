@@ -41,6 +41,9 @@ export class CreateUserDto {
 }
 
 export class CreateUserResponseDto extends CommonDto {
-  @ApiProperty()
+  @ApiProperty({ description: 'The user id' })
   data: string;
+
+  @ApiProperty()
+  token?: string;
 }

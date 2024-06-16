@@ -1,5 +1,6 @@
 import { HttpStatus, Injectable, UnauthorizedException } from '@nestjs/common';
 import { Users } from '@prisma/client';
+import { AuthService } from 'src/auth/auth.service';
 import { LogService } from 'src/common/log.service';
 import { RedisRepository } from 'src/database/redis.repository';
 import { PrismaService } from '../database/prisma.service';
@@ -11,6 +12,7 @@ export class UsersService {
     private readonly logService: LogService,
     private readonly prismaService: PrismaService,
     private readonly redisRepository: RedisRepository,
+    private readonly authService: AuthService,
   ) {}
 
   async create(body: any): Promise<CreateUserResponseDto> {
@@ -38,10 +40,14 @@ export class UsersService {
       `New user created - ${newUsers.id} ${newUsers.name}`,
       UsersService.name,
     );
+    const { accessToken } = await this.authService.createAccessToken(
+      newUsers.id,
+    );
     return {
       statusCode: HttpStatus.CREATED,
       message: 'User created',
       data: newUsers.id,
+      token: accessToken,
     };
   }
 }

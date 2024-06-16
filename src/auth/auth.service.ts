@@ -1,4 +1,6 @@
 import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { RedisRepository } from 'src/database/redis.repository';
@@ -14,6 +16,8 @@ export class AuthService {
     private readonly logService: LogService,
     private readonly redisRepository: RedisRepository,
     private readonly simpleNotificationService: SimpleNotificationService,
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
   ) {}
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
@@ -65,6 +69,19 @@ export class AuthService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Successfully verified the phone number code.',
+    };
+  }
+
+  async createAccessToken(id: string): Promise<{ accessToken: string }> {
+    const payload = { id };
+    const expiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRE_IN');
+    const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
+    const accessToken = this.jwtService.sign(payload, {
+      secret,
+      expiresIn,
+    });
+    return {
+      accessToken,
     };
   }
 }
