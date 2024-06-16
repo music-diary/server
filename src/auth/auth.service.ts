@@ -1,14 +1,23 @@
-import { BadRequestException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { RedisRepository } from 'src/database/redis.repository';
 import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
+import { UsersService } from 'src/users/users.service';
 import {
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
 } from './dto/auth.dto';
+import { LoginBody, LoginResponseDto } from './dto/login.dto';
+import { SignUpResponseDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class AuthService {
@@ -18,6 +27,7 @@ export class AuthService {
     private readonly simpleNotificationService: SimpleNotificationService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly usersService: UsersService,
   ) {}
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
@@ -69,6 +79,61 @@ export class AuthService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Successfully verified the phone number code.',
+    };
+  }
+  async create(body: any): Promise<SignUpResponseDto> {
+    const { phoneNumber, birthDay, ...data } = body;
+    const birthDayDate = new Date(birthDay);
+
+    const key = `signUp:${phoneNumber}`;
+    const verifiedPhoneNumber = await this.redisRepository.get(key);
+    if (!verifiedPhoneNumber) {
+      throw new UnauthorizedException('Phone number is not verified');
+    }
+    const { isVerified } = JSON.parse(verifiedPhoneNumber);
+    if (!isVerified) {
+      throw new UnauthorizedException('Phone number is not verified');
+    }
+    const newUser = await this.usersService.create({
+      phoneNumber,
+      birthDay: birthDayDate,
+      ...data,
+    });
+    const { accessToken } = await this.createAccessToken(newUser.id);
+    this.logService.verbose(
+      `Successfully signed up - ${newUser.id}`,
+      AuthService.name,
+    );
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Successfully sign up',
+      data: newUser.id,
+      token: accessToken,
+    };
+  }
+
+  async login(body: LoginBody): Promise<LoginResponseDto> {
+    const { phoneNumber } = body;
+    const key = `signUp:${phoneNumber}`;
+    const isVerifiedUser = await this.redisRepository.get(key);
+    const { isVerified } = JSON.parse(isVerifiedUser);
+    if (!isVerified) {
+      throw new UnauthorizedException('Phone number is not verified');
+    }
+    const result = await this.usersService.findOne({
+      where: {
+        phoneNumber,
+      },
+    });
+    if (!result.data) {
+      throw new NotFoundException('User not found');
+    }
+    const { accessToken } = await this.createAccessToken(result.data.id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Successfully login',
+      data: result.data.id,
+      token: accessToken,
     };
   }
 
