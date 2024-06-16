@@ -14,7 +14,7 @@ enum Gender {
   OTHER = 'OTHER',
 }
 
-export class CreateUserDto {
+export class SignUpBody {
   @ApiProperty()
   @IsPhoneNumber('KR')
   phoneNumber: string;
@@ -40,7 +40,7 @@ export class CreateUserDto {
   isAgreedMarketing: boolean;
 }
 
-export class CreateUserResponseDto extends CommonDto {
+export class SignUpResponseDto extends CommonDto {
   @ApiProperty({ description: 'The user id' })
   data: string;
 
