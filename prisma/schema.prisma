@@ -32,7 +32,6 @@ model Users {
   updatedAt         DateTime     @updatedAt @map("updated_at")
   deletedAt         DateTime?    @map("deleted_at")
   UserGenres        UserGenres[]
-  withdrawInfoId    String
 
   @@index([id])
   @@map("users")
