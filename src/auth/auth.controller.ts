@@ -1,5 +1,5 @@
 import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
-import { ApiBody, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
 import { CommonDto } from 'src/common/common.dto';
 import { AuthService } from './auth.service';
@@ -15,6 +15,7 @@ import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @ApiOperation({ summary: 'Send phone number verification code' })
   @ApiBody({
     type: SendPhoneNumberCodeBody,
     examples: { 'example-KR': { value: { phoneNumber: '+8201012345678' } } },
@@ -27,6 +28,7 @@ export class AuthController {
     return this.authService.sendPhoneNumberCode(body);
   }
 
+  @ApiOperation({ summary: 'Verify phone number verification code' })
   @ApiBody({ type: VerifyPhoneNumberCodeBody })
   @ApiResponse({ status: HttpStatus.OK, type: CommonDto })
   @Post('phone/verification')
@@ -36,6 +38,7 @@ export class AuthController {
     return this.authService.verifyPhoneNumberCode(body);
   }
 
+  @ApiOperation({ summary: 'Sign up' })
   @ApiBody({ type: SignUpBody })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -45,23 +48,24 @@ export class AuthController {
         description: 'The access token',
         schema: {
           type: 'string',
-          example: 'access-token=<jwt-token>',
+          example: 'Bearer <jwt-token>',
         },
       },
     },
   })
   @Post('sign-up')
   async signUp(
-    @Body() body: LoginBody,
+    @Body() body: SignUpBody,
     @Res() response: Response,
   ): Promise<void> {
     const result = await this.authService.create(body);
     const { token, ...data } = result;
-    response.header('Authorization', `access-token=Bearer ${token}`);
+    response.header('Authorization', `Bearer ${token}`);
     response.send(data);
     return;
   }
 
+  @ApiOperation({ summary: 'Login' })
   @ApiBody({ type: LoginBody })
   @ApiResponse({ status: HttpStatus.OK, type: CommonDto })
   @Post('login')
@@ -71,7 +75,7 @@ export class AuthController {
   ): Promise<void> {
     const result = await this.authService.login(body);
     const { token, ...data } = result;
-    response.setHeader('Authorization', `access-token=Bearer ${token}`);
+    response.setHeader('Authorization', `Bearer ${token}`);
     response.send(data);
     return;
   }
