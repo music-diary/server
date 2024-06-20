@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { Prisma, Users } from '@prisma/client';
+import { Genres, Prisma, Users } from '@prisma/client';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from '../database/prisma.service';
 import { FindUserResponseDto } from './dto/find.dto';
@@ -11,14 +11,26 @@ export class UsersService {
     private readonly prismaService: PrismaService,
   ) {}
 
-  async create(data: Users): Promise<Users> {
-    const query: Prisma.UsersCreateArgs = { data };
-    const newUser: Users = await this.prismaService.users.create(query);
-    this.logService.verbose(
-      `New user created - ${newUser.id} ${newUser.name}`,
-      UsersService.name,
-    );
-    return newUser;
+  async create(userData: Users, genresData: Genres[]): Promise<Users> {
+    const createUserQuery: Prisma.UsersCreateArgs = { data: userData };
+    const result = await this.prismaService.$transaction(async (tx) => {
+      const newUser: Users = await tx.users.create(createUserQuery);
+      for (const genre of genresData) {
+        const createUserGenresQuery: Prisma.UserGenresCreateArgs = {
+          data: {
+            userId: newUser.id,
+            genreId: genre.id,
+          },
+        };
+        await tx.userGenres.create(createUserGenresQuery);
+      }
+      this.logService.verbose(
+        `New user created - ${newUser.id} ${newUser.name}`,
+        UsersService.name,
+      );
+      return newUser;
+    });
+    return result;
   }
 
   async findOne(

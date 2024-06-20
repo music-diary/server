@@ -82,7 +82,7 @@ export class AuthService {
     };
   }
   async create(body: any): Promise<SignUpResponseDto> {
-    const { phoneNumber, birthDay, ...data } = body;
+    const { phoneNumber, birthDay, genres, ...data } = body;
     const birthDayDate = new Date(birthDay);
 
     const key = `signUp:${phoneNumber}`;
@@ -94,11 +94,14 @@ export class AuthService {
     if (!isVerified) {
       throw new UnauthorizedException('Phone number is not verified');
     }
-    const newUser = await this.usersService.create({
-      phoneNumber,
-      birthDay: birthDayDate,
-      ...data,
-    });
+    const newUser = await this.usersService.create(
+      {
+        phoneNumber,
+        birthDay: birthDayDate,
+        ...data,
+      },
+      genres,
+    );
     const { accessToken } = await this.createAccessToken(newUser.id);
     this.logService.verbose(
       `Successfully signed up - ${newUser.id}`,

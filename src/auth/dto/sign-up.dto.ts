@@ -1,10 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Genres } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsDateString,
   IsEnum,
   IsPhoneNumber,
   IsString,
+  MaxLength,
 } from 'class-validator';
 import { CommonDto } from 'src/common/common.dto';
 
@@ -20,6 +24,7 @@ export class SignUpBody {
   phoneNumber: string;
 
   @ApiProperty()
+  @MaxLength(6, { message: 'The name length must be less than 6' })
   @IsString()
   name: string;
 
@@ -30,6 +35,11 @@ export class SignUpBody {
   @ApiProperty()
   @IsEnum(Gender)
   gender: Gender;
+
+  @ApiProperty({ example: [{ id: 'uuid', name: 'dance' }] })
+  @IsArray()
+  @Type(() => Array<Genres>)
+  genres: Genres[];
 
   @ApiProperty()
   @IsBoolean()
