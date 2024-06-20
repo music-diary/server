@@ -13,16 +13,50 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// model Post {
-//   id        Int      @id @default(uuid())
-//   createdAt DateTime @default(now())
-//   updatedAt DateTime @updatedAt
-//   title     String   @db.VarChar(255)
-//   content   String?
-//   published Boolean  @default(false)
-//   author    User     @relation(fields: [authorId], references: [id])
-//   authorId  Int
-// }
+model Users {
+  id                String       @id @default(uuid())
+  phoneNumber       String       @unique @map("phone_number")
+  name              String       @db.Char(6)
+  birthDay          DateTime     @map("birth_day")
+  gender            Gender       @default(FEMALE)
+  isGenreSuggested  Boolean      @map("is_genre_suggested") // 새로운 장르 추천 여부
+  isAgreedMarketing Boolean      @map("is_agreed_marketing") // 마케팅 동의여부
+  profileImageKey   String?      @map("profile_image_key") // image file s3 key
+  profileImageUrl   String?      @map("profile_image_url") // s3 url
+  useLimitCount     Int          @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
+  role              Role         @default(USER)
+  status            UserStatus   @default(ACTIVE)
+  // withdraws         Withdraws    @relation(fields: [withdrawId], references: [id])
+  // report Report[]
+  createdAt         DateTime     @default(now()) @map("created_at")
+  updatedAt         DateTime     @updatedAt @map("updated_at")
+  deletedAt         DateTime?    @map("deleted_at")
+  UserGenres        UserGenres[]
+  withdrawInfoId    String
+
+  @@index([id])
+  @@map("users")
+}
+
+model UserGenres {
+  id      String  @id @default(uuid())
+  Users   Users?  @relation(fields: [userId], references: [id])
+  userId  String?
+  Genres  Genres? @relation(fields: [genreId], references: [id])
+  genreId String?
+
+  @@index([userId, genreId])
+  @@map("user_genres")
+}
+
+model Genres {
+  id         String       @id @default(uuid())
+  name       String       @db.VarChar(30)
+  UserGenres UserGenres[]
+
+  @@index([id])
+  @@map("genres")
+}
 
 enum Gender {
   FEMALE
@@ -38,24 +72,4 @@ enum Role {
 enum UserStatus {
   ACTIVE
   DEACTIVE
-}
-
-model Users {
-  id                      String     @id @default(uuid())
-  phoneNumber             String     @unique
-  name                    String     @db.Char(6)
-  birthDay                DateTime
-  gender                  Gender     @default(FEMALE)
-  // genre: Genres[]
-  isGenreSuggested        Boolean // 새로운 장르 추천 여부
-  isAgreedMarketing       Boolean // 마케팅 동의여부
-  profileImageKey         String? // image file s3 key
-  profileImageUrl         String? // s3 url
-  useLimitCount           Int        @default(1) // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
-  role                    Role       @default(USER)
-  status                  UserStatus @default(ACTIVE)
-  // withdraw WithdrawInfo
-  // report Report[]
-  createdAt               DateTime   @default(now())
-  updatedAt               DateTime   @updatedAt
 }

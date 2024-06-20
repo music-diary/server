@@ -6,6 +6,8 @@ import { AuthModule } from './auth/auth.module';
 import { LogService } from './common/log.service';
 import { validationSchema } from './config/validation-schema';
 import { PrismaService } from './database/prisma.service';
+import { GenresModule } from './genres/genres.module';
+import { GenresService } from './genres/genres.service';
 import { UsersModule } from './users/users.module';
 
 @Module({
@@ -13,8 +15,9 @@ import { UsersModule } from './users/users.module';
     AuthModule,
     UsersModule,
     ConfigModule.forRoot({ validationSchema, isGlobal: true }),
+    GenresModule,
   ],
   controllers: [AppController],
-  providers: [AppService, PrismaService, LogService],
+  providers: [AppService, PrismaService, LogService, GenresService],
 })
 export class AppModule {}
