@@ -32,12 +32,15 @@ export class UsersController {
   }
 
   @ApiOperation({ summary: 'Update user info' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
   @Patch(':id')
   update(
     @Param('id') id: string,
+    @User() user: UserPayload,
     @Body() body: UpdateUserBodyDto,
   ): Promise<CommonDto> {
-    return this.usersService.update(id, body);
+    return this.usersService.update(user.id, id, body);
   }
 
   @ApiOperation({ summary: '[Dev] Delete user' })

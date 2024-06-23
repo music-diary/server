@@ -83,7 +83,12 @@ export class UsersService {
     };
   }
 
-  async update(id: string, body: UpdateUserBodyDto): Promise<CommonDto> {
+  async update(
+    id: string,
+    targetId: string,
+    body: UpdateUserBodyDto,
+  ): Promise<CommonDto> {
+    this.checkPermission(id, targetId);
     const { birthDay, ...data } = body;
     const birthDayDate = new Date(birthDay);
     const result = await this.getUser(id);
@@ -121,7 +126,7 @@ export class UsersService {
     return await this.findOne(query);
   }
 
-  private checkPermission(user: Partial<Users>, userId: string): boolean {
-    return user.id === userId;
+  private checkPermission(userId: string, targetId: string): boolean {
+    return userId === targetId;
   }
 }
