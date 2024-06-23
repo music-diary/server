@@ -1,5 +1,6 @@
-import { HttpStatus, Injectable } from '@nestjs/common';
+import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { Genres, Prisma, Users } from '@prisma/client';
+import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from '../database/prisma.service';
 import { FindUserResponseDto } from './dto/find.dto';
@@ -49,5 +50,39 @@ export class UsersService {
       message: 'User find by id',
       data: user,
     };
+  }
+
+  async getSelf(userId: string): Promise<FindUserResponseDto> {
+    const query: Prisma.UsersFindFirstArgs = {
+      where: {
+        id: userId,
+      },
+    };
+    this.logService.verbose(`Get self user - ${userId}`, UsersService.name);
+    return await this.findOne(query);
+  }
+
+  async delete(id: string): Promise<CommonDto> {
+    const existedUser: Users = await this.prismaService.users.findFirst({
+      where: { id },
+    });
+    if (!existedUser) {
+      throw new NotFoundException('User not found');
+    }
+    const query: Prisma.UsersDeleteArgs = {
+      where: {
+        id,
+      },
+    };
+    await this.prismaService.users.delete(query);
+    this.logService.verbose(`Delete user by id - ${id}`, UsersService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User deleted',
+    };
+  }
+
+  private checkPermission(user: Partial<Users>, userId: string): boolean {
+    return user.id === userId;
   }
 }

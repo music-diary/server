@@ -15,8 +15,8 @@ datasource db {
 
 model Users {
   id                String       @id @default(uuid())
-  phoneNumber       String       @unique @map("phone_number")
-  name              String       @db.Char(6)
+  phoneNumber       String       @map("phone_number") // TODO: production 시, unique 처리 필수
+  name              String       @db.VarChar(6)
   birthDay          DateTime     @map("birth_day")
   gender            Gender       @default(FEMALE)
   isGenreSuggested  Boolean      @map("is_genre_suggested") // 새로운 장르 추천 여부
