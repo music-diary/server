@@ -18,4 +18,12 @@ export const swaggerConfig = new DocumentBuilder()
   .setVersion('1.0')
   .addServer(localInfo.url, localInfo.description)
   .addServer(developInfo.url, developInfo.description)
+  .addBearerAuth({
+    type: 'http',
+    scheme: 'bearer',
+    bearerFormat: 'JWT',
+    in: 'header',
+    name: 'Authorization',
+    description: 'Enter your Bearer token',
+  })
   .build();
