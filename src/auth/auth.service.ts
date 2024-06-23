@@ -2,7 +2,6 @@ import {
   BadRequestException,
   HttpStatus,
   Injectable,
-  NotFoundException,
   UnauthorizedException,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -16,7 +15,6 @@ import {
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
 } from './dto/auth.dto';
-import { LoginBody, LoginResponseDto } from './dto/login.dto';
 import { SignUpResponseDto } from './dto/sign-up.dto';
 
 @Injectable()
@@ -111,31 +109,6 @@ export class AuthService {
       statusCode: HttpStatus.CREATED,
       message: 'Successfully sign up',
       data: newUser.id,
-      token: accessToken,
-    };
-  }
-
-  async login(body: LoginBody): Promise<LoginResponseDto> {
-    const { phoneNumber } = body;
-    const key = `signUp:${phoneNumber}`;
-    const isVerifiedUser = await this.redisRepository.get(key);
-    const { isVerified } = JSON.parse(isVerifiedUser);
-    if (!isVerified) {
-      throw new UnauthorizedException('Phone number is not verified');
-    }
-    const result = await this.usersService.findOne({
-      where: {
-        phoneNumber,
-      },
-    });
-    if (!result.data) {
-      throw new NotFoundException('User not found');
-    }
-    const { accessToken } = await this.createAccessToken(result.data.id);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Successfully login',
-      data: result.data.id,
       token: accessToken,
     };
   }
