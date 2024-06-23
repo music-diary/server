@@ -1,4 +1,12 @@
-import { Controller, Delete, Get, Param, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Patch,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
@@ -6,6 +14,7 @@ import { Roles } from 'src/decorator/roles.decorator';
 import { User } from 'src/decorator/user.decorator';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesGuard } from 'src/guards/role.guard';
+import { UpdateUserBodyDto } from './dto/update.dto';
 import { UserPayload } from './dto/user.dto';
 import { UsersService } from './users.service';
 
@@ -20,6 +29,15 @@ export class UsersController {
   @Get('self')
   getSelf(@User() user: UserPayload) {
     return this.usersService.getSelf(user.id);
+  }
+
+  @ApiOperation({ summary: 'Update user info' })
+  @Patch(':id')
+  update(
+    @Param('id') id: string,
+    @Body() body: UpdateUserBodyDto,
+  ): Promise<CommonDto> {
+    return this.usersService.update(id, body);
   }
 
   @ApiOperation({ summary: '[Dev] Delete user' })
