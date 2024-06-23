@@ -3,7 +3,7 @@ import { Genres, Prisma, Users } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from '../database/prisma.service';
-import { FindUserResponseDto } from './dto/find.dto';
+import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 
 @Injectable()
 export class UsersService {
@@ -80,6 +80,26 @@ export class UsersService {
       statusCode: HttpStatus.OK,
       message: 'User deleted',
     };
+  }
+
+  async getAll(): Promise<FindAllUsersResponseDto> {
+    this.logService.verbose(`Get all users`, UsersService.name);
+    const users = await this.prismaService.users.findMany();
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Users find all',
+      data: users,
+    };
+  }
+
+  async getUser(id: string): Promise<FindUserResponseDto> {
+    const query: Prisma.UsersFindFirstArgs = {
+      where: {
+        id,
+      },
+    };
+    this.logService.verbose(`Get user by ${id}`, UsersService.name);
+    return await this.findOne(query);
   }
 
   private checkPermission(user: Partial<Users>, userId: string): boolean {

@@ -6,3 +6,8 @@ export class FindUserResponseDto extends CommonDto {
   @ApiProperty()
   data: Users;
 }
+
+export class FindAllUsersResponseDto extends CommonDto {
+  @ApiProperty()
+  data: Users[];
+}
