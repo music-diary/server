@@ -36,10 +36,10 @@ export class SignUpBody {
   @IsEnum(Gender)
   gender: Gender;
 
-  @ApiProperty({ example: [{ id: 'uuid', name: 'dance' }] })
+  @ApiProperty({ example: [{ name: 'dance' }, { name: 'hip-hop' }] })
   @IsArray()
-  @Type(() => Array<Genres>)
-  genres: Genres[];
+  @Type(() => Array<Pick<Genres, 'name'>>)
+  genres: Pick<Genres, 'name'>[];
 
   @ApiProperty()
   @IsBoolean()

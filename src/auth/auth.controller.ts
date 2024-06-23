@@ -7,8 +7,7 @@ import {
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
 } from './dto/auth.dto';
-import { LoginBody } from './dto/login.dto';
-import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
+import { SignUpBody } from './dto/sign-up.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -42,7 +41,7 @@ export class AuthController {
   @ApiBody({ type: SignUpBody })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    type: SignUpResponseDto,
+    type: CommonDto,
     headers: {
       Authorization: {
         description: 'The access token',
@@ -61,21 +60,6 @@ export class AuthController {
     const result = await this.authService.create(body);
     const { token, ...data } = result;
     response.header('Authorization', `Bearer ${token}`);
-    response.send(data);
-    return;
-  }
-
-  @ApiOperation({ summary: 'Login' })
-  @ApiBody({ type: LoginBody })
-  @ApiResponse({ status: HttpStatus.OK, type: CommonDto })
-  @Post('login')
-  async login(
-    @Body() body: LoginBody,
-    @Res() response: Response,
-  ): Promise<void> {
-    const result = await this.authService.login(body);
-    const { token, ...data } = result;
-    response.setHeader('Authorization', `Bearer ${token}`);
     response.send(data);
     return;
   }
