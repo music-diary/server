@@ -4,6 +4,7 @@ import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
+import { UpdateUserBodyDto } from './dto/update.dto';
 
 @Injectable()
 export class UsersService {
@@ -79,6 +80,24 @@ export class UsersService {
     return {
       statusCode: HttpStatus.OK,
       message: 'User deleted',
+    };
+  }
+
+  async update(id: string, body: UpdateUserBodyDto): Promise<CommonDto> {
+    const { birthDay, ...data } = body;
+    const birthDayDate = new Date(birthDay);
+    const result = await this.getUser(id);
+    if (!result.data) {
+      throw new NotFoundException('User not found');
+    }
+    await this.prismaService.users.update({
+      where: { id },
+      data: { birthDay: birthDayDate, ...data },
+    });
+    this.logService.verbose(`Update user - ${id}`, UsersService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'User updated',
     };
   }
 
