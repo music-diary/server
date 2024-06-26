@@ -31,10 +31,15 @@ export class AuthController {
   @ApiBody({ type: VerifyPhoneNumberCodeBody })
   @ApiResponse({ status: HttpStatus.OK, type: CommonDto })
   @Post('phone/verification')
-  verifyPhoneNumberCode(
+  async verifyPhoneNumberCode(
     @Body() body: VerifyPhoneNumberCodeBody,
-  ): Promise<CommonDto> {
-    return this.authService.verifyPhoneNumberCode(body);
+    @Res() response: Response,
+  ): Promise<Response> {
+    const result = await this.authService.verifyPhoneNumberCode(body);
+    const { token, ...data } = result;
+    return token
+      ? response.header('Authorization', `Bearer ${token}`).send(data)
+      : response.send(data);
   }
 
   @ApiOperation({ summary: 'Sign up' })
@@ -56,7 +61,7 @@ export class AuthController {
   async signUp(
     @Body() body: SignUpBody,
     @Res() response: Response,
-  ): Promise<void> {
+  ): Promise<Response> {
     const result = await this.authService.create(body);
     const { token, ...data } = result;
     response.header('Authorization', `Bearer ${token}`);

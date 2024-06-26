@@ -4,7 +4,7 @@ import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { RedisRepository } from 'src/database/redis.repository';
 import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersRepository } from 'src/users/users.repository';
 import { AuthController } from './auth.controller';
 import { AuthService } from './auth.service';
 
@@ -16,7 +16,7 @@ import { AuthService } from './auth.service';
     RedisRepository,
     SimpleNotificationService,
     JwtService,
-    UsersService,
+    UsersRepository,
     PrismaService,
   ],
 })
