@@ -4,10 +4,10 @@ import { CommonDto } from 'src/common/common.dto';
 
 export class FindUserResponseDto extends CommonDto {
   @ApiProperty()
-  data: Users;
+  user: Users;
 }
 
 export class FindAllUsersResponseDto extends CommonDto {
   @ApiProperty()
-  data: Users[];
+  users: Array<Users>;
 }

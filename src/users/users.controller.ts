@@ -14,6 +14,7 @@ import { Roles } from 'src/decorator/roles.decorator';
 import { User } from 'src/decorator/user.decorator';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { RolesGuard } from 'src/guards/role.guard';
+import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UserPayload } from './dto/user.dto';
 import { UsersService } from './users.service';
@@ -27,7 +28,7 @@ export class UsersController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Get('self')
-  getSelf(@User() user: UserPayload) {
+  getSelf(@User() user: UserPayload): Promise<FindUserResponseDto> {
     return this.usersService.getSelf(user.id);
   }
 
@@ -54,8 +55,8 @@ export class UsersController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles([Role.ADMIN])
   @Get()
-  getAll(): Promise<CommonDto> {
-    return this.usersService.getAll();
+  findAll(): Promise<FindAllUsersResponseDto> {
+    return this.usersService.findAll();
   }
 
   @ApiOperation({ summary: '[ADMIN] get user by id' })
@@ -63,7 +64,7 @@ export class UsersController {
   @UseGuards(AuthGuard, RolesGuard)
   @Roles([Role.ADMIN])
   @Get(':id')
-  getUser(@Param('id') id: string): Promise<CommonDto> {
-    return this.usersService.getUser(id);
+  findOne(@Param('id') id: string): Promise<FindUserResponseDto> {
+    return this.usersService.findOne(id);
   }
 }

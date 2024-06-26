@@ -1,12 +1,21 @@
 import { Module } from '@nestjs/common';
+import { JwtService } from '@nestjs/jwt';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
+import { UserGenresRepository } from './user-genres.repository';
 import { UsersController } from './users.controller';
+import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
-import { JwtService } from '@nestjs/jwt';
 
 @Module({
   controllers: [UsersController],
-  providers: [UsersService, LogService, PrismaService, JwtService],
+  providers: [
+    UsersService,
+    LogService,
+    PrismaService,
+    JwtService,
+    UsersRepository,
+    UserGenresRepository,
+  ],
 })
 export class UsersModule {}
