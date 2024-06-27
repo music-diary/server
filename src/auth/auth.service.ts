@@ -6,16 +6,22 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Genres, Prisma, Users } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
+import { PrismaService } from 'src/database/prisma.service';
 import { RedisRepository } from 'src/database/redis.repository';
 import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
-import { UsersService } from 'src/users/users.service';
+import { UsersRepository } from 'src/users/users.repository';
+import { generateSignUpCode } from 'src/util/code-generator';
 import {
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
+  VerifyPhoneNumberCodeResponseDto,
 } from './dto/auth.dto';
 import { SignUpResponseDto } from './dto/sign-up.dto';
+
+const EXPIRE = 60 * 3; // 3 min
 
 @Injectable()
 export class AuthService {
@@ -25,25 +31,25 @@ export class AuthService {
     private readonly simpleNotificationService: SimpleNotificationService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly usersService: UsersService,
+    private readonly prismaService: PrismaService,
+    private readonly usersRepository: UsersRepository,
   ) {}
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
     const { phoneNumber } = body;
 
-    const key = `signUp:${phoneNumber}`;
-    const code = Math.floor(Math.random() * 100_000)
-      .toString()
-      .padStart(6, '0');
-    const value = { isVerified: false, code };
-    const expire = 60 * 3; // 3 min
-    await this.redisRepository.set(key, JSON.stringify(value), expire);
-
-    await this.simpleNotificationService.publishSms(phoneNumber, code);
-    const isExist = await this.redisRepository.get(key);
-    if (isExist) {
-      await this.redisRepository.set(key, JSON.stringify(value), expire);
+    const existedUser = await this.usersRepository.findOne({
+      where: { phoneNumber },
+    });
+    const { key, code } = await generateSignUpCode(phoneNumber);
+    if (existedUser) {
+      const value = { isVerified: true, code };
+      await this.redisRepository.set(key, JSON.stringify(value), EXPIRE);
+    } else {
+      const value = { isVerified: false, code };
+      await this.redisRepository.set(key, JSON.stringify(value), EXPIRE);
     }
+    await this.simpleNotificationService.publishSms(phoneNumber, code);
     this.logService.verbose(
       `Successfully sent a phone number code to ${phoneNumber}`,
       AuthService.name,
@@ -56,7 +62,7 @@ export class AuthService {
 
   async verifyPhoneNumberCode(
     body: VerifyPhoneNumberCodeBody,
-  ): Promise<CommonDto> {
+  ): Promise<VerifyPhoneNumberCodeResponseDto> {
     const { phoneNumber, code } = body;
     const key = `signUp:${phoneNumber}`;
     const existed = await this.redisRepository.get(key);
@@ -67,17 +73,33 @@ export class AuthService {
     if (code !== savedCode) {
       throw new BadRequestException('The code is incorrect.');
     }
-    if (!isVerified) {
+    if (isVerified) {
+      const existedUser = await this.usersRepository.findOne({
+        where: { phoneNumber },
+      });
+      const { accessToken } = await this.createAccessToken(existedUser.id);
+      this.logService.verbose(
+        `Successfully verified the phone number code for ${phoneNumber}`,
+        AuthService.name,
+      );
+      return {
+        statusCode: HttpStatus.OK,
+        message: `Successfully verified the existed phone number.`,
+        data: existedUser.id,
+        token: accessToken,
+      };
+    } else {
       await this.redisRepository.set(key, JSON.stringify({ isVerified: true }));
+      this.logService.verbose(
+        `Successfully verified the phone number code for ${phoneNumber}`,
+        AuthService.name,
+      );
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Successfully verified the phone number code.',
+        token: undefined,
+      };
     }
-    this.logService.verbose(
-      `Successfully verified the phone number code for ${phoneNumber}`,
-      AuthService.name,
-    );
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Successfully verified the phone number code.',
-    };
   }
   async create(body: any): Promise<SignUpResponseDto> {
     const { phoneNumber, birthDay, genres, ...data } = body;
@@ -92,7 +114,7 @@ export class AuthService {
     if (!isVerified) {
       throw new UnauthorizedException('Phone number is not verified');
     }
-    const newUser = await this.usersService.create(
+    const newUser = await this.createUserAndGenres(
       {
         phoneNumber,
         birthDay: birthDayDate,
@@ -113,7 +135,9 @@ export class AuthService {
     };
   }
 
-  async createAccessToken(id: string): Promise<{ accessToken: string }> {
+  private async createAccessToken(
+    id: string,
+  ): Promise<{ accessToken: string }> {
     const payload = { id };
     const expiresIn = this.configService.get<string>('JWT_ACCESS_EXPIRE_IN');
     const secret = this.configService.get<string>('JWT_ACCESS_SECRET');
@@ -124,5 +148,25 @@ export class AuthService {
     return {
       accessToken,
     };
+  }
+
+  private async createUserAndGenres(
+    userData: Users,
+    genresData: Genres[],
+  ): Promise<Users> {
+    const createUserQuery: Prisma.UsersCreateArgs = { data: userData };
+    return await this.prismaService.$transaction(async (tx) => {
+      const newUser: Users = await tx.users.create(createUserQuery);
+      for (const genre of genresData) {
+        const createUserGenresQuery: Prisma.UserGenresCreateArgs = {
+          data: {
+            userId: newUser.id,
+            genreId: genre.id,
+          },
+        };
+        await tx.userGenres.create(createUserGenresQuery);
+      }
+      return newUser;
+    });
   }
 }

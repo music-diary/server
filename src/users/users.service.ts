@@ -5,12 +5,16 @@ import { LogService } from 'src/common/log.service';
 import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
+import { UserGenresRepository } from './user-genres.repository';
+import { UsersRepository } from './users.repository';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly logService: LogService,
     private readonly prismaService: PrismaService,
+    private readonly usersRepository: UsersRepository,
+    private readonly userGenresRepository: UserGenresRepository,
   ) {}
 
   async create(userData: Users, genresData: Genres[]): Promise<Users> {
@@ -24,7 +28,7 @@ export class UsersService {
             genreId: genre.id,
           },
         };
-        await tx.userGenres.create(createUserGenresQuery);
+        await this.userGenresRepository.create(createUserGenresQuery, tx);
       }
       this.logService.verbose(
         `New user created - ${newUser.id} ${newUser.name}`,
@@ -35,13 +39,16 @@ export class UsersService {
     return result;
   }
 
-  async findOne(
-    query: Prisma.UsersFindFirstArgs,
-  ): Promise<FindUserResponseDto> {
-    const { where, ...restQuery } = query;
-    const user: Users = await this.prismaService.users.findFirst({
-      where,
-    });
+  async findOne(id: string): Promise<FindUserResponseDto> {
+    const query: Prisma.UsersFindFirstArgs = {
+      where: {
+        id,
+      },
+    };
+    const user = await this.usersRepository.findOne(query);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     this.logService.verbose(
       `Find user by id - ${user.id} ${user.name}`,
       UsersService.name,
@@ -49,7 +56,7 @@ export class UsersService {
     return {
       statusCode: HttpStatus.OK,
       message: 'User find by id',
-      data: user,
+      user,
     };
   }
 
@@ -59,23 +66,25 @@ export class UsersService {
         id: userId,
       },
     };
+    const user = await this.usersRepository.findOne(query);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
     this.logService.verbose(`Get self user - ${userId}`, UsersService.name);
-    return await this.findOne(query);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Get self user',
+      user,
+    };
   }
 
   async delete(id: string): Promise<CommonDto> {
-    const existedUser: Users = await this.prismaService.users.findFirst({
-      where: { id },
-    });
+    const query = { where: { id } };
+    const existedUser: Users = await this.usersRepository.findOne(query);
     if (!existedUser) {
       throw new NotFoundException('User not found');
     }
-    const query: Prisma.UsersDeleteArgs = {
-      where: {
-        id,
-      },
-    };
-    await this.prismaService.users.delete(query);
+    await this.usersRepository.delete(query);
     this.logService.verbose(`Delete user by id - ${id}`, UsersService.name);
     return {
       statusCode: HttpStatus.OK,
@@ -91,12 +100,13 @@ export class UsersService {
     this.checkPermission(id, targetId);
     const { birthDay, ...data } = body;
     const birthDayDate = new Date(birthDay);
-    const result = await this.getUser(id);
-    if (!result.data) {
+    const findUserQuery = { where: { id } };
+    const user = await this.usersRepository.findOne(findUserQuery);
+    if (!user) {
       throw new NotFoundException('User not found');
     }
-    await this.prismaService.users.update({
-      where: { id },
+    await this.usersRepository.update({
+      ...findUserQuery,
       data: { birthDay: birthDayDate, ...data },
     });
     this.logService.verbose(`Update user - ${id}`, UsersService.name);
@@ -106,24 +116,14 @@ export class UsersService {
     };
   }
 
-  async getAll(): Promise<FindAllUsersResponseDto> {
+  async findAll(): Promise<FindAllUsersResponseDto> {
     this.logService.verbose(`Get all users`, UsersService.name);
-    const users = await this.prismaService.users.findMany();
+    const users = await this.usersRepository.findAll();
     return {
       statusCode: HttpStatus.OK,
       message: 'Users find all',
-      data: users,
+      users,
     };
-  }
-
-  async getUser(id: string): Promise<FindUserResponseDto> {
-    const query: Prisma.UsersFindFirstArgs = {
-      where: {
-        id,
-      },
-    };
-    this.logService.verbose(`Get user by ${id}`, UsersService.name);
-    return await this.findOne(query);
   }
 
   private checkPermission(userId: string, targetId: string): boolean {

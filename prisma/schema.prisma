@@ -39,9 +39,9 @@ model Users {
 
 model UserGenres {
   id      String  @id @default(uuid())
-  Users   Users?  @relation(fields: [userId], references: [id])
+  Users   Users?  @relation(fields: [userId], references: [id], onDelete: NoAction)
   userId  String?
-  Genres  Genres? @relation(fields: [genreId], references: [id])
+  Genres  Genres? @relation(fields: [genreId], references: [id], onDelete: NoAction)
   genreId String?
 
   @@index([userId, genreId])
