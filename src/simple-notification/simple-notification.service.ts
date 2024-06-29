@@ -15,7 +15,6 @@ export class SimpleNotificationService {
     private readonly configService: ConfigService,
     private readonly logService: LogService,
   ) {
-    // this.snsAwsRegion = this.configService.get<string>('SNS_AWS_REGION');
     this.snsClient = new SNSClient({
       credentials: {
         accessKeyId: this.configService.get<string>('AWS_ACCESS_KEY_ID'),
