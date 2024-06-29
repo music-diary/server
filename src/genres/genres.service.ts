@@ -16,7 +16,7 @@ export class GenresService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Find all genres',
-      data: genres,
+      genres,
     };
   }
 }
