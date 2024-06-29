@@ -15,6 +15,7 @@ import { SimpleNotificationService } from 'src/simple-notification/simple-notifi
 import { UsersRepository } from 'src/users/users.repository';
 import { generateSignUpCode } from 'src/util/code-generator';
 import {
+  LoginBody,
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
   VerifyPhoneNumberCodeResponseDto,
@@ -41,14 +42,10 @@ export class AuthService {
     const existedUser = await this.usersRepository.findOne({
       where: { phoneNumber },
     });
-    const { key, code } = await generateSignUpCode(phoneNumber);
-    if (existedUser) {
-      const value = { isVerified: true, code };
-      await this.redisRepository.set(key, JSON.stringify(value), EXPIRE);
-    } else {
-      const value = { isVerified: false, code };
-      await this.redisRepository.set(key, JSON.stringify(value), EXPIRE);
-    }
+    const { key, code } = generateSignUpCode(phoneNumber);
+    const isVerified = existedUser ? true : false;
+    const value = { isVerified, code };
+    await this.redisRepository.set(key, JSON.stringify(value), EXPIRE);
     await this.simpleNotificationService.publishSms(phoneNumber, code);
     this.logService.verbose(
       `Successfully sent a phone number code to ${phoneNumber}`,
@@ -85,7 +82,7 @@ export class AuthService {
       return {
         statusCode: HttpStatus.OK,
         message: `Successfully verified the existed phone number.`,
-        data: existedUser.id,
+        userId: existedUser.id,
         token: accessToken,
       };
     } else {
@@ -130,7 +127,7 @@ export class AuthService {
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Successfully sign up',
-      data: newUser.id,
+      userId: newUser.id,
       token: accessToken,
     };
   }
@@ -168,5 +165,20 @@ export class AuthService {
       }
       return newUser;
     });
+  }
+
+  // NOTE: This is a temporary implementation for the test.
+  async login(body: LoginBody) {
+    const { id } = body;
+    const existedUser = await this.usersRepository.findOne({ where: { id } });
+    if (!existedUser) {
+      throw new UnauthorizedException('User not found');
+    }
+    const { accessToken } = await this.createAccessToken(existedUser.id);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Successfully logged in',
+      token: accessToken,
+    };
   }
 }

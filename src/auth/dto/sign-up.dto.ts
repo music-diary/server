@@ -52,7 +52,7 @@ export class SignUpBody {
 
 export class SignUpResponseDto extends CommonDto {
   @ApiProperty({ description: 'The user id' })
-  data: string;
+  userId: string;
 
   @ApiProperty()
   token?: string;

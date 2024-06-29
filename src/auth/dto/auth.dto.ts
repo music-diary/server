@@ -20,8 +20,13 @@ export class VerifyPhoneNumberCodeBody {
 
 export class VerifyPhoneNumberCodeResponseDto extends CommonDto {
   @ApiProperty({ description: 'The user id' })
-  data?: string;
+  userId?: string;
 
   @ApiProperty()
   token?: string;
+}
+
+export class LoginBody {
+  @ApiProperty()
+  id: string;
 }

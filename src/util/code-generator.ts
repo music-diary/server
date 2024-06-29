@@ -3,13 +3,10 @@ export type AuthCode = {
   code: string;
 };
 
-export const generateSignUpCode = async (
-  phoneNumber: string,
-): Promise<AuthCode> => {
+export const generateSignUpCode = (phoneNumber: string): AuthCode => {
   const key = `signUp:${phoneNumber}`;
   const code = Math.floor(Math.random() * 1000000)
     .toString()
     .padStart(6, '0');
-  console.log(key, 'code', code);
   return { key, code };
 };

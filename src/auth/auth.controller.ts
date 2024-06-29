@@ -4,6 +4,7 @@ import { Response } from 'express';
 import { CommonDto } from 'src/common/common.dto';
 import { AuthService } from './auth.service';
 import {
+  LoginBody,
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
 } from './dto/auth.dto';
@@ -63,6 +64,33 @@ export class AuthController {
     @Res() response: Response,
   ): Promise<Response> {
     const result = await this.authService.create(body);
+    const { token, ...data } = result;
+    response.header('Authorization', `Bearer ${token}`);
+    response.send(data);
+    return;
+  }
+
+  // NOTE: This is a temporary implementation for the test.
+  @ApiOperation({ summary: 'Login' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CommonDto,
+    headers: {
+      Authorization: {
+        description: 'The access token',
+        schema: {
+          type: 'string',
+          example: 'Bearer <jwt-token>',
+        },
+      },
+    },
+  })
+  @Post('login')
+  async login(
+    @Body() body: LoginBody,
+    @Res() response: Response,
+  ): Promise<Response> {
+    const result = await this.authService.login(body);
     const { token, ...data } = result;
     response.header('Authorization', `Bearer ${token}`);
     response.send(data);
