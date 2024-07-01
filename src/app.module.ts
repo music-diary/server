@@ -9,6 +9,7 @@ import { PrismaService } from './database/prisma.service';
 import { GenresModule } from './genres/genres.module';
 import { GenresService } from './genres/genres.service';
 import { UsersModule } from './users/users.module';
+import { DiariesModule } from './diaries/diaries.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     ConfigModule.forRoot({ validationSchema, isGlobal: true }),
     GenresModule,
+    DiariesModule,
   ],
   controllers: [AppController],
   providers: [AppService, PrismaService, LogService, GenresService],
