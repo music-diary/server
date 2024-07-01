@@ -70,10 +70,10 @@ export class UsersService {
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    this.logService.verbose(`Get self user - ${userId}`, UsersService.name);
+    this.logService.verbose(`Get current user - ${userId}`, UsersService.name);
     return {
       statusCode: HttpStatus.OK,
-      message: 'Get self user',
+      message: 'Get current user',
       user,
     };
   }

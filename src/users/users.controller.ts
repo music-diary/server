@@ -24,10 +24,10 @@ import { UsersService } from './users.service';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @ApiOperation({ summary: 'Get self user' })
+  @ApiOperation({ summary: 'Get current user' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
-  @Get('self')
+  @Get('me')
   getSelf(@User() user: UserPayload): Promise<FindUserResponseDto> {
     return this.usersService.getSelf(user.id);
   }
