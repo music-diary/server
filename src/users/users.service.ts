@@ -1,7 +1,13 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { Genres, Prisma, Users } from '@prisma/client';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import { Prisma, Users } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
+import { GenresRepository } from 'src/genres/genres.repository';
 import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
@@ -15,29 +21,8 @@ export class UsersService {
     private readonly prismaService: PrismaService,
     private readonly usersRepository: UsersRepository,
     private readonly userGenresRepository: UserGenresRepository,
+    private readonly genresRepository: GenresRepository,
   ) {}
-
-  async create(userData: Users, genresData: Genres[]): Promise<Users> {
-    const createUserQuery: Prisma.UsersCreateArgs = { data: userData };
-    const result = await this.prismaService.$transaction(async (tx) => {
-      const newUser: Users = await tx.users.create(createUserQuery);
-      for (const genre of genresData) {
-        const createUserGenresQuery: Prisma.UserGenresCreateArgs = {
-          data: {
-            userId: newUser.id,
-            genreId: genre.id,
-          },
-        };
-        await this.userGenresRepository.create(createUserGenresQuery, tx);
-      }
-      this.logService.verbose(
-        `New user created - ${newUser.id} ${newUser.name}`,
-        UsersService.name,
-      );
-      return newUser;
-    });
-    return result;
-  }
 
   async findOne(id: string): Promise<FindUserResponseDto> {
     const query: Prisma.UsersFindFirstArgs = {
@@ -60,10 +45,17 @@ export class UsersService {
     };
   }
 
-  async getSelf(userId: string): Promise<FindUserResponseDto> {
+  async getMe(userId: string): Promise<FindUserResponseDto> {
     const query: Prisma.UsersFindFirstArgs = {
       where: {
         id: userId,
+      },
+      include: {
+        userGenres: {
+          select: {
+            genres: {},
+          },
+        },
       },
     };
     const user = await this.usersRepository.findOne(query);
@@ -98,16 +90,52 @@ export class UsersService {
     body: UpdateUserBodyDto,
   ): Promise<CommonDto> {
     this.checkPermission(id, targetId);
-    const { birthDay, ...data } = body;
-    const birthDayDate = new Date(birthDay);
-    const findUserQuery = { where: { id } };
-    const user = await this.usersRepository.findOne(findUserQuery);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    await this.usersRepository.update({
-      ...findUserQuery,
-      data: { birthDay: birthDayDate, ...data },
+    await this.prismaService.$transaction(async (tx) => {
+      const existUser = await tx.users.findFirst({ where: { id: targetId } });
+      if (!existUser) {
+        throw new NotFoundException('User not found');
+      }
+      if ('birthDay' in body && typeof body.birthDay === 'string') {
+        const birthDayDate = new Date(body.birthDay);
+        body.birthDay = birthDayDate;
+      }
+      if ('genres' in body && typeof body.genres === 'object') {
+        const { genres, ...restUserData } = body;
+        const updateUserQuery: Prisma.UsersUpdateArgs = {
+          where: { id: targetId },
+          data: {
+            ...restUserData,
+          },
+        };
+        await tx.users.update(updateUserQuery);
+
+        const deleteUserGenreQuery: Prisma.UserGenresDeleteManyArgs = {
+          where: {
+            userId: targetId,
+          },
+        };
+        const createUserGenreQuery: Prisma.UserGenresCreateManyArgs = {
+          data: genres.map((genre) => ({
+            id: `${targetId}-${genre.id}`,
+            genreId: genre.id,
+            userId: targetId,
+          })),
+        };
+
+        const [userGenresDeletedResult, userGenresCreatedResult] =
+          await Promise.allSettled([
+            await tx.userGenres.deleteMany(deleteUserGenreQuery),
+            await tx.userGenres.createMany(createUserGenreQuery),
+          ]);
+        if (
+          userGenresDeletedResult.status === 'rejected' ||
+          userGenresCreatedResult.status === 'rejected'
+        ) {
+          throw new InternalServerErrorException(
+            'Failed to update user genres',
+          );
+        }
+      }
     });
     this.logService.verbose(`Update user - ${id}`, UsersService.name);
     return {

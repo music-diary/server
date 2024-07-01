@@ -1,16 +1,13 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma, PrismaClient, Users } from '@prisma/client';
+import { Prisma, Users } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
 export class UsersRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async create(
-    query: Prisma.UsersCreateArgs,
-    tx?: Partial<PrismaClient>,
-  ): Promise<Users> {
-    return await (tx || this.prismaService).users.create(query);
+  async create(query: Prisma.UsersCreateArgs): Promise<Users> {
+    return await this.prismaService.users.create(query);
   }
 
   async findAll(query?: Prisma.UsersFindManyArgs): Promise<Users[]> {

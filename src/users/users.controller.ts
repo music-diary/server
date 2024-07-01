@@ -7,7 +7,7 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { Roles } from 'src/decorator/roles.decorator';
@@ -29,10 +29,11 @@ export class UsersController {
   @UseGuards(AuthGuard)
   @Get('me')
   getSelf(@User() user: UserPayload): Promise<FindUserResponseDto> {
-    return this.usersService.getSelf(user.id);
+    return this.usersService.getMe(user.id);
   }
 
   @ApiOperation({ summary: 'Update user info' })
+  @ApiBody({ type: UpdateUserBodyDto })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Patch(':id')
