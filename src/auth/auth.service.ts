@@ -111,7 +111,7 @@ export class AuthService {
     if (!isVerified) {
       throw new UnauthorizedException('Phone number is not verified');
     }
-    const newUser = await this.createUserAndGenres(
+    const newUser: Users = await this.createUserAndGenres(
       {
         phoneNumber,
         birthDay: birthDayDate,
@@ -151,18 +151,24 @@ export class AuthService {
     userData: Users,
     genresData: Genres[],
   ): Promise<Users> {
-    const createUserQuery: Prisma.UsersCreateArgs = { data: userData };
     return await this.prismaService.$transaction(async (tx) => {
-      const newUser: Users = await tx.users.create(createUserQuery);
-      for (const genre of genresData) {
-        const createUserGenresQuery: Prisma.UserGenresCreateArgs = {
-          data: {
-            userId: newUser.id,
-            genreId: genre.id,
-          },
-        };
-        await tx.userGenres.create(createUserGenresQuery);
-      }
+      const createUserQuery: Prisma.UsersCreateArgs = {
+        data: { ...userData },
+      };
+      const newUser = await tx.users.create(createUserQuery);
+
+      const createUserGenreQuery: Prisma.UserGenresCreateManyArgs = {
+        data: genresData.map((genre) => ({
+          id: `${newUser.id}-${genre.id}`,
+          genreId: genre.id,
+          userId: newUser.id,
+        })),
+      };
+      await tx.userGenres.createMany(createUserGenreQuery);
+      this.logService.verbose(
+        'Successfully created a user and genres',
+        AuthService.name,
+      );
       return newUser;
     });
   }
@@ -175,6 +181,7 @@ export class AuthService {
       throw new UnauthorizedException('User not found');
     }
     const { accessToken } = await this.createAccessToken(existedUser.id);
+    this.logService.verbose('Successfully logged in', AuthService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Successfully logged in',
