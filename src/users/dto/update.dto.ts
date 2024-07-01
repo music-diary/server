@@ -16,31 +16,36 @@ export class UpdateUserBodyDto implements Partial<Users> {
   @MaxLength(6, { message: 'The name length must be less than 6' })
   @IsString()
   @IsOptional()
-  name?: string;
+  name: string | null;
 
   @ApiProperty()
   @IsDateString()
   @IsOptional()
-  birthDay?: Date;
+  birthDay: Date | null;
 
   @ApiProperty()
   @IsEnum(Gender)
   @IsOptional()
-  gender?: Gender;
+  gender: Gender | null;
 
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  isGenreSuggested?: boolean;
+  isGenreSuggested: boolean | null;
 
   @ApiProperty()
   @IsBoolean()
   @IsOptional()
-  isAgreedMarketing?: boolean;
-
-  @ApiProperty({ example: [{ name: 'dance' }, { name: 'hip-hop' }] })
+  isAgreedMarketing: boolean | null;
+  @ApiProperty({
+    isArray: true,
+    example: [
+      { id: 'dance-uuid', name: 'dance' },
+      { id: 'hip-hop-uuid', name: 'hip-hop' },
+    ],
+  })
   @IsArray()
-  @Type(() => Array<Pick<Genres, 'name'>>)
+  @Type(() => Array<Genres>)
   @IsOptional()
-  genres?: Pick<Genres, 'name'>[];
+  genres: Genres[] | null;
 }
