@@ -7,11 +7,9 @@ import {
 import { Prisma, Users } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
-import { GenresRepository } from 'src/genres/genres.repository';
 import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
-import { UserGenresRepository } from './user-genres.repository';
 import { UsersRepository } from './users.repository';
 
 @Injectable()
@@ -20,8 +18,6 @@ export class UsersService {
     private readonly logService: LogService,
     private readonly prismaService: PrismaService,
     private readonly usersRepository: UsersRepository,
-    private readonly userGenresRepository: UserGenresRepository,
-    private readonly genresRepository: GenresRepository,
   ) {}
 
   async findOne(id: string): Promise<FindUserResponseDto> {
@@ -51,9 +47,9 @@ export class UsersService {
         id: userId,
       },
       include: {
-        userGenres: {
+        genres: {
           select: {
-            genres: {},
+            genres: true,
           },
         },
       },
