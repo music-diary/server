@@ -16,9 +16,4 @@ export class EmotionsDto implements Emotions {
   @IsOptional()
   @IsUUID()
   parentId: string | null;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsUUID()
-  userId: string | null;
 }

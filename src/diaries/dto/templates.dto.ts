@@ -22,11 +22,6 @@ export class TemplatesDto implements Templates {
 
   @ApiProperty()
   @IsOptional()
-  @IsUUID()
-  diaryId: string | null;
-
-  @ApiProperty()
-  @IsOptional()
   @IsString()
   templateContent: JsonValue | null;
 }

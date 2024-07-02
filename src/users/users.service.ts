@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   HttpStatus,
   Injectable,
   InternalServerErrorException,
@@ -151,6 +152,9 @@ export class UsersService {
   }
 
   private checkPermission(userId: string, targetId: string): boolean {
-    return userId === targetId;
+    if (userId !== targetId) {
+      throw new ForbiddenException('Forbidden resource');
+    }
+    return;
   }
 }
