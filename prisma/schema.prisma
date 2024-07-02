@@ -34,7 +34,9 @@ model Users {
 
 model Genres {
   id    String       @id @default(uuid())
+  label String       @db.VarChar(30)
   name  String       @db.VarChar(30)
+  color String       @db.VarChar(10)
   users UserGenres[]
 
   @@index([id, name])
@@ -111,6 +113,7 @@ model Emotions {
 
 model Topics {
   id      String        @id @default(uuid())
+  label   String        @db.VarChar(30)
   name    String        @db.VarChar(30)
   emoji   String?       @db.VarChar(10)
   diaries DiaryTopics[]
