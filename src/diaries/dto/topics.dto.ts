@@ -10,6 +10,11 @@ export class TopicsDto implements Topics {
   @ApiProperty()
   @IsString()
   @MaxLength(30)
+  label: string;
+
+  @ApiProperty()
+  @IsString()
+  @MaxLength(30)
   name: string;
 
   @ApiProperty()
