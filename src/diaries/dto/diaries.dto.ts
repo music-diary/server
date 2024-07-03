@@ -27,7 +27,7 @@ export class DiaryDto implements Diaries {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  title: string;
+  title: string | null;
 
   @ApiProperty({
     description: 'The content of the diary',
@@ -42,7 +42,7 @@ export class DiaryDto implements Diaries {
   })
   @IsOptional()
   @IsString()
-  content: string;
+  content: string | null;
 
   @ApiProperty()
   @IsOptional()
