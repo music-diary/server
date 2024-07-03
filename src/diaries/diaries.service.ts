@@ -66,7 +66,15 @@ export class DiariesService {
   async getDiaries(userId: string): Promise<FindDiariesResponseDto> {
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
       where: { userId },
-      include: { emotions: true, topics: true, templates: true },
+      include: {
+        emotions: true,
+        topics: {
+          select: {
+            topic: true,
+          },
+        },
+        templates: true,
+      },
     };
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
     this.logService.verbose(`Get all diaries`, DiariesService.name);
@@ -80,15 +88,24 @@ export class DiariesService {
   async getDiary(id: string, userId: string): Promise<FindDiaryResponseDto> {
     const diary = await this.diariesRepository.findOne({
       where: { id, userId },
-      include: { emotions: true, topics: true, templates: true },
+      include: {
+        emotions: true,
+        topics: {
+          select: {
+            topic: true,
+          },
+        },
+        templates: true,
+      },
     });
     if (!diary) {
       throw new NotFoundException('Diary not found');
     }
-    this.logService.verbose(`Get all diary`, DiariesService.name);
+
+    this.logService.verbose(`Get diary by ${diary.id}`, DiariesService.name);
     return {
       statusCode: HttpStatus.OK,
-      message: 'Get all diaries',
+      message: 'Get diary',
       diary,
     };
   }
@@ -100,7 +117,7 @@ export class DiariesService {
     const createDiaryQuery: Prisma.DiariesCreateArgs = {
       data: {
         status: body.status,
-        userId,
+        users: { connect: { id: userId } },
       },
     };
     const diary = await this.diariesRepository.create(createDiaryQuery);
@@ -119,33 +136,60 @@ export class DiariesService {
   ): Promise<UpdateDiaryResponseDto> {
     await this.checkPermission(userId, id);
     const result = await this.prismaService.$transaction(async (tx) => {
-      const { topics, emotions, templateId, ...rest } = body;
-      // const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
-      //   where: { id },
-      //   data: body,
-      // };
-      // const diary = await tx.diaries.update({updateDiaryQuery});
-      // if ('topics' in body && body.topics.length > 0) {
-      //   const topics = body.topics;
-      //   const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
-      //     data: topics.map((topic) => ({
-      //       id: `${diary.id}-${topic.id}`,
-      //       diaryId: diary.id,
-      //       topicId: topic.id,
-      //     })),
-      //   };
-      //   await tx.diaryTopics.createMany(createDiaryTopicsQuery);
-      // }
-      // this.logService.verbose(
-      //   `Update diary by ${diary.id}`,
-      //   DiariesService.name,
-      // );
-      return body;
+      const { topics, emotionId, templateId, ...restBody } = body;
+
+      const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
+        where: { id },
+        data: {
+          ...restBody,
+          emotions: emotionId
+            ? { connect: { id: emotionId } }
+            : { disconnect: true },
+          templates: templateId
+            ? { connect: { id: templateId } }
+            : { disconnect: true },
+        },
+      };
+      const diary = await tx.diaries.update(updateDiaryQuery);
+
+      if ('topics' in body && typeof body.topics === 'object') {
+        const findDiaryToTopicsQuery: Prisma.DiaryTopicsFindManyArgs = {
+          where: { diaryId: id },
+        };
+        const diaryTopics = await tx.diaryTopics.findMany(
+          findDiaryToTopicsQuery,
+        );
+        if (diaryTopics) {
+          const deleteDiaryTopicsQuery: Prisma.DiaryTopicsDeleteManyArgs = {
+            where: {
+              diaryId: id,
+              topicId: {
+                in: diaryTopics.map((diaryTopic) => diaryTopic.topicId),
+              },
+            },
+          };
+          await tx.diaryTopics.deleteMany(deleteDiaryTopicsQuery);
+        }
+
+        const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
+          data: topics.map((topic) => ({
+            diaryId: diary.id,
+            topicId: topic.id,
+          })),
+        };
+        await tx.diaryTopics.createMany(createDiaryTopicsQuery);
+      }
+
+      return diary;
     });
+    this.logService.verbose(
+      `Update diary by ${result.id}`,
+      DiariesService.name,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Update diary',
-      diaryId: body.title,
+      diaryId: result.id,
     };
   }
 
