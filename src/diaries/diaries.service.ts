@@ -136,19 +136,22 @@ export class DiariesService {
   ): Promise<UpdateDiaryResponseDto> {
     await this.checkPermission(userId, id);
     const result = await this.prismaService.$transaction(async (tx) => {
-      const { topics, emotionId, templateId, ...restBody } = body;
-
+      const updateDiaryDataQuery: Prisma.DiariesUpdateInput = {
+        status: body.status,
+      };
+      if ('emotionId' in body && body.emotionId !== null) {
+        updateDiaryDataQuery.emotions = {
+          connect: { id: body.emotionId },
+        };
+      }
+      if ('templateId' in body && body.templateId !== null) {
+        updateDiaryDataQuery.templates = {
+          connect: { id: body.templateId },
+        };
+      }
       const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
         where: { id },
-        data: {
-          ...restBody,
-          emotions: emotionId
-            ? { connect: { id: emotionId } }
-            : { disconnect: true },
-          templates: templateId
-            ? { connect: { id: templateId } }
-            : { disconnect: true },
-        },
+        data: updateDiaryDataQuery,
       };
       const diary = await tx.diaries.update(updateDiaryQuery);
 
@@ -170,9 +173,8 @@ export class DiariesService {
           };
           await tx.diaryTopics.deleteMany(deleteDiaryTopicsQuery);
         }
-
         const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
-          data: topics.map((topic) => ({
+          data: body.topics.map((topic) => ({
             diaryId: diary.id,
             topicId: topic.id,
           })),
