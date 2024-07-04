@@ -101,13 +101,15 @@ enum DiariesStatus {
 model Emotions {
   id       String  @id @default(uuid())
   name     String  @db.VarChar(30)
+  label    String  @db.VarChar(30)
   parentId String? @map("parent_id")
+  level    Int     @default(0)
 
   children Emotions[] @relation("EmotionToEmotion")
   parent   Emotions?  @relation("EmotionToEmotion", fields: [parentId], references: [id])
   diaries  Diaries[]  @relation("EmotionToDiaries")
 
-  @@index([id, parentId])
+  @@index([id, parentId, level])
   @@map("emotions")
 }
 
