@@ -1,13 +1,13 @@
 import { PrismaClient } from '@prisma/client';
 import {
   basicEmotionsData,
-  positiveFirstDepthEmotionsData,
-  positiveSecondDepthEmotionsData,
+  firstDepthsEmotionsData,
+  secondDepthsEmotionsData,
 } from './emotions.seed';
-import { genresData } from './genres.seed';
-import { templatesData } from './templates.seed';
-import { topicsData } from './topics.seed';
 import { usersData } from './users.seed';
+import { topicsData } from './topics.seed';
+import { templatesData } from './templates.seed';
+import { genresData } from './genres.seed';
 
 const prisma = new PrismaClient();
 
@@ -26,79 +26,71 @@ async function main() {
 
   // seed emotions
   console.log(`Seeding emotions...`);
-  for (const basicEmotionData of basicEmotionsData) {
+  for (let i = 0; i < basicEmotionsData.length; i++) {
     const basicEmotion = await prisma.emotions.create({
-      data: basicEmotionData,
+      data: basicEmotionsData[i],
     });
-    // console.log(`Created basic emotion : ${basicEmotion.name}`);
-    positiveFirstDepthEmotionsData.forEach(
-      async (positiveFirstDepthEmotionData, index) => {
-        const positiveFirstDepthEmotion = await prisma.emotions.create({
+    console.log(`Created basic emotion : ${basicEmotion.name}`);
+    for (let j = 0; j < firstDepthsEmotionsData[i].length; j++) {
+      console.log(
+        `Created first depth emotion : ${firstDepthsEmotionsData[i][j].name}`,
+      );
+      const firstDepthEmotion = await prisma.emotions.create({
+        data: {
+          ...firstDepthsEmotionsData[i][j],
+          parent: {
+            connect: {
+              id: basicEmotion.id,
+            },
+          },
+        },
+      });
+      for (const secondDepthEmotionData of secondDepthsEmotionsData[i][j]) {
+        const secondDepthsEmotion = await prisma.emotions.create({
           data: {
-            ...positiveFirstDepthEmotionData,
+            ...secondDepthEmotionData,
             parent: {
               connect: {
-                id: basicEmotion.id,
+                id: firstDepthEmotion.id,
               },
             },
           },
         });
-        // console.log(
-        //   `Created first depth emotion : ${positiveFirstDepthEmotion.name}`,
-        // );
-        for (const positiveSecondDepthEmotionData of positiveSecondDepthEmotionsData[
-          index
-        ]) {
-          const positiveSecondDepthEmotion = await prisma.emotions.create({
-            data: {
-              ...positiveSecondDepthEmotionData,
-              parent: {
-                connect: {
-                  id: positiveFirstDepthEmotion.id,
-                },
-              },
-            },
-          });
-          // console.log(
-          //   `Created second depth emotion : ${positiveSecondDepthEmotion.name}`,
-          // );
-        }
-      },
-    );
-  }
-  console.log(`Completed seeding emotions...`);
+      }
+    }
+    console.log(`Completed seeding emotions...`);
 
-  // seed users
-  console.log(`Seeding users...`);
-  for (const userData of usersData) {
-    const user = await prisma.users.create({ data: userData });
-    // console.log(`Created user : ${user.name}`);
-  }
-  console.log(`Completed seeding users...`);
+    // seed users
+    console.log(`Seeding users...`);
+    for (const userData of usersData) {
+      const user = await prisma.users.create({ data: userData });
+      // console.log(`Created user : ${user.name}`);
+    }
+    console.log(`Completed seeding users...`);
 
-  // seed topics
-  console.log(`Seeding topics...`);
-  for (const topicData of topicsData) {
-    const topic = await prisma.topics.create({
-      data: topicData,
-    });
-    // console.log(`Created topics : ${topic.name}`);
-  }
-  console.log(`Completed seeding topics...`);
+    // seed topics
+    console.log(`Seeding topics...`);
+    for (const topicData of topicsData) {
+      const topic = await prisma.topics.create({
+        data: topicData,
+      });
+      // console.log(`Created topics : ${topic.name}`);
+    }
+    console.log(`Completed seeding topics...`);
 
-  // seed templates
-  console.log(`Seeding templates...`);
-  for (const templateData of templatesData) {
-    const template = await prisma.templates.create({
-      data: templateData,
-    });
-    // console.log(`Created topics : ${template.name}`);
-  }
-  console.log(`Completed seeding templates...`);
+    // seed templates
+    console.log(`Seeding templates...`);
+    for (const templateData of templatesData) {
+      const template = await prisma.templates.create({
+        data: templateData,
+      });
+      // console.log(`Created topics : ${template.name}`);
+    }
+    console.log(`Completed seeding templates...`);
 
-  console.log(`Seeding finished.`);
+    console.log(`Seeding finished.`);
+  }
 }
-
 main()
   .then(async () => {
     await prisma.$disconnect();
