@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Emotions } from '@prisma/client';
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class EmotionsDto implements Emotions {
   @ApiProperty()
@@ -13,7 +19,16 @@ export class EmotionsDto implements Emotions {
   name: string;
 
   @ApiProperty()
+  @IsString()
+  @MaxLength(30)
+  label: string;
+
+  @ApiProperty()
   @IsOptional()
   @IsUUID()
   parentId: string | null;
+
+  @ApiProperty()
+  @IsNumber()
+  level: number;
 }

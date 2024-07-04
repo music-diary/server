@@ -47,12 +47,12 @@ export class DiaryDto implements Diaries {
   @ApiProperty()
   @IsOptional()
   @IsUUID()
-  emotionId: string;
+  emotionId: string | null;
 
   @ApiProperty()
   @IsOptional()
   @IsUUID()
-  templateId: string;
+  templateId: string | null;
 
   @ApiProperty({
     type: 'enum',
