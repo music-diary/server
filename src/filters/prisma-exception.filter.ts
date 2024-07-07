@@ -24,7 +24,12 @@ export class PrismaExceptionFilter extends BaseExceptionFilter {
         error: exceptionName,
       });
     } else {
-      super.catch(exception, host);
+      const code = HttpStatus.INTERNAL_SERVER_ERROR;
+      response.status(code).json({
+        statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
+        message: exceptionMessage,
+        error: exceptionName,
+      });
     }
   }
 }
