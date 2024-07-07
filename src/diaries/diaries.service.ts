@@ -67,7 +67,11 @@ export class DiariesService {
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
       where: { userId },
       include: {
-        emotions: true,
+        emotions: {
+          select: {
+            emotions: true,
+          },
+        },
         topics: {
           select: {
             topic: true,
@@ -89,7 +93,11 @@ export class DiariesService {
     const diary = await this.diariesRepository.findOne({
       where: { id, userId },
       include: {
-        emotions: true,
+        emotions: {
+          select: {
+            emotions: true,
+          },
+        },
         topics: {
           select: {
             topic: true,
@@ -136,25 +144,28 @@ export class DiariesService {
   ): Promise<UpdateDiaryResponseDto> {
     await this.checkPermission(userId, id);
     const result = await this.prismaService.$transaction(async (tx) => {
-      const updateDiaryDataQuery: Prisma.DiariesUpdateInput = {
-        status: body.status,
-      };
-      if ('emotionId' in body && body.emotionId !== null) {
-        updateDiaryDataQuery.emotions = {
-          connect: { id: body.emotionId },
-        };
+      const existed = await tx.diaries.findFirst({ where: { id } });
+      if (!existed) {
+        throw new NotFoundException('Diary not found');
       }
+      const { status, title, content, ...restBody } = body;
+      const updateDiaryDataQuery: Prisma.DiariesUpdateInput = {
+        status,
+        title,
+        content,
+      };
       if ('templateId' in body && body.templateId !== null) {
+        console.log('templateId', body.templateId);
         updateDiaryDataQuery.templates = {
           connect: { id: body.templateId },
         };
       }
       const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
         where: { id },
-        data: updateDiaryDataQuery,
+        data: {
+          ...updateDiaryDataQuery,
+        },
       };
-      const diary = await tx.diaries.update(updateDiaryQuery);
-
       if ('topics' in body && typeof body.topics === 'object') {
         const findDiaryToTopicsQuery: Prisma.DiaryTopicsFindManyArgs = {
           where: { diaryId: id },
@@ -175,12 +186,40 @@ export class DiariesService {
         }
         const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
           data: body.topics.map((topic) => ({
-            diaryId: diary.id,
+            diaryId: id,
             topicId: topic.id,
           })),
         };
         await tx.diaryTopics.createMany(createDiaryTopicsQuery);
       }
+
+      if ('emotions' in body && typeof body.emotions === 'object') {
+        const findDiaryEmotionsQuery: Prisma.DiaryEmotionsFindManyArgs = {
+          where: { diaryId: id },
+        };
+        const diaryEmotions = await tx.diaryEmotions.findMany(
+          findDiaryEmotionsQuery,
+        );
+        if (diaryEmotions) {
+          const deleteDiaryEmotionsQuery: Prisma.DiaryEmotionsDeleteManyArgs = {
+            where: {
+              diaryId: id,
+              emotionId: {
+                in: diaryEmotions.map((diaryEmotion) => diaryEmotion.emotionId),
+              },
+            },
+          };
+          await tx.diaryEmotions.deleteMany(deleteDiaryEmotionsQuery);
+        }
+        const createDiaryEmotionsQuery: Prisma.DiaryEmotionsCreateManyArgs = {
+          data: body.emotions.map((emotion) => ({
+            diaryId: diary.id,
+            emotionId: emotion.id,
+          })),
+        };
+        await tx.diaryEmotions.createMany(createDiaryEmotionsQuery);
+      }
+      const diary = await tx.diaries.update(updateDiaryQuery);
 
       return diary;
     });

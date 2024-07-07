@@ -133,6 +133,8 @@ export class UsersService {
           );
         }
       }
+      const { genres: _genres, ...restBody } = body;
+      await tx.users.update({ where: { id: targetId }, data: { ...restBody } });
     });
     this.logService.verbose(`Update user - ${id}`, UsersService.name);
     return {

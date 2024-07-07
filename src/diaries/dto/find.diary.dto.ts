@@ -8,11 +8,11 @@ export class FindDiariesResponseDto extends CommonDto {
   @ApiProperty({ type: [DiaryDto] })
   @IsArray()
   @Type(() => DiaryDto)
-  diaries: any[];
+  diaries: Partial<DiaryDto>[];
 }
 
 export class FindDiaryResponseDto extends CommonDto {
   @ApiProperty({ type: DiaryDto })
   @Type(() => DiaryDto)
-  diary: any;
+  diary: Partial<DiaryDto>;
 }

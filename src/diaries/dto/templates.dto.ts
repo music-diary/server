@@ -1,7 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Templates, TemplateType } from '@prisma/client';
+import { Templates } from '@prisma/client';
 import { JsonValue } from '@prisma/client/runtime/library';
-import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
+import { IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class TemplatesDto implements Templates {
   @ApiProperty()
@@ -16,9 +16,9 @@ export class TemplatesDto implements Templates {
   @IsString()
   description: string;
 
-  @ApiProperty()
-  @IsEnum(TemplateType)
-  type: TemplateType;
+  @ApiProperty({ example: 'SCS' || 'KPT' || 'MSG' || '4L' || '5F' })
+  @IsString()
+  type: string;
 
   @ApiProperty()
   @IsOptional()

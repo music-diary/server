@@ -75,7 +75,6 @@ model Diaries {
   userId     String        @map("user_id")
   title      String?       @db.VarChar(30)
   content    String?       @db.VarChar(1500)
-  emotionId  String?       @map("emotion_id")
   templateId String?       @map("template_id")
   status     DiariesStatus
   createdAt  DateTime      @default(now()) @map("created_at")
@@ -83,12 +82,12 @@ model Diaries {
   // music     Musics
   // selectedLyrics? String
 
-  users     Users         @relation("UserDiaries", fields: [userId], references: [id])
-  emotions  Emotions?     @relation("EmotionToDiaries", fields: [emotionId], references: [id])
-  templates Templates?    @relation(fields: [templateId], references: [id])
+  users     Users           @relation("UserDiaries", fields: [userId], references: [id])
+  templates Templates?      @relation(fields: [templateId], references: [id])
   topics    DiaryTopics[]
+  emotions  DiaryEmotions[]
 
-  @@index([id, userId, emotionId])
+  @@index([id, userId, templateId])
   @@map("diaries")
 }
 
@@ -105,12 +104,23 @@ model Emotions {
   parentId String? @map("parent_id")
   level    Int     @default(0)
 
-  children Emotions[] @relation("EmotionToEmotion")
-  parent   Emotions?  @relation("EmotionToEmotion", fields: [parentId], references: [id])
-  diaries  Diaries[]  @relation("EmotionToDiaries")
+  children Emotions[]      @relation("EmotionToEmotion")
+  parent   Emotions?       @relation("EmotionToEmotion", fields: [parentId], references: [id])
+  diaries  DiaryEmotions[]
 
   @@index([id, parentId, level])
   @@map("emotions")
+}
+
+model DiaryEmotions {
+  id        String @id @default(uuid())
+  diaryId   String @map("diary_id")
+  emotionId String @map("emotion_id")
+
+  diary    Diaries  @relation(fields: [diaryId], references: [id])
+  emotions Emotions @relation(fields: [emotionId], references: [id])
+
+  @@index([id, diaryId, emotionId])
 }
 
 model Topics {
@@ -136,23 +146,15 @@ model DiaryTopics {
 }
 
 model Templates {
-  id              String       @id @default(uuid())
+  id              String    @id @default(uuid())
   name            String
   description     String
-  type            TemplateType
+  type            String // SCS | KPT | MSG | 4L | 5F
   templateContent Json?
-  diaries         Diaries[]
+  Diaries         Diaries[]
 
   @@index([id])
   @@map("templates")
-}
-
-enum TemplateType {
-  SCS
-  KPT
-  MSG
-  FOURL // 4L
-  FIVEF // 5F
 }
 
 // ScsSchema {
