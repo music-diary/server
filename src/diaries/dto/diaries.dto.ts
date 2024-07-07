@@ -1,5 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Diaries, DiariesStatus, DiaryTopics } from '@prisma/client';
+import {
+  Diaries,
+  DiariesStatus,
+  DiaryEmotions,
+  DiaryTopics,
+} from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -27,7 +32,7 @@ export class DiaryDto implements Diaries {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  title: string | null;
+  title: string;
 
   @ApiProperty({
     description: 'The content of the diary',
@@ -42,17 +47,12 @@ export class DiaryDto implements Diaries {
   })
   @IsOptional()
   @IsString()
-  content: string | null;
+  content: string;
 
   @ApiProperty()
   @IsOptional()
   @IsUUID()
-  emotionId: string | null;
-
-  @ApiProperty()
-  @IsOptional()
-  @IsUUID()
-  templateId: string | null;
+  templateId: string;
 
   @ApiProperty({
     type: 'enum',
@@ -76,12 +76,6 @@ export class DiaryDto implements Diaries {
   @Type(() => UsersDto)
   users: UsersDto;
 
-  @ApiProperty({ type: EmotionsDto })
-  @IsOptional()
-  @IsObject()
-  @Type(() => EmotionsDto)
-  emotions: EmotionsDto[];
-
   @ApiProperty({ type: TemplatesDto })
   @Type(() => TemplatesDto)
   @IsOptional()
@@ -92,6 +86,12 @@ export class DiaryDto implements Diaries {
   @IsArray()
   @Type(() => TopicsDto)
   topics: DiaryTopics[];
+
+  @ApiProperty({ type: EmotionsDto, isArray: true })
+  @IsOptional()
+  @IsArray()
+  @Type(() => EmotionsDto)
+  emotions: DiaryEmotions[];
 
   // @ApiProperty({ type: TopicsDto, isArray: true })
   // @IsArray()
