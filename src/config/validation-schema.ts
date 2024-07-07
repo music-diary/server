@@ -5,12 +5,16 @@ export const validationSchema = Joi.object({
     .valid('develop', 'production', 'test', 'local')
     .default('local'),
   PORT: Joi.number().port().default(5000),
+  SERVER_DOMAIN: Joi.string().required(),
+
   DATABASE_URL: Joi.string().required(),
-  REDIS_URL: Joi.string().required(),
+  REDIS_HOST: Joi.string().required(),
+  REDIS_PORT: Joi.number().port().default(6379),
+
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_ACCESS_EXPIRE_IN: Joi.string().required(),
+
   AWS_REGION: Joi.string().required(),
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),
-  SERVER_DOMAIN: Joi.string().required(),
 });
