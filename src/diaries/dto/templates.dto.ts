@@ -1,7 +1,34 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Templates } from '@prisma/client';
-import { JsonValue } from '@prisma/client/runtime/library';
-import { IsOptional, IsString, IsUUID } from 'class-validator';
+import { TemplateContents, Templates } from '@prisma/client';
+import { Type } from 'class-transformer';
+import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+
+export class templateContentsDto implements TemplateContents {
+  @ApiProperty()
+  @IsUUID()
+  id: string;
+
+  @ApiProperty()
+  @IsUUID()
+  templateId: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  content: string | null;
+
+  @ApiProperty()
+  @IsNumber()
+  order: number;
+
+  @ApiProperty()
+  @IsString()
+  name: string;
+
+  @ApiProperty()
+  @IsString()
+  label: string;
+}
 
 export class TemplatesDto implements Templates {
   @ApiProperty()
@@ -20,8 +47,7 @@ export class TemplatesDto implements Templates {
   @IsString()
   type: string;
 
-  @ApiProperty()
-  @IsOptional()
-  @IsString()
-  templateContent: JsonValue | null;
+  @ApiProperty({ type: templateContentsDto, isArray: true })
+  @Type(() => templateContentsDto)
+  templateContents: templateContentsDto[];
 }

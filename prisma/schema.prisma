@@ -74,7 +74,7 @@ model Diaries {
   id         String        @id @default(uuid())
   userId     String        @map("user_id")
   title      String?       @db.VarChar(30)
-  content    String?       @db.VarChar(1500)
+  content    String?       @db.VarChar(500)
   templateId String?       @map("template_id")
   status     DiariesStatus
   createdAt  DateTime      @default(now()) @map("created_at")
@@ -146,15 +146,30 @@ model DiaryTopics {
 }
 
 model Templates {
-  id              String    @id @default(uuid())
-  name            String
-  description     String
-  type            String // SCS | KPT | MSG | 4L | 5F
-  templateContent Json?
-  Diaries         Diaries[]
+  id          String @id @default(uuid())
+  name        String
+  description String
+  type        String // SCS | KPT | MSG | 4L | 5F
+
+  diaries          Diaries[]
+  templateContents TemplateContents[]
 
   @@index([id])
   @@map("templates")
+}
+
+model TemplateContents {
+  id         String  @id @default(uuid())
+  templateId String  @map("template_id")
+  content    String? @db.VarChar(200)
+  order      Int     @default(0)
+  name       String  @db.VarChar(20)
+  label      String  @db.VarChar(50)
+
+  templates Templates? @relation(fields: [templateId], references: [id])
+
+  @@index([id, templateId])
+  @@map("template_contents")
 }
 
 // ScsSchema {

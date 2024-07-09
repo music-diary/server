@@ -5,7 +5,7 @@ import {
   secondDepthsEmotionsData,
 } from './emotions.seed';
 import { genresData } from './genres.seed';
-import { templatesData } from './templates.seed';
+import { templateContentsData, templatesData } from './templates.seed';
 import { topicsData } from './topics.seed';
 import { usersData } from './users.seed';
 
@@ -77,12 +77,24 @@ async function main() {
 
   // seed templates
   console.log(`Seeding templates...`);
-  for (const templateData of templatesData) {
-    await prisma.templates.create({
-      data: templateData,
+  for (let i = 0; i < templatesData.length; i++) {
+    const template = await prisma.templates.create({
+      data: templatesData[i],
     });
+    for (let j = 0; j < templateContentsData[i].length; j++) {
+      await prisma.templateContents.create({
+        data: {
+          ...templateContentsData[i][j],
+          templates: {
+            connect: {
+              id: template.id,
+            },
+          },
+        },
+      });
+    }
+    console.log(`Completed seeding templates...`);
   }
-  console.log(`Completed seeding templates...`);
 
   console.log(`Seeding finished.`);
 }

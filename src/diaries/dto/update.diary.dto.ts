@@ -9,6 +9,7 @@ export class UpdateDiaryBodyDto extends OmitType(DiaryDto, [
   'createdAt',
   'updatedAt',
   'users',
+  'templateId',
 ]) {}
 
 export class UpdateDiaryResponseDto extends CommonDto {

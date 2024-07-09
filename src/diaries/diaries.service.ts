@@ -54,7 +54,12 @@ export class DiariesService {
   }
 
   async getTemplates(): Promise<FindTemplatesResponseDto> {
-    const templates = await this.templatesRepository.findAll();
+    const findParams: Prisma.TemplatesFindManyArgs = {
+      include: {
+        templateContents: true,
+      },
+    };
+    const templates = await this.templatesRepository.findAll(findParams);
     this.logService.verbose(`Get all templates`, DiariesService.name);
     return {
       statusCode: HttpStatus.OK,
@@ -67,17 +72,30 @@ export class DiariesService {
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
       where: { userId },
       include: {
+        users: {
+          select: {
+            id: true,
+          },
+        },
         emotions: {
           select: {
-            emotions: true,
+            emotionId: true,
           },
         },
         topics: {
           select: {
-            topic: true,
+            topicId: true,
           },
         },
-        templates: true,
+        templates: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            type: true,
+            templateContents: true,
+          },
+        },
       },
     };
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
@@ -93,6 +111,11 @@ export class DiariesService {
     const diary = await this.diariesRepository.findOne({
       where: { id, userId },
       include: {
+        users: {
+          select: {
+            id: true,
+          },
+        },
         emotions: {
           select: {
             emotions: true,
@@ -103,7 +126,15 @@ export class DiariesService {
             topic: true,
           },
         },
-        templates: true,
+        templates: {
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            type: true,
+            templateContents: true,
+          },
+        },
       },
     });
     if (!diary) {
@@ -154,11 +185,26 @@ export class DiariesService {
         title,
         content,
       };
-      if ('templateId' in body && body.templateId !== null) {
-        console.log('templateId', body.templateId);
+      if ('templates' in body && typeof body.templates === 'object') {
         updateDiaryDataQuery.templates = {
-          connect: { id: body.templateId },
+          connect: { id: body.templates.id },
         };
+        const updateTemplateDataQuery: Prisma.TemplatesUpdateArgs = {
+          where: { id: body.templates.id },
+          data: {
+            templateContents: {
+              update: body.templates.templateContents.map(
+                (templateContent) => ({
+                  where: { id: templateContent.id },
+                  data: {
+                    content: templateContent.content,
+                  },
+                }),
+              ),
+            },
+          },
+        };
+        await tx.templates.update(updateTemplateDataQuery);
       }
       const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
         where: { id },
@@ -166,7 +212,7 @@ export class DiariesService {
           ...updateDiaryDataQuery,
         },
       };
-      if ('topics' in body && typeof body.topics === 'object') {
+      if ('topics' in body && typeof body.topics !== undefined) {
         const findDiaryToTopicsQuery: Prisma.DiaryTopicsFindManyArgs = {
           where: { diaryId: id },
         };
@@ -184,15 +230,17 @@ export class DiariesService {
           };
           await tx.diaryTopics.deleteMany(deleteDiaryTopicsQuery);
         }
-        const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
-          data: body.topics.map((topic) => ({
+
+        const createDiaryTopicsData: Prisma.DiaryTopicsCreateManyInput[] =
+          body.topics.map((topic) => ({
             diaryId: id,
             topicId: topic.id,
-          })),
+          }));
+        const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
+          data: createDiaryTopicsData,
         };
         await tx.diaryTopics.createMany(createDiaryTopicsQuery);
       }
-
       if ('emotions' in body && typeof body.emotions === 'object') {
         const findDiaryEmotionsQuery: Prisma.DiaryEmotionsFindManyArgs = {
           where: { diaryId: id },
@@ -213,14 +261,13 @@ export class DiariesService {
         }
         const createDiaryEmotionsQuery: Prisma.DiaryEmotionsCreateManyArgs = {
           data: body.emotions.map((emotion) => ({
-            diaryId: diary.id,
+            diaryId: id,
             emotionId: emotion.id,
           })),
         };
         await tx.diaryEmotions.createMany(createDiaryEmotionsQuery);
       }
       const diary = await tx.diaries.update(updateDiaryQuery);
-
       return diary;
     });
     this.logService.verbose(
