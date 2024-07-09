@@ -92,9 +92,4 @@ export class DiaryDto implements Diaries {
   @IsArray()
   @Type(() => EmotionsDto)
   emotions: DiaryEmotions[];
-
-  // @ApiProperty({ type: TopicsDto, isArray: true })
-  // @IsArray()
-  // @Type(() => TopicsDto)
-  // topics: TopicsDto[];
 }
