@@ -3,7 +3,7 @@ import { Prisma } from '@prisma/client';
 export const basicEmotionsData: Prisma.EmotionsCreateInput[] = [
   {
     name: 'good',
-    label: '좋았어요',
+    label: '좋았어요!',
   },
   {
     name: 'normal',
@@ -104,11 +104,6 @@ export const positiveSecondDepthEmotionsData: Prisma.EmotionsCreateInput[][] = [
     {
       name: 'hopeful',
       label: '희망찬',
-      level: 2,
-    },
-    {
-      name: 'flattered',
-      label: '설레는',
       level: 2,
     },
     {
