@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Genres } from '@prisma/client';
-import { IsString, IsUUID } from 'class-validator';
+import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
 
 export class GenresDto implements Genres {
   @ApiProperty()
@@ -18,4 +18,9 @@ export class GenresDto implements Genres {
   @ApiProperty()
   @IsString()
   color: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  order: number | null;
 }

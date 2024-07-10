@@ -25,6 +25,11 @@ export class EmotionsDto implements Emotions {
 
   @ApiProperty()
   @IsOptional()
+  @IsNumber()
+  order: number | null;
+
+  @ApiProperty()
+  @IsOptional()
   @IsUUID()
   parentId: string | null;
 

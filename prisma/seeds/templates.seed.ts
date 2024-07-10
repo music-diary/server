@@ -5,27 +5,32 @@ export const templatesData: Prisma.TemplatesCreateInput[] = [
     name: 'SCS 회고',
     description: '더 강하고 단단한 나로 발전하고 싶을 때',
     type: 'SCS',
+    order: 0,
   },
   {
     name: 'KPT 회고',
     description: '사실에 기반해 더 나은 나로 발전하고 싶을 때',
     type: 'KPT',
+    order: 1,
   },
   {
     name: '5F 회고',
     description: '사실과 감정을 균형있게 담긴 일기를 쓰고 싶을 때',
     type: '5F',
+    order: 2,
   },
   {
     name: '4L 회고',
     description: '내면의 열망을 이끌어 내고 싶을 때',
     type: '4L',
+    order: 3,
   },
 
   {
     name: 'Mad, Sad, Glad',
     description: '거침없이 감정에 솔직하고 싶을 때',
     type: 'MSG',
+    order: 4,
   },
 ];
 

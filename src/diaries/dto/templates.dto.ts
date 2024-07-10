@@ -47,6 +47,11 @@ export class TemplatesDto implements Templates {
   @IsString()
   type: string;
 
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  order: number | null;
+
   @ApiProperty({ type: templateContentsDto, isArray: true })
   @Type(() => templateContentsDto)
   templateContents: templateContentsDto[];
