@@ -13,4 +13,8 @@ export class GenresRepository {
   async findOne(query: Prisma.GenresFindFirstArgs): Promise<Genres> {
     return await this.prismaService.genres.findFirst(query);
   }
+
+  async findUniqueOne(query: Prisma.GenresFindUniqueArgs): Promise<Genres> {
+    return await this.prismaService.genres.findUnique(query);
+  }
 }

@@ -176,7 +176,9 @@ export class AuthService {
   // NOTE: This is a temporary implementation for the test.
   async login(body: LoginBody) {
     const { id } = body;
-    const existedUser = await this.usersRepository.findOne({ where: { id } });
+    const existedUser = await this.usersRepository.findUniqueOne({
+      where: { id },
+    });
     if (!existedUser) {
       throw new UnauthorizedException('User not found');
     }
