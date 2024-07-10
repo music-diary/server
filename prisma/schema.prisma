@@ -37,6 +37,7 @@ model Genres {
   label String       @db.VarChar(30)
   name  String       @db.VarChar(30)
   color String       @db.VarChar(10)
+  order Int          @default(0)
   users UserGenres[]
 
   @@index([id, name])
@@ -103,6 +104,7 @@ model Emotions {
   label    String  @db.VarChar(30)
   parentId String? @map("parent_id")
   level    Int     @default(0)
+  order    Int     @default(0)
 
   children Emotions[]      @relation("EmotionToEmotion")
   parent   Emotions?       @relation("EmotionToEmotion", fields: [parentId], references: [id])
@@ -128,6 +130,7 @@ model Topics {
   label   String        @db.VarChar(30)
   name    String        @db.VarChar(30)
   emoji   String?       @db.VarChar(10)
+  order   Int           @default(0)
   diaries DiaryTopics[]
 
   @@index([id])
@@ -150,6 +153,7 @@ model Templates {
   name        String
   description String
   type        String // SCS | KPT | MSG | 4L | 5F
+  order       Int    @default(0)
 
   diaries          Diaries[]
   templateContents TemplateContents[]
@@ -171,32 +175,3 @@ model TemplateContents {
   @@index([id, templateId])
   @@map("template_contents")
 }
-
-// ScsSchema {
-// 	stop String
-// 	continue String
-// 	start String
-// }
-// KptSchema {
-// 	keep String
-// 	problem String
-// 	try String
-// }
-// MadSchema {
-// 	mad String
-// 	sad String
-// 	glad String
-// }
-// 5FSchema {
-// 	fact String
-// 	feeling String
-// 	finding String
-// 	futureAction String
-// 	feedback String
-// }
-// 4LSchema {
-// 	loved String
-// 	learned String
-// 	lacked String
-// 	longedFor String
-// }
