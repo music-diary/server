@@ -8,7 +8,7 @@ import {
   SendPhoneNumberCodeBody,
   VerifyPhoneNumberCodeBody,
 } from './dto/auth.dto';
-import { SignUpBody } from './dto/sign-up.dto';
+import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -18,9 +18,8 @@ export class AuthController {
   @ApiOperation({ summary: 'Send phone number verification code' })
   @ApiBody({
     type: SendPhoneNumberCodeBody,
-    examples: { 'example-KR': { value: { phoneNumber: '+8201012345678' } } },
+    examples: { example: { value: { phoneNumber: '+821012345678' } } },
   })
-  @ApiResponse({ status: HttpStatus.OK, type: CommonDto })
   @Post('phone')
   sendPhoneNumberCode(
     @Body() body: SendPhoneNumberCodeBody,
@@ -47,7 +46,7 @@ export class AuthController {
   @ApiBody({ type: SignUpBody })
   @ApiResponse({
     status: HttpStatus.CREATED,
-    type: CommonDto,
+    type: SignUpResponseDto,
     headers: {
       Authorization: {
         description: 'The access token',
