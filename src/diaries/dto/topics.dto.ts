@@ -1,6 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Topics } from '@prisma/client';
-import { IsOptional, IsString, IsUUID, MaxLength } from 'class-validator';
+import {
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+  MaxLength,
+} from 'class-validator';
 
 export class TopicsDto implements Topics {
   @ApiProperty()
@@ -20,4 +26,9 @@ export class TopicsDto implements Topics {
   @ApiProperty()
   @IsOptional()
   emoji: string | null;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  order: number | null;
 }
