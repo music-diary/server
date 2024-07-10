@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Param,
   Patch,
@@ -27,6 +28,7 @@ import {
   UpdateDiaryBodyDto,
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
+import { CommonDto } from 'src/common/common.dto';
 
 @ApiTags('Diaries')
 @Controller('diaries')
@@ -91,5 +93,16 @@ export class DiariesController {
     @Body() body: UpdateDiaryBodyDto,
   ): Promise<UpdateDiaryResponseDto> {
     return this.diariesService.update(id, user.id, body);
+  }
+
+  @ApiOperation({ summary: 'Delete diary' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Delete(':id')
+  delete(
+    @Param('id') id: string,
+    @User() user: UserPayload,
+  ): Promise<CommonDto> {
+    return this.diariesService.delete(id, user.id);
   }
 }

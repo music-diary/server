@@ -21,6 +21,7 @@ import { DiariesRepository } from './repository/diaires.repository';
 import { EmotionsRepository } from './repository/emotions.repository';
 import { TemplatesRepository } from './repository/templates.repository';
 import { TopicsRepository } from './repository/topics.repository';
+import { CommonDto } from 'src/common/common.dto';
 
 @Injectable()
 export class DiariesService {
@@ -286,6 +287,18 @@ export class DiariesService {
       statusCode: HttpStatus.OK,
       message: 'Update diary',
       diaryId: result.id,
+    };
+  }
+
+  async delete(id: string, userId: string): Promise<CommonDto> {
+    const deleteDiaryParams: Prisma.DiariesDeleteArgs = {
+      where: { id, userId },
+    };
+    const diary = await this.diariesRepository.delete(deleteDiaryParams);
+    this.logService.verbose(`Delete diary by ${diary.id}`, DiariesService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Delete diary',
     };
   }
 
