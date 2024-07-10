@@ -44,7 +44,12 @@ export class DiariesService {
   }
 
   async getTopics(): Promise<FindTopicsResponseDto> {
-    const topics = await this.topicsRepository.findAll();
+    const findParams: Prisma.TopicsFindManyArgs = {
+      orderBy: {
+        order: 'asc',
+      },
+    };
+    const topics = await this.topicsRepository.findAll(findParams);
     this.logService.verbose(`Get all topics`, DiariesService.name);
     return {
       statusCode: HttpStatus.OK,
@@ -57,6 +62,9 @@ export class DiariesService {
     const findParams: Prisma.TemplatesFindManyArgs = {
       include: {
         templateContents: true,
+      },
+      orderBy: {
+        order: 'asc',
       },
     };
     const templates = await this.templatesRepository.findAll(findParams);
