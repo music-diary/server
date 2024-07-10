@@ -10,6 +10,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { GenresDto } from 'src/genres/dto/genres.dto';
 
 export class UpdateUserBodyDto implements Partial<Users> {
   @ApiProperty()
@@ -37,15 +38,22 @@ export class UpdateUserBodyDto implements Partial<Users> {
   @IsBoolean()
   @IsOptional()
   isAgreedMarketing: boolean | null;
+
+  @ApiProperty()
+  @IsBoolean()
+  IsAgreedDiaryAlarm: boolean;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsDateString()
+  diaryAlarmTime: Date | null;
+
   @ApiProperty({
     isArray: true,
-    example: [
-      { id: 'dance-uuid', name: 'dance' },
-      { id: 'hip-hop-uuid', name: 'hip-hop' },
-    ],
+    type: GenresDto,
   })
   @IsArray()
-  @Type(() => Array<Genres>)
+  @Type(() => Array<GenresDto>)
   @IsOptional()
   genres: Genres[] | null;
 }

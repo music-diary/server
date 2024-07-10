@@ -72,10 +72,19 @@ export class UsersDto implements Users {
   useLimitCount: number;
 
   @ApiProperty()
+  @IsBoolean()
+  IsAgreedDiaryAlarm: boolean;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsDate()
+  diaryAlarmTime: Date | null;
+
+  @ApiProperty({ type: Role, enum: Role })
   @IsEnum(Role)
   role: Role;
 
-  @ApiProperty()
+  @ApiProperty({ type: UserStatus, enum: UserStatus })
   @IsEnum(UserStatus)
   status: UserStatus;
 

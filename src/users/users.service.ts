@@ -22,12 +22,12 @@ export class UsersService {
   ) {}
 
   async findOne(id: string): Promise<FindUserResponseDto> {
-    const query: Prisma.UsersFindFirstArgs = {
+    const query: Prisma.UsersFindUniqueArgs = {
       where: {
         id,
       },
     };
-    const user = await this.usersRepository.findOne(query);
+    const user = await this.usersRepository.findUniqueOne(query);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -43,10 +43,8 @@ export class UsersService {
   }
 
   async getMe(userId: string): Promise<FindUserResponseDto> {
-    const query: Prisma.UsersFindFirstArgs = {
-      where: {
-        id: userId,
-      },
+    const query: Prisma.UsersFindUniqueArgs = {
+      where: { id: userId },
       include: {
         genres: {
           select: {
@@ -55,7 +53,7 @@ export class UsersService {
         },
       },
     };
-    const user = await this.usersRepository.findOne(query);
+    const user = await this.usersRepository.findUniqueOne(query);
     if (!user) {
       throw new NotFoundException('User not found');
     }
@@ -69,7 +67,7 @@ export class UsersService {
 
   async delete(id: string): Promise<CommonDto> {
     const query = { where: { id } };
-    const existedUser: Users = await this.usersRepository.findOne(query);
+    const existedUser: Users = await this.usersRepository.findUniqueOne(query);
     if (!existedUser) {
       throw new NotFoundException('User not found');
     }
@@ -88,13 +86,17 @@ export class UsersService {
   ): Promise<CommonDto> {
     this.checkPermission(id, targetId);
     await this.prismaService.$transaction(async (tx) => {
-      const existUser = await tx.users.findFirst({ where: { id: targetId } });
+      const existUser = await tx.users.findUnique({ where: { id: targetId } });
       if (!existUser) {
         throw new NotFoundException('User not found');
       }
       if ('birthDay' in body && typeof body.birthDay === 'string') {
         const birthDayDate = new Date(body.birthDay);
         body.birthDay = birthDayDate;
+      }
+      if ('diaryAlarmTime' in body && typeof body.diaryAlarmTime === 'string') {
+        const alarmTime = new Date(body.diaryAlarmTime);
+        body.diaryAlarmTime = alarmTime;
       }
       if ('genres' in body && typeof body.genres === 'object') {
         const { genres, ...restUserData } = body;
@@ -121,8 +123,8 @@ export class UsersService {
 
         const [userGenresDeletedResult, userGenresCreatedResult] =
           await Promise.allSettled([
-            await tx.userGenres.deleteMany(deleteUserGenreQuery),
-            await tx.userGenres.createMany(createUserGenreQuery),
+            tx.userGenres.deleteMany(deleteUserGenreQuery),
+            tx.userGenres.createMany(createUserGenreQuery),
           ]);
         if (
           userGenresDeletedResult.status === 'rejected' ||
