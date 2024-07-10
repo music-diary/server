@@ -14,6 +14,10 @@ export class DiariesRepository {
     return await this.prismaService.diaries.findFirst(query);
   }
 
+  async findUniqueOne(query?: Prisma.DiariesFindUniqueArgs): Promise<Diaries> {
+    return await this.prismaService.diaries.findUnique(query);
+  }
+
   async create(query?: Prisma.DiariesCreateArgs): Promise<Diaries> {
     return await this.prismaService.diaries.create(query);
   }

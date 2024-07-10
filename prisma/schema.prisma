@@ -8,25 +8,27 @@ datasource db {
 }
 
 model Users {
-  id                String       @id @default(uuid())
-  phoneNumber       String       @map("phone_number") // TODO production 시, unique 처리 필수
-  name              String       @db.VarChar(6)
-  birthDay          DateTime     @map("birth_day")
-  gender            Gender       @default(FEMALE)
-  isGenreSuggested  Boolean      @map("is_genre_suggested") // 새로운 장르 추천 여부
-  isAgreedMarketing Boolean      @map("is_agreed_marketing") // 마케팅 동의여부
-  profileImageKey   String?      @map("profile_image_key") // image file s3 key
-  profileImageUrl   String?      @map("profile_image_url") // s3 url
-  useLimitCount     Int          @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
-  role              Role         @default(USER)
-  status            UserStatus   @default(ACTIVE)
-  diaries           Diaries[]    @relation("UserDiaries")
+  id                 String       @id @default(uuid())
+  phoneNumber        String       @map("phone_number") // TODO production 시, unique 처리 필수
+  name               String       @db.VarChar(6)
+  birthDay           DateTime     @map("birth_day")
+  gender             Gender       @default(FEMALE)
+  isGenreSuggested   Boolean      @map("is_genre_suggested") // 새로운 장르 추천 여부
+  isAgreedMarketing  Boolean      @map("is_agreed_marketing") // 마케팅 동의여부
+  profileImageKey    String?      @map("profile_image_key") // image file s3 key
+  profileImageUrl    String?      @map("profile_image_url") // s3 url
+  useLimitCount      Int          @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
+  IsAgreedDiaryAlarm Boolean      @default(false) @map("is_agreed_diary_alarm")
+  diaryAlarmTime     DateTime?    @map("diary_alarm_time") @db.Time(3)
+  role               Role         @default(USER)
+  status             UserStatus   @default(ACTIVE)
+  diaries            Diaries[]    @relation("UserDiaries")
   // withdraws         Withdraws    @relation(fields [withdrawId], references [id])
   // report Report[]
-  createdAt         DateTime     @default(now()) @map("created_at")
-  updatedAt         DateTime     @updatedAt @map("updated_at")
-  deletedAt         DateTime?    @map("deleted_at")
-  genres            UserGenres[]
+  createdAt          DateTime     @default(now()) @map("created_at")
+  updatedAt          DateTime     @updatedAt @map("updated_at")
+  deletedAt          DateTime?    @map("deleted_at")
+  genres             UserGenres[]
 
   @@index([id])
   @@map("users")

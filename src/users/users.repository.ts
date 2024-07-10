@@ -18,6 +18,10 @@ export class UsersRepository {
     return await this.prismaService.users.findFirst(query);
   }
 
+  async findUniqueOne(query: Prisma.UsersFindUniqueArgs): Promise<Users> {
+    return await this.prismaService.users.findUnique(query);
+  }
+
   async delete(query: Prisma.UsersDeleteArgs): Promise<Users> {
     return await this.prismaService.users.delete(query);
   }

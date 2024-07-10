@@ -11,6 +11,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { CommonDto } from 'src/common/common.dto';
+import { GenresDto } from 'src/genres/dto/genres.dto';
 
 enum Gender {
   FEMALE = 'FEMALE',
@@ -36,15 +37,10 @@ export class SignUpBody {
   @IsEnum(Gender)
   gender: Gender;
 
-  @ApiProperty({
-    example: [
-      { id: 'dance-uuid', name: 'dance' },
-      { id: 'hip-hop-uuid', name: 'hip-hop' },
-    ],
-  })
+  @ApiProperty({ type: GenresDto, isArray: true })
   @IsArray()
-  @Type(() => Array<Genres>)
-  genres: Genres[];
+  @Type(() => Array<GenresDto>)
+  genres: GenresDto[];
 
   @ApiProperty()
   @IsBoolean()

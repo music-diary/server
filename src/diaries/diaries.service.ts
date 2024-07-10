@@ -116,7 +116,7 @@ export class DiariesService {
   }
 
   async getDiary(id: string, userId: string): Promise<FindDiaryResponseDto> {
-    const diary = await this.diariesRepository.findOne({
+    const diary = await this.diariesRepository.findUniqueOne({
       where: { id, userId },
       include: {
         users: {
@@ -293,7 +293,7 @@ export class DiariesService {
     userId: string,
     targetId: string,
   ): Promise<boolean> {
-    const existedDiary = await this.diariesRepository.findOne({
+    const existedDiary = await this.diariesRepository.findUniqueOne({
       where: { id: targetId, userId },
     });
     if (existedDiary === undefined) {
