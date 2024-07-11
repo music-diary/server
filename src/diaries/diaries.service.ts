@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { DiariesStatus, Prisma } from '@prisma/client';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
 import {
@@ -76,9 +76,21 @@ export class DiariesService {
     };
   }
 
-  async getDiaries(userId: string): Promise<FindDiariesResponseDto> {
+  async getDiariesArchive(
+    userId: string,
+    startAt?: string,
+    endAt?: string,
+  ): Promise<FindDiariesResponseDto> {
+    const endDate = new Date(endAt).setDate(new Date(endAt).getDate() + 1);
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
-      where: { userId },
+      where: {
+        userId,
+        status: DiariesStatus.DONE,
+        createdAt: {
+          lte: endAt ? new Date(endDate).toISOString() : undefined,
+          gte: startAt ? new Date(startAt).toISOString() : undefined,
+        },
+      },
       include: {
         users: {
           select: {
@@ -87,25 +99,30 @@ export class DiariesService {
         },
         emotions: {
           select: {
-            emotionId: true,
+            emotions: true,
           },
         },
         topics: {
           select: {
-            topicId: true,
-          },
-        },
-        templates: {
-          select: {
-            id: true,
-            name: true,
-            description: true,
-            type: true,
-            templateContents: true,
+            topic: true,
           },
         },
       },
     };
+    const diaries = await this.diariesRepository.findAll(findDiariesQuery);
+    this.logService.verbose(
+      `Get all diaries archives from ${startAt} to ${endAt}`,
+      DiariesService.name,
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Get all diaries archives',
+      diaries,
+    };
+  }
+
+  async getDiaries(userId: string): Promise<FindDiariesResponseDto> {
+    const findDiariesQuery: Prisma.DiariesFindManyArgs = { where: { userId } };
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
     this.logService.verbose(`Get all diaries`, DiariesService.name);
     return {

@@ -5,6 +5,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -51,6 +52,26 @@ export class DiariesController {
     return this.diariesService.getTemplates();
   }
 
+  @ApiOperation({ summary: 'Get all diaries' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Get('me/archive')
+  getDiariesArchive(
+    @User() user: UserPayload,
+    @Query('start-at') startAt?: string,
+    @Query('end-at') endAt?: string,
+  ): Promise<FindDiariesResponseDto> {
+    return this.diariesService.getDiariesArchive(user.id, startAt, endAt);
+  }
+
+  @ApiOperation({ summary: 'Get all diaries' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Get('me')
+  getDiaries(@User() user: UserPayload): Promise<FindDiariesResponseDto> {
+    return this.diariesService.getDiaries(user.id);
+  }
+
   @ApiOperation({ summary: 'Get one diary' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
@@ -60,14 +81,6 @@ export class DiariesController {
     @User() user: UserPayload,
   ): Promise<FindDiaryResponseDto> {
     return this.diariesService.getDiary(id, user.id);
-  }
-
-  @ApiOperation({ summary: 'Get all diaries' })
-  @ApiBearerAuth()
-  @UseGuards(AuthGuard)
-  @Get()
-  getDiaries(@User() user: UserPayload): Promise<FindDiariesResponseDto> {
-    return this.diariesService.getDiaries(user.id);
   }
 
   @ApiOperation({ summary: 'Create diary' })
