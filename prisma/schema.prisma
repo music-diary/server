@@ -29,6 +29,7 @@ model Users {
   updatedAt          DateTime     @updatedAt @map("updated_at")
   deletedAt          DateTime?    @map("deleted_at")
   genres             UserGenres[]
+  Musics             Musics[]
 
   @@index([id])
   @@map("users")
@@ -82,13 +83,13 @@ model Diaries {
   status     DiariesStatus
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
-  // music     Musics
-  // selectedLyrics? String
 
-  users     Users           @relation("UserDiaries", fields: [userId], references: [id])
-  templates Templates?      @relation(fields: [templateId], references: [id])
-  topics    DiaryTopics[]
-  emotions  DiaryEmotions[]
+  users       Users           @relation("UserDiaries", fields: [userId], references: [id])
+  templates   Templates?      @relation(fields: [templateId], references: [id])
+  topics      DiaryTopics[]
+  emotions    DiaryEmotions[]
+  diaryMusics DiaryMusic[]
+  musics      Musics[]
 
   @@index([id, userId, templateId])
   @@map("diaries")
@@ -123,6 +124,7 @@ model DiaryEmotions {
 
   diary    Diaries  @relation(fields: [diaryId], references: [id])
   emotions Emotions @relation(fields: [emotionId], references: [id])
+  musicsId String?
 
   @@index([id, diaryId, emotionId])
 }
@@ -144,8 +146,9 @@ model DiaryTopics {
   diaryId String @map("diary_id")
   topicId String @map("topic_id")
 
-  diary Diaries @relation(fields: [diaryId], references: [id])
-  topic Topics  @relation(fields: [topicId], references: [id])
+  diary    Diaries @relation(fields: [diaryId], references: [id])
+  topic    Topics  @relation(fields: [topicId], references: [id])
+  musicsId String?
 
   @@index([id, diaryId, topicId])
 }
@@ -176,4 +179,36 @@ model TemplateContents {
 
   @@index([id, templateId])
   @@map("template_contents")
+}
+
+model DiaryMusic {
+  id      String @id @default(uuid())
+  diaryId String @map("diary_id")
+  musicId String @map("mucsic_id")
+
+  diary Diaries @relation(fields: [diaryId], references: [id])
+  mucic Musics  @relation(fields: [musicId], references: [id])
+
+  @@index([id, diaryId, musicId])
+}
+
+model Musics {
+  id             String   @id @default(uuid())
+  title          String   @db.VarChar(80)
+  artist         String   @db.VarChar(80)
+  album          String?  @db.VarChar(80)
+  albumImageUrl  String?  @map("album_image_url") @db.VarChar(255)
+  selectedLyrics String?  @map("selected_lyrics") @db.VarChar(1000)
+  fullLyrics     String?  @map("full_lyrics") @db.VarChar(65535)
+  userId         String?  @map("user_id")
+  diaryId        String?  @map("diary_id")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  users       Users?       @relation(fields: [userId], references: [id])
+  diaryMusics DiaryMusic[]
+  diary       Diaries?     @relation(fields: [diaryId], references: [id])
+
+  @@index([id, userId, diaryId])
+  @@map("musics")
 }

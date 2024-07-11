@@ -1,0 +1,20 @@
+import { Injectable } from '@nestjs/common';
+import { Musics, Prisma } from '@prisma/client';
+import { PrismaService } from '../database/prisma.service';
+
+@Injectable()
+export class MusicsRepository {
+  constructor(private readonly prismaService: PrismaService) {}
+
+  async findAll(query?: Prisma.MusicsFindManyArgs): Promise<Musics[]> {
+    return await this.prismaService.musics.findMany(query);
+  }
+
+  async findOne(query: Prisma.MusicsFindFirstArgs): Promise<Musics> {
+    return await this.prismaService.musics.findFirst(query);
+  }
+
+  async findUniqueOne(query: Prisma.MusicsFindUniqueArgs): Promise<Musics> {
+    return await this.prismaService.musics.findUnique(query);
+  }
+}

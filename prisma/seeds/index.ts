@@ -8,6 +8,7 @@ import { genresData } from './genres.seed';
 import { templateContentsData, templatesData } from './templates.seed';
 import { topicsData } from './topics.seed';
 import { usersData } from './users.seed';
+import { musicsData } from './musics.seed';
 
 const prisma = new PrismaClient();
 
@@ -95,6 +96,15 @@ async function main() {
     }
     console.log(`Completed seeding templates...`);
   }
+
+  // seed musics
+  console.log(`Seeding musics...`);
+  for (const musicData of musicsData) {
+    await prisma.musics.create({
+      data: musicData,
+    });
+  }
+  console.log(`Completed seeding musics...`);
 
   console.log(`Seeding finished.`);
 }
