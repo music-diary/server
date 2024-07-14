@@ -15,8 +15,6 @@ model Users {
   gender             Gender       @default(FEMALE)
   isGenreSuggested   Boolean      @map("is_genre_suggested") // 새로운 장르 추천 여부
   isAgreedMarketing  Boolean      @map("is_agreed_marketing") // 마케팅 동의여부
-  profileImageKey    String?      @map("profile_image_key") // image file s3 key
-  profileImageUrl    String?      @map("profile_image_url") // s3 url
   useLimitCount      Int          @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
   IsAgreedDiaryAlarm Boolean      @default(false) @map("is_agreed_diary_alarm")
   diaryAlarmTime     DateTime?    @map("diary_alarm_time") @db.Time(3)
@@ -187,23 +185,25 @@ model DiaryMusic {
   musicId String @map("mucsic_id")
 
   diary Diaries @relation(fields: [diaryId], references: [id])
-  mucic Musics  @relation(fields: [musicId], references: [id])
+  music Musics  @relation(fields: [musicId], references: [id])
 
   @@index([id, diaryId, musicId])
 }
 
 model Musics {
-  id             String   @id @default(uuid())
-  title          String   @db.VarChar(80)
-  artist         String   @db.VarChar(80)
-  album          String?  @db.VarChar(80)
-  albumImageUrl  String?  @map("album_image_url") @db.VarChar(255)
-  selectedLyrics String?  @map("selected_lyrics") @db.VarChar(1000)
-  fullLyrics     String?  @map("full_lyrics") @db.VarChar(65535)
-  userId         String?  @map("user_id")
-  diaryId        String?  @map("diary_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  songId        String   @map("song_id") @db.VarChar(20)
+  title         String   @db.VarChar(80)
+  artist        String   @db.VarChar(80)
+  albumUrl      String?  @map("album_url") @db.VarChar(255)
+  selectedLyric String?  @map("selected_lyric") @db.VarChar(1000)
+  lyric         String?  @map("lyrics") @db.VarChar(65535)
+  originalGenre String?  @map("original_genre") @db.VarChar(30)
+  selected      Boolean  @default(false)
+  userId        String?  @map("user_id")
+  diaryId       String?  @map("diary_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   users       Users?       @relation(fields: [userId], references: [id])
   diaryMusics DiaryMusic[]

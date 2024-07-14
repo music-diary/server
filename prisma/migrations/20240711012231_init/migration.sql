@@ -57,7 +57,6 @@ CREATE TABLE "musics" (
     "id" TEXT NOT NULL,
     "title" VARCHAR(80) NOT NULL,
     "artist" VARCHAR(80) NOT NULL,
-    "album" VARCHAR(80),
     "album_image_url" VARCHAR(255),
     "selected_lyrics" VARCHAR(1000),
     "full_lyrics" VARCHAR(65535),

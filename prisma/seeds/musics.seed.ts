@@ -2,11 +2,11 @@ import { Prisma } from '@prisma/client';
 
 export const musicsData: Prisma.MusicsCreateInput[] = [
   {
+    songId: '99999999',
     title: '밤양갱',
     artist: '비비',
-    album: '앨범명',
-    albumImageUrl: undefined,
-    selectedLyrics: '선택된 가사',
-    fullLyrics: '전체 가사',
+    albumUrl: undefined,
+    selectedLyric: '선택된 가사',
+    lyric: '전체 가사',
   },
 ];

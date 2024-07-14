@@ -1,12 +1,22 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Musics } from '@prisma/client';
-import { IsDate, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsDate,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { MusicModel } from '../schema/music.type';
 
 export class MusicsDto implements Musics {
   @ApiProperty()
   @IsUUID()
   id: string;
+
+  @ApiProperty()
+  @IsString()
+  songId: string;
 
   @ApiProperty()
   @IsString()
@@ -19,22 +29,26 @@ export class MusicsDto implements Musics {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  album: string | null;
+  albumUrl: string | null;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  albumImageUrl: string | null;
+  selectedLyric: string | null;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  selectedLyrics: string | null;
+  lyric: string | null;
 
   @ApiProperty()
   @IsOptional()
   @IsString()
-  fullLyrics: string | null;
+  originalGenre: string | null;
+
+  @ApiProperty()
+  @IsBoolean()
+  selected: boolean = false;
 
   @ApiProperty()
   @IsString()

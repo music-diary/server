@@ -7,6 +7,7 @@ import { LogService } from 'src/common/log.service';
 import { JwtService } from '@nestjs/jwt';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from './schema/music.schema';
+import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { MusicSchema } from './schema/music.schema';
     MusicsService,
     PrismaService,
     MusicsRepository,
+    DiariesRepository,
     LogService,
     JwtService,
   ],
