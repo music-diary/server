@@ -36,7 +36,11 @@ export class MusicsService {
       include: {
         diary: {
           select: {
-            id: true,
+            emotions: {
+              select: {
+                emotions: true,
+              },
+            },
           },
         },
       },
@@ -93,6 +97,33 @@ export class MusicsService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Create Diary musics',
+    };
+  }
+
+  async getMusicCandidatesByDiary(
+    diaryId: string,
+  ): Promise<FindAllMusicsResponse> {
+    const findQuery: Prisma.MusicsFindManyArgs = {
+      where: {
+        diaryId,
+      },
+      include: {
+        diary: {
+          select: {
+            emotions: true,
+          },
+        },
+      },
+    };
+    const musics = await this.musicsRepository.findAll(findQuery);
+    this.logService.verbose(
+      `Get music Candidates by diaryId: ${diaryId}`,
+      MusicsService.name,
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Get music by diaryId',
+      musics,
     };
   }
 }

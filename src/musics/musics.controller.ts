@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Param,
+  Post,
+  Query,
+  UseGuards,
+} from '@nestjs/common';
 import {
   ApiBearerAuth,
   ApiBody,
@@ -48,5 +56,14 @@ export class MusicsController {
     @Body() body: CreateDiaryMusicBodyDto,
   ): Promise<CommonDto> {
     return this.musicsService.createDiaryMusics(user.id, body);
+  }
+
+  @ApiOperation({ summary: '(AI Temp) Get musics candidates' })
+  @ApiBody({ type: FindAllMusicsResponse })
+  @Get('candidates/:diaryId')
+  getMusicCandidatesByDiary(
+    @Param('diaryId') diaryId: string,
+  ): Promise<FindAllMusicsResponse> {
+    return this.musicsService.getMusicCandidatesByDiary(diaryId);
   }
 }
