@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { AuthModule } from './auth/auth.module';
@@ -10,7 +10,7 @@ import { DiariesModule } from './diaries/diaries.module';
 import { GenresModule } from './genres/genres.module';
 import { UsersModule } from './users/users.module';
 import { MusicsModule } from './musics/musics.module';
-import { DynamodbModule } from './dynamodb/dynamodb.module';
+import { DynamooseModule } from 'nestjs-dynamoose';
 
 @Module({
   imports: [
@@ -20,11 +20,20 @@ import { DynamodbModule } from './dynamodb/dynamodb.module';
     GenresModule,
     DiariesModule,
     MusicsModule,
-    DynamodbModule.forRootAsync({
+    DynamooseModule.forRootAsync({
       inject: [ConfigService],
-      useFactory: (config: ConfigService) => ({
-        region: config.get<string>('DYNAMODB_REGION'),
-        endpoint: config.get<string>('DYNAMODB_ENDPOINT'),
+      useFactory: (configService: ConfigService) => ({
+        aws: {
+          credentials: {
+            accessKeyId: configService.get('AWS_ACCESS_KEY_ID'),
+            secretAccessKey: configService.get('AWS_SECRET_ACCESS_KEY'),
+          },
+          region: configService.get('AWS_REGION'),
+        },
+        local: false,
+        table: {
+          create: false,
+        },
       }),
     }),
   ],

@@ -6,6 +6,7 @@ import { swaggerConfig } from './docs/swagger.options';
 import { HttpExceptionFilter } from './filters/http-exception.filter';
 import { PrismaExceptionFilter } from './filters/prisma-exception.filter';
 import { LoggerInterceptor } from './interceptors/logger.interceptor';
+import { DynamoDBExceptionFilter } from './filters/dynamoose-exception.filter';
 
 const PORT = process.env.PORT || 5000;
 const SERVER_DOMAIN = process.env.SERVER_DOMAIN;
@@ -32,7 +33,11 @@ async function bootstrap() {
   SwaggerModule.setup('api/v1/api-docs', app, document);
 
   app.useGlobalPipes(new ValidationPipe());
-  app.useGlobalFilters(new HttpExceptionFilter(), new PrismaExceptionFilter());
+  app.useGlobalFilters(
+    new HttpExceptionFilter(),
+    new PrismaExceptionFilter(),
+    new DynamoDBExceptionFilter(),
+  );
   app.useGlobalInterceptors(new LoggerInterceptor());
   app.setGlobalPrefix('api/v1');
   await app.listen(PORT);
