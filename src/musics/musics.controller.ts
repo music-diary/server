@@ -1,6 +1,7 @@
-import { Controller, Get, Query, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query, UseGuards } from '@nestjs/common';
 import {
   ApiBearerAuth,
+  ApiBody,
   ApiOperation,
   ApiQuery,
   ApiTags,
@@ -10,6 +11,8 @@ import { MusicsService } from './musics.service';
 import { User } from 'src/decorator/user.decorator';
 import { UserPayload } from 'src/users/dto/user.dto';
 import { FindAllMusicsResponse, FindMusicResponse } from './dto/find-music.dto';
+import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
+import { CommonDto } from 'src/common/common.dto';
 
 @ApiTags('Musics')
 @Controller('musics')
@@ -28,10 +31,22 @@ export class MusicsController {
     return this.musicsService.getMusicsArchive(user.id, startAt, endAt);
   }
 
-  @ApiOperation({ summary: 'Get musics by title' })
+  @ApiOperation({ summary: '(AI) Get musics by title' })
   @ApiQuery({ name: 'title', required: true })
   @Get()
   getMusicByTitle(@Query('title') title: string): Promise<FindMusicResponse> {
     return this.musicsService.getMusicByTitle(title);
+  }
+
+  @ApiOperation({ summary: '(AI Temp) Generate music candidates' })
+  @ApiBearerAuth()
+  @ApiBody({ type: CreateDiaryMusicBodyDto })
+  @UseGuards(AuthGuard)
+  @Post('candidates')
+  createDiaryMusics(
+    @User() user: UserPayload,
+    @Body() body: CreateDiaryMusicBodyDto,
+  ): Promise<CommonDto> {
+    return this.musicsService.createDiaryMusics(user.id, body);
   }
 }

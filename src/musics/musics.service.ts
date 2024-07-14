@@ -5,7 +5,9 @@ import { FindAllMusicsResponse, FindMusicResponse } from './dto/find-music.dto';
 import { Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
-import { ConfigService } from '@nestjs/config';
+import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
+import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
+import { CommonDto } from 'src/common/common.dto';
 
 @Injectable()
 export class MusicsService {
@@ -13,6 +15,7 @@ export class MusicsService {
     @InjectModel('Music')
     private readonly model: Model<MusicModel, MusicKey>,
     private readonly musicsRepository: MusicsRepository,
+    private readonly diariesRepository: DiariesRepository,
     private readonly logService: LogService,
   ) {}
 
@@ -57,6 +60,39 @@ export class MusicsService {
       statusCode: HttpStatus.OK,
       message: 'Get music by title',
       music,
+    };
+  }
+
+  async createDiaryMusics(
+    userId: string,
+    body: CreateDiaryMusicBodyDto,
+  ): Promise<CommonDto> {
+    const { diaryId, musics } = body;
+    const diary = await this.diariesRepository.findUniqueOne({
+      where: { id: diaryId },
+    });
+    musics.map(async (music) => {
+      const candidatedMusic = await this.model.get({ title: music.title });
+      const updateMusicInfo = {
+        songId: candidatedMusic.songId,
+        title: candidatedMusic.title,
+        albumUrl: candidatedMusic.albumUrl,
+        artist: candidatedMusic.artist,
+        lyric: candidatedMusic.lyric,
+        originalGenre: candidatedMusic.genre,
+        diaryId: diary.id,
+        userId,
+      };
+      await this.musicsRepository.createMany({ data: updateMusicInfo });
+    });
+
+    this.logService.verbose(
+      `Create Diary musics by user - ${userId}, diary - ${diaryId}`,
+      MusicsService.name,
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Create Diary musics',
     };
   }
 }
