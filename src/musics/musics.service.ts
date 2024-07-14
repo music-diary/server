@@ -1,15 +1,18 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { MusicsRepository } from './musics.repository';
-import { PrismaService } from 'src/database/prisma.service';
 import { LogService } from 'src/common/log.service';
-import { FindAllMusicsResponse } from './dto/find-music.dto';
+import { FindAllMusicsResponse, FindMusicResponse } from './dto/find-music.dto';
 import { Prisma } from '@prisma/client';
+import { InjectModel, Model } from 'nestjs-dynamoose';
+import { MusicKey, MusicModel } from './schema/music.type';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class MusicsService {
   constructor(
+    @InjectModel('Music')
+    private readonly model: Model<MusicModel, MusicKey>,
     private readonly musicsRepository: MusicsRepository,
-    private readonly prismaService: PrismaService,
     private readonly logService: LogService,
   ) {}
 
@@ -44,6 +47,16 @@ export class MusicsService {
       statusCode: HttpStatus.OK,
       message: 'Get all diaries archives',
       musics,
+    };
+  }
+
+  async getMusicByTitle(title: string): Promise<FindMusicResponse> {
+    const music = await this.model.get({ title });
+    this.logService.verbose(`Get music by title: ${title}`, MusicsService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Get music by title',
+      music,
     };
   }
 }
