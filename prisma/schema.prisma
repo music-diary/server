@@ -193,17 +193,18 @@ model DiaryMusic {
 }
 
 model Musics {
-  id             String   @id @default(uuid())
-  title          String   @db.VarChar(80)
-  artist         String   @db.VarChar(80)
-  album          String?  @db.VarChar(80)
-  albumImageUrl  String?  @map("album_image_url") @db.VarChar(255)
-  selectedLyrics String?  @map("selected_lyrics") @db.VarChar(1000)
-  fullLyrics     String?  @map("full_lyrics") @db.VarChar(65535)
-  userId         String?  @map("user_id")
-  diaryId        String?  @map("diary_id")
-  createdAt      DateTime @default(now()) @map("created_at")
-  updatedAt      DateTime @updatedAt @map("updated_at")
+  id            String   @id @default(uuid())
+  songId        String   @map("song_id") @db.VarChar(20)
+  title         String   @db.VarChar(80)
+  artist        String   @db.VarChar(80)
+  albumUrl      String?  @map("album_url") @db.VarChar(255)
+  selectedLyric String?  @map("selected_lyric") @db.VarChar(1000)
+  lyric         String?  @map("lyrics") @db.VarChar(65535)
+  originalGenre String?  @map("original_genre") @db.VarChar(30)
+  userId        String?  @map("user_id")
+  diaryId       String?  @map("diary_id")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
 
   users       Users?       @relation(fields: [userId], references: [id])
   diaryMusics DiaryMusic[]
