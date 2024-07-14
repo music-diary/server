@@ -3,6 +3,7 @@ import {
   Diaries,
   DiariesStatus,
   DiaryEmotions,
+  DiaryMusic,
   DiaryTopics,
 } from '@prisma/client';
 import { Type } from 'class-transformer';
@@ -19,6 +20,7 @@ import { UsersDto } from 'src/users/dto/user.dto';
 import { EmotionsDto } from './emotions.dto';
 import { TemplatesDto } from './templates.dto';
 import { TopicsDto } from './topics.dto';
+import { MusicsDto } from 'src/musics/dto/musics.dto';
 
 export class DiaryDto implements Diaries {
   @ApiProperty()
@@ -92,4 +94,9 @@ export class DiaryDto implements Diaries {
   @IsArray()
   @Type(() => EmotionsDto)
   emotions: DiaryEmotions[];
+
+  @ApiProperty({ type: MusicsDto })
+  @IsOptional()
+  @Type(() => MusicsDto)
+  music: MusicsDto;
 }

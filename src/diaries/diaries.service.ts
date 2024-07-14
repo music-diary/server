@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { DiariesStatus, Prisma } from '@prisma/client';
+import { Diaries, DiariesStatus, Prisma } from '@prisma/client';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
 import {
@@ -22,6 +22,7 @@ import { EmotionsRepository } from './repository/emotions.repository';
 import { TemplatesRepository } from './repository/templates.repository';
 import { TopicsRepository } from './repository/topics.repository';
 import { CommonDto } from 'src/common/common.dto';
+import { DiaryDto } from './dto/diaries.dto';
 
 @Injectable()
 export class DiariesService {
@@ -81,35 +82,47 @@ export class DiariesService {
     userId: string,
     startAt?: string,
     endAt?: string,
+    group?: string,
   ): Promise<FindDiariesResponseDto> {
     const endDate = new Date(endAt).setDate(new Date(endAt).getDate() + 1);
-    const findDiariesQuery: Prisma.DiariesFindManyArgs = {
-      where: {
-        userId,
-        status: DiariesStatus.DONE,
-        createdAt: {
-          lte: endAt ? new Date(endDate).toISOString() : undefined,
-          gte: startAt ? new Date(startAt).toISOString() : undefined,
-        },
-      },
-      include: {
-        users: {
-          select: {
-            id: true,
+    const findDiariesQuery: Prisma.DiariesFindManyArgs = Boolean(group)
+      ? {
+          where: {
+            userId,
+            status: DiariesStatus.DONE,
+            createdAt: {
+              lte: endAt ? new Date(endDate).toISOString() : undefined,
+              gte: startAt ? new Date(startAt).toISOString() : undefined,
+            },
           },
-        },
-        emotions: {
-          select: {
-            emotions: true,
+        }
+      : {
+          where: {
+            userId,
+            status: DiariesStatus.DONE,
+            createdAt: {
+              lte: endAt ? new Date(endDate).toISOString() : undefined,
+              gte: startAt ? new Date(startAt).toISOString() : undefined,
+            },
           },
-        },
-        topics: {
-          select: {
-            topic: true,
+          include: {
+            users: {
+              select: {
+                id: true,
+              },
+            },
+            emotions: {
+              select: {
+                emotions: true,
+              },
+            },
+            topics: {
+              select: {
+                topic: true,
+              },
+            },
           },
-        },
-      },
-    };
+        };
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
     this.logService.verbose(
       `Get all diaries archives from ${startAt} to ${endAt}`,
@@ -159,6 +172,16 @@ export class DiariesService {
             description: true,
             type: true,
             templateContents: true,
+          },
+        },
+        musics: {
+          select: {
+            id: true,
+            title: true,
+            artist: true,
+            albumUrl: true,
+            selectedLyric: true,
+            lyric: true,
           },
         },
       },
@@ -292,6 +315,15 @@ export class DiariesService {
           })),
         };
         await tx.diaryEmotions.createMany(createDiaryEmotionsQuery);
+      }
+      if ('music' in body && typeof body.music === 'object') {
+        const createDiaryMusicsQuery: Prisma.DiaryMusicCreateArgs = {
+          data: {
+            diaryId: id,
+            musicId: body.music.id,
+          },
+        };
+        await tx.diaryMusic.create(createDiaryMusicsQuery);
       }
       const diary = await tx.diaries.update(updateDiaryQuery);
       return diary;

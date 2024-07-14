@@ -30,6 +30,7 @@ import {
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
 import { CommonDto } from 'src/common/common.dto';
+import { group } from 'console';
 
 @ApiTags('Diaries')
 @Controller('diaries')
@@ -62,8 +63,14 @@ export class DiariesController {
     @User() user: UserPayload,
     @Query('start-at') startAt?: string,
     @Query('end-at') endAt?: string,
+    @Query('group') group?: string,
   ): Promise<FindDiariesResponseDto> {
-    return this.diariesService.getDiariesArchive(user.id, startAt, endAt);
+    return this.diariesService.getDiariesArchive(
+      user.id,
+      startAt,
+      endAt,
+      group,
+    );
   }
 
   @ApiOperation({ summary: 'Get all diaries' })
