@@ -7,7 +7,7 @@ import {
 import { genresData } from './genres.seed';
 import { templateContentsData, templatesData } from './templates.seed';
 import { topicsData } from './topics.seed';
-import { usersData } from './users.seed';
+import { userData } from './users.seed';
 import { musicsData } from './musics.seed';
 
 const prisma = new PrismaClient();
@@ -62,9 +62,22 @@ async function main() {
   }
   // seed users
   console.log(`Seeding users...`);
-  for (const userData of usersData) {
-    await prisma.users.create({ data: userData });
-  }
+  const user = await prisma.users.create({ data: userData });
+  const dance = await prisma.genres.findFirst({
+    where: { name: 'dance' },
+  });
+  const indie = await prisma.genres.findFirst({
+    where: { name: 'indie' },
+  });
+  const selectedGenres = [dance, indie];
+  await prisma.userGenres.createMany({
+    data: selectedGenres.map((genre) => ({
+      id: `${user.id}-${genre.id}`,
+      genreId: genre.id,
+      userId: user.id,
+    })),
+  });
+  // }
   console.log(`Completed seeding users...`);
 
   // seed topics
