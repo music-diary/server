@@ -24,7 +24,8 @@
     "db:migration": "npx prisma migrate dev --name init",
     "db:pull": "npx prisma db pull",
     "db:push": "npx prisma db push",
-    "db:seed": "npx prisma db seed"
+    "db:seed": "npx prisma db seed",
+    "db:reset": "npx prisma migrate reset"
   },
   "dependencies": {
     "@aws-sdk/client-dynamodb": "^3.614.0",
