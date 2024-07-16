@@ -46,11 +46,11 @@ model Genres {
 }
 
 model UserGenres {
-  id      String  @id @unique()
-  userId  String? @map("user_id")
-  genreId String? @map("genre_id")
-  genres  Genres? @relation(fields: [genreId], references: [id], onDelete: NoAction)
-  users   Users?  @relation(fields: [userId], references: [id], onDelete: NoAction)
+  id      String @id @unique @default(uuid())
+  userId  String @map("user_id")
+  genreId String @map("genre_id")
+  genre   Genres @relation(fields: [genreId], references: [id], onDelete: NoAction)
+  user    Users  @relation(fields: [userId], references: [id], onDelete: NoAction)
 
   @@index([id, userId, genreId])
   @@map("user_genres")
