@@ -2,7 +2,6 @@ import {
   ForbiddenException,
   HttpStatus,
   Injectable,
-  InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
 import { Prisma, Users } from '@prisma/client';
@@ -12,6 +11,7 @@ import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UsersRepository } from './users.repository';
+import { randomUUID } from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -48,7 +48,7 @@ export class UsersService {
       include: {
         genres: {
           select: {
-            genres: true,
+            genre: true,
           },
         },
       },
@@ -98,42 +98,30 @@ export class UsersService {
         const alarmTime = new Date(body.diaryAlarmTime);
         body.diaryAlarmTime = alarmTime;
       }
-      if ('genres' in body && typeof body.genres === 'object') {
-        const { genres, ...restUserData } = body;
-        const updateUserQuery: Prisma.UsersUpdateArgs = {
-          where: { id: targetId },
-          data: {
-            ...restUserData,
-          },
-        };
-        await tx.users.update(updateUserQuery);
+      if ('genres' in body && typeof body.genres !== undefined) {
+        const existedUserGenres = await tx.userGenres.findMany({
+          where: { userId: id },
+        });
+        if (existedUserGenres) {
+          const deleteUserGenreQuery: Prisma.UserGenresDeleteManyArgs = {
+            where: {
+              userId: targetId,
+              genreId: {
+                in: existedUserGenres.map((genre) => genre.genreId),
+              },
+            },
+          };
+          await tx.userGenres.deleteMany(deleteUserGenreQuery);
+        }
 
-        const deleteUserGenreQuery: Prisma.UserGenresDeleteManyArgs = {
-          where: {
-            userId: targetId,
-          },
-        };
         const createUserGenreQuery: Prisma.UserGenresCreateManyArgs = {
-          data: genres.map((genre) => ({
-            id: `${targetId}-${genre.id}`,
+          data: body.genres.map((genre) => ({
+            id: randomUUID(),
             genreId: genre.id,
             userId: targetId,
           })),
         };
-
-        const [userGenresDeletedResult, userGenresCreatedResult] =
-          await Promise.allSettled([
-            tx.userGenres.deleteMany(deleteUserGenreQuery),
-            tx.userGenres.createMany(createUserGenreQuery),
-          ]);
-        if (
-          userGenresDeletedResult.status === 'rejected' ||
-          userGenresCreatedResult.status === 'rejected'
-        ) {
-          throw new InternalServerErrorException(
-            'Failed to update user genres',
-          );
-        }
+        await tx.userGenres.createMany(createUserGenreQuery);
       }
       const { genres: _genres, ...restBody } = body;
       await tx.users.update({ where: { id: targetId }, data: { ...restBody } });
