@@ -21,6 +21,7 @@ import {
   VerifyPhoneNumberCodeResponseDto,
 } from './dto/auth.dto';
 import { SignUpResponseDto } from './dto/sign-up.dto';
+import { randomUUID } from 'crypto';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -159,7 +160,7 @@ export class AuthService {
 
       const createUserGenreQuery: Prisma.UserGenresCreateManyArgs = {
         data: genresData.map((genre) => ({
-          id: `${newUser.id}-${genre.id}`,
+          id: randomUUID(),
           genreId: genre.id,
           userId: newUser.id,
         })),
