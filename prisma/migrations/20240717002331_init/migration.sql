@@ -12,16 +12,16 @@ CREATE TYPE "DiariesStatus" AS ENUM ('EDIT', 'PENDING', 'DONE');
 
 -- CreateTable
 CREATE TABLE "users" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "phone_number" TEXT NOT NULL,
     "name" VARCHAR(6) NOT NULL,
     "birth_day" TIMESTAMP(3) NOT NULL,
     "gender" "Gender" NOT NULL DEFAULT 'FEMALE',
     "is_genre_suggested" BOOLEAN NOT NULL,
     "is_agreed_marketing" BOOLEAN NOT NULL,
-    "profile_image_key" TEXT,
-    "profile_image_url" TEXT,
     "use_limit_count" INTEGER NOT NULL DEFAULT 1,
+    "is_agreed_diary_alarm" BOOLEAN NOT NULL DEFAULT false,
+    "diary_alarm_time" TIME(3),
     "role" "Role" NOT NULL DEFAULT 'USER',
     "status" "UserStatus" NOT NULL DEFAULT 'ACTIVE',
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -33,30 +33,31 @@ CREATE TABLE "users" (
 
 -- CreateTable
 CREATE TABLE "genres" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "label" VARCHAR(30) NOT NULL,
     "name" VARCHAR(30) NOT NULL,
     "color" VARCHAR(10) NOT NULL,
+    "order" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "genres_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "user_genres" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT,
-    "genre_id" TEXT,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
+    "genre_id" UUID NOT NULL,
 
     CONSTRAINT "user_genres_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "diaries" (
-    "id" TEXT NOT NULL,
-    "user_id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "user_id" UUID NOT NULL,
     "title" VARCHAR(30),
-    "content" VARCHAR(1500),
-    "template_id" TEXT,
+    "content" VARCHAR(500),
+    "template_id" UUID,
     "status" "DiariesStatus" NOT NULL,
     "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updated_at" TIMESTAMP(3) NOT NULL,
@@ -66,52 +67,87 @@ CREATE TABLE "diaries" (
 
 -- CreateTable
 CREATE TABLE "emotions" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" VARCHAR(30) NOT NULL,
     "label" VARCHAR(30) NOT NULL,
-    "parent_id" TEXT,
+    "parent_id" UUID,
     "level" INTEGER NOT NULL DEFAULT 0,
+    "order" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "emotions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "DiaryEmotions" (
-    "id" TEXT NOT NULL,
-    "diary_id" TEXT NOT NULL,
-    "emotion_id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "diary_id" UUID NOT NULL,
+    "emotion_id" UUID NOT NULL,
+    "musicsId" UUID,
 
     CONSTRAINT "DiaryEmotions_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "topics" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "label" VARCHAR(30) NOT NULL,
     "name" VARCHAR(30) NOT NULL,
     "emoji" VARCHAR(10),
+    "order" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "topics_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "DiaryTopics" (
-    "id" TEXT NOT NULL,
-    "diary_id" TEXT NOT NULL,
-    "topic_id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "diary_id" UUID NOT NULL,
+    "topic_id" UUID NOT NULL,
+    "musicsId" UUID,
 
     CONSTRAINT "DiaryTopics_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "templates" (
-    "id" TEXT NOT NULL,
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
     "name" TEXT NOT NULL,
     "description" TEXT NOT NULL,
     "type" TEXT NOT NULL,
-    "templateContent" JSONB,
+    "order" INTEGER NOT NULL DEFAULT 0,
 
     CONSTRAINT "templates_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "template_contents" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "template_id" UUID NOT NULL,
+    "content" VARCHAR(200),
+    "order" INTEGER NOT NULL DEFAULT 0,
+    "name" VARCHAR(20) NOT NULL,
+    "label" VARCHAR(50) NOT NULL,
+
+    CONSTRAINT "template_contents_pkey" PRIMARY KEY ("id")
+);
+
+-- CreateTable
+CREATE TABLE "musics" (
+    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "song_id" VARCHAR(20) NOT NULL,
+    "title" VARCHAR(80) NOT NULL,
+    "artist" VARCHAR(80) NOT NULL,
+    "album_url" VARCHAR(255),
+    "selected_lyric" VARCHAR(1000),
+    "lyrics" VARCHAR(65535),
+    "original_genre" VARCHAR(30),
+    "selected" BOOLEAN NOT NULL DEFAULT false,
+    "user_id" UUID,
+    "diary_id" UUID,
+    "created_at" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "musics_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateIndex
@@ -144,6 +180,12 @@ CREATE INDEX "DiaryTopics_id_diary_id_topic_id_idx" ON "DiaryTopics"("id", "diar
 -- CreateIndex
 CREATE INDEX "templates_id_idx" ON "templates"("id");
 
+-- CreateIndex
+CREATE INDEX "template_contents_id_template_id_idx" ON "template_contents"("id", "template_id");
+
+-- CreateIndex
+CREATE INDEX "musics_id_user_id_diary_id_idx" ON "musics"("id", "user_id", "diary_id");
+
 -- AddForeignKey
 ALTER TABLE "user_genres" ADD CONSTRAINT "user_genres_genre_id_fkey" FOREIGN KEY ("genre_id") REFERENCES "genres"("id") ON DELETE NO ACTION ON UPDATE CASCADE;
 
@@ -170,3 +212,12 @@ ALTER TABLE "DiaryTopics" ADD CONSTRAINT "DiaryTopics_diary_id_fkey" FOREIGN KEY
 
 -- AddForeignKey
 ALTER TABLE "DiaryTopics" ADD CONSTRAINT "DiaryTopics_topic_id_fkey" FOREIGN KEY ("topic_id") REFERENCES "topics"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "template_contents" ADD CONSTRAINT "template_contents_template_id_fkey" FOREIGN KEY ("template_id") REFERENCES "templates"("id") ON DELETE RESTRICT ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "musics" ADD CONSTRAINT "musics_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE SET NULL ON UPDATE CASCADE;
+
+-- AddForeignKey
+ALTER TABLE "musics" ADD CONSTRAINT "musics_diary_id_fkey" FOREIGN KEY ("diary_id") REFERENCES "diaries"("id") ON DELETE SET NULL ON UPDATE CASCADE;
