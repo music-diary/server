@@ -9,6 +9,7 @@ import { templateContentsData, templatesData } from './templates.seed';
 import { topicsData } from './topics.seed';
 import { userData } from './users.seed';
 import { musicsData } from './musics.seed';
+import { withdrawalData } from './withdrawal.seed';
 
 const prisma = new PrismaClient();
 
@@ -257,6 +258,15 @@ async function main() {
   });
 
   console.log(`Completed seeding diary...`);
+
+  // create withdrawal reasons
+  console.log(`Seeding Withdrawal Reasons...`);
+  await prisma.withdrawalReasons.createMany({
+    data: withdrawalData.map((reason) => ({
+      ...reason,
+    })),
+  });
+  console.log(`Completed seeding withdrawal reasons...`);
 
   console.log(`Seeding finished.`);
 }

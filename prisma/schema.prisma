@@ -20,14 +20,15 @@ model Users {
   diaryAlarmTime     String?    @map("diary_alarm_time")
   role               Role       @default(USER)
   status             UserStatus @default(ACTIVE)
-  diary              Diaries[]  @relation("UserDiaries")
-  // withdraws         Withdraws    @relation(fields [withdrawId], references [id])
-  // report Report[]
-  createdAt          DateTime   @default(now()) @map("created_at")
-  updatedAt          DateTime   @updatedAt @map("updated_at")
-  deletedAt          DateTime?  @map("deleted_at")
-  genre              Genres[]   @relation("UserGenres")
-  music              Musics[]
+  withdrawalsId      String?    @map("withdrawals_id") @db.Uuid
+
+  withdrawals Withdrawals? @relation(fields: [withdrawalsId], references: [id])
+  diary       Diaries[]    @relation("UserDiaries")
+  createdAt   DateTime     @default(now()) @map("created_at")
+  updatedAt   DateTime     @updatedAt @map("updated_at")
+  deletedAt   DateTime?    @map("deleted_at")
+  genre       Genres[]     @relation("UserGenres")
+  music       Musics[]
 
   @@index([id])
   @@map("users")
@@ -192,4 +193,29 @@ model Musics {
 
   @@index([id, userId, diaryId])
   @@map("musics")
+}
+
+model Withdrawals {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  withdrawalReasonsId String?            @map("withdrawal_reasons_id") @db.Uuid
+  withdrawalReasons   WithdrawalReasons? @relation(fields: [withdrawalReasonsId], references: [id])
+  content             String?            @db.VarChar(255)
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  users               Users[]
+
+  @@index([id, withdrawalReasonsId])
+  @@map("withdraws")
+}
+
+model WithdrawalReasons {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String @db.VarChar(30)
+  label String @db.VarChar(100)
+  order Int    @default(0)
+
+  withdrawals Withdrawals[]
+
+  @@index([id])
+  @@map("withdraws_reasons")
 }
