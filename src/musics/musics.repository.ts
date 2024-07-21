@@ -6,7 +6,7 @@ import { PrismaService } from '../database/prisma.service';
 export class MusicsRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
-  async findAll(query?: Prisma.MusicsFindManyArgs): Promise<Musics[]> {
+  async findMany(query?: Prisma.MusicsFindManyArgs): Promise<Musics[]> {
     return await this.prismaService.musics.findMany(query);
   }
 

@@ -34,6 +34,11 @@ export class EmotionsDto implements Emotions {
   parentId: string | null;
 
   @ApiProperty()
+  @IsOptional()
+  @IsUUID()
+  rootId: string | null;
+
+  @ApiProperty()
   @IsNumber()
   level: number;
 }

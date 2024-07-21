@@ -8,11 +8,12 @@ import {
   IsEnum,
   IsOptional,
   IsString,
+  Matches,
   MaxLength,
 } from 'class-validator';
 import { GenresDto } from 'src/genres/dto/genres.dto';
 
-export class UpdateUserBodyDto implements Partial<Users> {
+export class UpdateUserBodyDto {
   @ApiProperty()
   @MaxLength(6, { message: 'The name length must be less than 6' })
   @IsString()
@@ -41,12 +42,16 @@ export class UpdateUserBodyDto implements Partial<Users> {
 
   @ApiProperty()
   @IsBoolean()
-  IsAgreedDiaryAlarm: boolean;
-
-  @ApiProperty()
   @IsOptional()
-  @IsDateString()
-  diaryAlarmTime: Date | null;
+  IsAgreedDiaryAlarm: boolean | null;
+
+  @ApiProperty({ type: String, example: 'hh:mm' })
+  @IsOptional()
+  @IsString()
+  @Matches(/^\d{2}:\d{2}$/, {
+    message: 'alarmTime must be in the format hh:mm',
+  })
+  diaryAlarmTime: string | null;
 
   @ApiProperty({
     isArray: true,

@@ -8,6 +8,8 @@ import { DiariesRepository } from './repository/diaires.repository';
 import { EmotionsRepository } from './repository/emotions.repository';
 import { TemplatesRepository } from './repository/templates.repository';
 import { TopicsRepository } from './repository/topics.repository';
+import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
+import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 
 @Module({
   providers: [
@@ -19,6 +21,8 @@ import { TopicsRepository } from './repository/topics.repository';
     TopicsRepository,
     TemplatesRepository,
     DiariesRepository,
+    DiaryEmotionsRepository,
+    DiaryTopicsRepository,
   ],
   controllers: [DiariesController],
 })

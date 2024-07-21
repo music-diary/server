@@ -18,7 +18,12 @@ import { AuthGuard } from 'src/guards/auth.guard';
 import { MusicsService } from './musics.service';
 import { User } from 'src/decorator/user.decorator';
 import { UserPayload } from 'src/users/dto/user.dto';
-import { FindAllMusicsResponse, FindMusicResponse } from './dto/find-music.dto';
+import {
+  FindAllMusicsResponse,
+  FindMusicsArchiveResponse,
+  FindMusicsModelResponse,
+  FindMusicsResponse,
+} from './dto/find-music.dto';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
 import { CommonDto } from 'src/common/common.dto';
 
@@ -40,10 +45,10 @@ export class MusicsController {
   }
 
   @ApiOperation({ summary: '(AI) Get musics by title' })
-  @ApiQuery({ name: 'title', required: true })
+  @ApiQuery({ name: 'title', required: false })
   @Get()
-  getMusicByTitle(@Query('title') title: string): Promise<FindMusicResponse> {
-    return this.musicsService.getMusicByTitle(title);
+  getMusics(@Query('title') title?: string): Promise<FindMusicsModelResponse> {
+    return this.musicsService.getMusics(title);
   }
 
   @ApiOperation({ summary: '(AI Temp) Generate music candidates' })
@@ -65,5 +70,15 @@ export class MusicsController {
     @Param('diaryId') diaryId: string,
   ): Promise<FindAllMusicsResponse> {
     return this.musicsService.getMusicCandidatesByDiary(diaryId);
+  }
+
+  @ApiOperation({ summary: 'Get all musics archive summary' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Get('me/archive/summary')
+  getMusicsArchiveSummary(
+    @User() user: UserPayload,
+  ): Promise<FindMusicsArchiveResponse> {
+    return this.musicsService.getMusicsArchiveSummary(user.id);
   }
 }

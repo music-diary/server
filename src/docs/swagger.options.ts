@@ -13,8 +13,8 @@ const developInfo = {
 };
 
 export const swaggerConfig = new DocumentBuilder()
-  .setTitle('API Example')
-  .setDescription('The API description')
+  .setTitle('Muda Service API')
+  .setDescription('Muda Service API v1 description')
   .setVersion('1.0')
   .addServer(localInfo.url, localInfo.description)
   .addServer(developInfo.url, developInfo.description)

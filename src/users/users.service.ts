@@ -11,7 +11,7 @@ import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UsersRepository } from './users.repository';
-import { randomUUID } from 'crypto';
+import { GenresRepository } from 'src/genres/genres.repository';
 
 @Injectable()
 export class UsersService {
@@ -19,6 +19,7 @@ export class UsersService {
     private readonly logService: LogService,
     private readonly prismaService: PrismaService,
     private readonly usersRepository: UsersRepository,
+    private readonly genresRepository: GenresRepository,
   ) {}
 
   async findOne(id: string): Promise<FindUserResponseDto> {
@@ -46,11 +47,7 @@ export class UsersService {
     const query: Prisma.UsersFindUniqueArgs = {
       where: { id: userId },
       include: {
-        genres: {
-          select: {
-            genre: true,
-          },
-        },
+        genre: true,
       },
     };
     const user = await this.usersRepository.findUniqueOne(query);
@@ -85,47 +82,55 @@ export class UsersService {
     body: UpdateUserBodyDto,
   ): Promise<CommonDto> {
     this.checkPermission(id, targetId);
-    await this.prismaService.$transaction(async (tx) => {
-      const existUser = await tx.users.findUnique({ where: { id: targetId } });
-      if (!existUser) {
-        throw new NotFoundException('User not found');
-      }
-      if ('birthDay' in body && typeof body.birthDay === 'string') {
-        const birthDayDate = new Date(body.birthDay);
-        body.birthDay = birthDayDate;
-      }
-      if ('diaryAlarmTime' in body && typeof body.diaryAlarmTime === 'string') {
-        const alarmTime = new Date(body.diaryAlarmTime);
-        body.diaryAlarmTime = alarmTime;
-      }
-      if ('genres' in body && typeof body.genres !== undefined) {
-        const existedUserGenres = await tx.userGenres.findMany({
-          where: { userId: id },
-        });
-        if (existedUserGenres) {
-          const deleteUserGenreQuery: Prisma.UserGenresDeleteManyArgs = {
-            where: {
-              userId: targetId,
-              genreId: {
-                in: existedUserGenres.map((genre) => genre.genreId),
+
+    const existUser = await this.usersRepository.findUniqueOne({
+      where: { id: targetId },
+    });
+    if (!existUser) {
+      throw new NotFoundException('User not found');
+    }
+    if ('birthDay' in body && typeof body.birthDay === 'string') {
+      const birthDayDate = new Date(body.birthDay);
+      body.birthDay = birthDayDate;
+    }
+    if ('genres' in body && typeof body.genres !== undefined) {
+      const genres = await this.genresRepository.findAll({
+        where: {
+          user: {
+            some: { id: targetId },
+          },
+        },
+      });
+      genres.map(async (genre) => {
+        await this.usersRepository.update({
+          where: { id: targetId },
+          data: {
+            genre: {
+              disconnect: {
+                id: genre.id,
               },
             },
-          };
-          await tx.userGenres.deleteMany(deleteUserGenreQuery);
-        }
+          },
+        });
+      });
+      body.genres.map(async (genre) => {
+        await this.usersRepository.update({
+          where: { id: targetId },
+          data: {
+            genre: {
+              connect: { id: genre.id },
+            },
+          },
+        });
+      });
+    }
+    const { genres: _genres, ...updateData } = body;
+    const updateUserQuery: Prisma.UsersUpdateArgs = {
+      where: { id: targetId },
+      data: { ...updateData },
+    };
+    await this.usersRepository.update(updateUserQuery);
 
-        const createUserGenreQuery: Prisma.UserGenresCreateManyArgs = {
-          data: body.genres.map((genre) => ({
-            id: randomUUID(),
-            genreId: genre.id,
-            userId: targetId,
-          })),
-        };
-        await tx.userGenres.createMany(createUserGenreQuery);
-      }
-      const { genres: _genres, ...restBody } = body;
-      await tx.users.update({ where: { id: targetId }, data: { ...restBody } });
-    });
     this.logService.verbose(`Update user - ${id}`, UsersService.name);
     return {
       statusCode: HttpStatus.OK,

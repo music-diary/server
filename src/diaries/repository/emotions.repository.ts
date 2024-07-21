@@ -9,4 +9,8 @@ export class EmotionsRepository {
   async findAll(query?: Prisma.EmotionsFindManyArgs): Promise<Emotions[]> {
     return await this.prismaService.emotions.findMany(query);
   }
+
+  async findUnique(query?: Prisma.EmotionsFindUniqueArgs): Promise<Emotions> {
+    return await this.prismaService.emotions.findUnique(query);
+  }
 }

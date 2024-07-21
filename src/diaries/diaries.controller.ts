@@ -9,7 +9,12 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { User } from 'src/decorator/user.decorator';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { UserPayload } from 'src/users/dto/user.dto';
@@ -30,7 +35,6 @@ import {
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
 import { CommonDto } from 'src/common/common.dto';
-import { group } from 'console';
 
 @ApiTags('Diaries')
 @Controller('diaries')
@@ -38,9 +42,10 @@ export class DiariesController {
   constructor(private readonly diariesService: DiariesService) {}
 
   @ApiOperation({ summary: 'Get all emotions' })
+  @ApiQuery({ name: 'name', required: false })
   @Get('emotions')
-  getEmotions(): Promise<FindEmotionsResponseDto> {
-    return this.diariesService.getEmotions();
+  getEmotions(@Query('name') name?: string): Promise<FindEmotionsResponseDto> {
+    return this.diariesService.getEmotions(name);
   }
 
   @ApiOperation({ summary: 'Get all topics' })
@@ -55,7 +60,10 @@ export class DiariesController {
     return this.diariesService.getTemplates();
   }
 
-  @ApiOperation({ summary: 'Get all diaries' })
+  @ApiOperation({ summary: 'Get my diaries archive' })
+  @ApiQuery({ name: 'start-at', required: false, example: '2024-01-01' })
+  @ApiQuery({ name: 'end-at', required: false, example: '2024-01-31' })
+  @ApiQuery({ name: 'group', required: false, example: 'month' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Get('me/archive')

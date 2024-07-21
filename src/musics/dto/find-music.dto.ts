@@ -12,7 +12,20 @@ export class FindMusicCandidatesResponse extends CommonDto {
   musics: MusicsDto[];
 }
 
-export class FindMusicResponse extends CommonDto {
-  @ApiProperty({ type: MusicModelDto })
-  music: MusicModelDto;
+export class FindMusicsResponse extends CommonDto {
+  @ApiProperty()
+  musics: Partial<MusicsDto>[];
+}
+
+export class FindMusicsModelResponse extends CommonDto {
+  @ApiProperty({ type: MusicModelDto, isArray: true })
+  musics: MusicModelDto[];
+}
+
+export class FindMusicsArchiveResponse extends CommonDto {
+  @ApiProperty()
+  musics: Partial<MusicsDto>[];
+
+  @ApiProperty()
+  count: any;
 }

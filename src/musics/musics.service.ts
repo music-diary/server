@@ -1,13 +1,18 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { MusicsRepository } from './musics.repository';
 import { LogService } from 'src/common/log.service';
-import { FindAllMusicsResponse, FindMusicResponse } from './dto/find-music.dto';
-import { Prisma } from '@prisma/client';
+import {
+  FindAllMusicsResponse,
+  FindMusicsArchiveResponse,
+  FindMusicsModelResponse,
+} from './dto/find-music.dto';
+import { Prisma, DiaryEmotions } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
 import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
 import { CommonDto } from 'src/common/common.dto';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class MusicsService {
@@ -16,6 +21,7 @@ export class MusicsService {
     private readonly model: Model<MusicModel, MusicKey>,
     private readonly musicsRepository: MusicsRepository,
     private readonly diariesRepository: DiariesRepository,
+    private readonly prismaService: PrismaService,
     private readonly logService: LogService,
   ) {}
 
@@ -26,26 +32,38 @@ export class MusicsService {
   ): Promise<FindAllMusicsResponse> {
     const endDate = new Date(endAt).setDate(new Date(endAt).getDate() + 1);
     const findQuery: Prisma.MusicsFindManyArgs = {
-      where: {
-        userId,
-        createdAt: {
-          lte: endAt ? new Date(endDate).toISOString() : undefined,
-          gte: startAt ? new Date(startAt).toISOString() : undefined,
-        },
-      },
+      where: { userId },
       include: {
         diary: {
-          select: {
+          include: {
             emotions: {
               select: {
-                emotions: true,
+                emotions: {
+                  include: {
+                    parent: {
+                      include: {
+                        parent: true,
+                      },
+                    },
+                  },
+                },
               },
             },
           },
         },
       },
     };
-    const musics = await this.musicsRepository.findAll(findQuery);
+    if (startAt) {
+      findQuery.where.createdAt = {
+        gte: new Date(startAt).toISOString(),
+      };
+    }
+    if (endAt) {
+      findQuery.where.createdAt = {
+        lte: new Date(endDate).toISOString(),
+      };
+    }
+    const musics = await this.musicsRepository.findMany(findQuery);
     this.logService.verbose(
       `Get all musics archives from ${startAt} to ${endAt}`,
       MusicsService.name,
@@ -57,13 +75,15 @@ export class MusicsService {
     };
   }
 
-  async getMusicByTitle(title: string): Promise<FindMusicResponse> {
-    const music = await this.model.get({ title });
-    this.logService.verbose(`Get music by title: ${title}`, MusicsService.name);
+  async getMusics(title?: string): Promise<FindMusicsModelResponse> {
+    const musics: MusicModel[] = title
+      ? await this.model.scan('title').contains(title).exec()
+      : await this.model.scan().limit(20).exec();
+    this.logService.verbose(`Get musics`, MusicsService.name);
     return {
       statusCode: HttpStatus.OK,
-      message: 'Get music by title',
-      music,
+      message: 'Get musics',
+      musics,
     };
   }
 
@@ -115,7 +135,7 @@ export class MusicsService {
         },
       },
     };
-    const musics = await this.musicsRepository.findAll(findQuery);
+    const musics = await this.musicsRepository.findMany(findQuery);
     this.logService.verbose(
       `Get music Candidates by diaryId: ${diaryId}`,
       MusicsService.name,
@@ -124,6 +144,65 @@ export class MusicsService {
       statusCode: HttpStatus.OK,
       message: 'Get music by diaryId',
       musics,
+    };
+  }
+
+  async getMusicsArchiveSummary(
+    userId: string,
+  ): Promise<FindMusicsArchiveResponse> {
+    const musicCount = await this.prismaService.musics.groupBy({
+      by: ['createdAt'],
+      _count: {
+        id: true,
+      },
+      where: {
+        userId,
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    const results = await this.musicsRepository.findMany({
+      where: {
+        userId,
+      },
+      select: {
+        songId: true,
+        title: true,
+        artist: true,
+        albumUrl: true,
+        createdAt: true,
+        diary: {
+          include: {
+            emotions: {
+              select: {
+                emotions: {
+                  include: {
+                    parent: {
+                      include: {
+                        parent: true,
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+    });
+    this.logService.verbose(
+      `Get musics archive summary by user ${userId}`,
+      MusicsService.name,
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Get musics archive summary',
+      musics: results,
+      count: musicCount,
     };
   }
 }

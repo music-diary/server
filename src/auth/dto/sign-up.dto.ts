@@ -1,5 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { Genres } from '@prisma/client';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -37,10 +36,13 @@ export class SignUpBody {
   @IsEnum(Gender)
   gender: Gender;
 
-  @ApiProperty({ type: GenresDto, isArray: true })
+  @ApiProperty({
+    type: PickType(GenresDto, ['id']),
+    isArray: true,
+  })
   @IsArray()
-  @Type(() => Array<GenresDto>)
-  genres: GenresDto[];
+  @Type(() => Array<Pick<GenresDto, 'id'>>)
+  genres: Array<Pick<GenresDto, 'id'>>;
 
   @ApiProperty()
   @IsBoolean()
