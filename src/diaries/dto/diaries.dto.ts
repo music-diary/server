@@ -3,7 +3,6 @@ import {
   Diaries,
   DiariesStatus,
   DiaryEmotions,
-  DiaryMusic,
   DiaryTopics,
 } from '@prisma/client';
 import { Type } from 'class-transformer';

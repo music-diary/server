@@ -8,5 +8,5 @@ export class FindTemplatesResponseDto extends CommonDto {
   @ApiProperty({ type: [TemplatesDto] })
   @IsArray()
   @Type(() => TemplatesDto)
-  templates: TemplatesDto[];
+  templates: Omit<TemplatesDto, 'templateContents'>[];
 }
