@@ -77,8 +77,7 @@ export class UsersDto implements Users {
 
   @ApiProperty()
   @IsOptional()
-  @IsDate()
-  diaryAlarmTime: Date | null;
+  diaryAlarmTime: string | null;
 
   @ApiProperty({ type: Role, enum: Role })
   @IsEnum(Role)
