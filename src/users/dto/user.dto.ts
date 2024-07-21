@@ -10,6 +10,7 @@ import {
   IsOptional,
   IsPhoneNumber,
   IsString,
+  IsUUID,
   Length,
   MaxLength,
 } from 'class-validator';
@@ -86,6 +87,11 @@ export class UsersDto implements Users {
   @ApiProperty({ type: UserStatus, enum: UserStatus })
   @IsEnum(UserStatus)
   status: UserStatus;
+
+  @ApiProperty()
+  @IsUUID()
+  @IsOptional()
+  withdrawalsId: string | null;
 
   @ApiProperty()
   @IsDate()
