@@ -8,52 +8,41 @@ datasource db {
 }
 
 model Users {
-  id                 String       @id @default(uuid())
-  phoneNumber        String       @map("phone_number") // TODO production 시, unique 처리 필수
-  name               String       @db.VarChar(6)
-  birthDay           DateTime     @map("birth_day")
-  gender             Gender       @default(FEMALE)
-  isGenreSuggested   Boolean      @map("is_genre_suggested") // 새로운 장르 추천 여부
-  isAgreedMarketing  Boolean      @map("is_agreed_marketing") // 마케팅 동의여부
-  useLimitCount      Int          @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
-  IsAgreedDiaryAlarm Boolean      @default(false) @map("is_agreed_diary_alarm")
-  diaryAlarmTime     DateTime?    @map("diary_alarm_time") @db.Time(3)
-  role               Role         @default(USER)
-  status             UserStatus   @default(ACTIVE)
-  diaries            Diaries[]    @relation("UserDiaries")
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneNumber        String     @map("phone_number") // TODO production 시, unique 처리 필수
+  name               String     @db.VarChar(6)
+  birthDay           DateTime   @map("birth_day") @db.Date()
+  gender             Gender     @default(FEMALE)
+  isGenreSuggested   Boolean    @map("is_genre_suggested") // 새로운 장르 추천 여부
+  isAgreedMarketing  Boolean    @map("is_agreed_marketing") // 마케팅 동의여부
+  useLimitCount      Int        @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
+  IsAgreedDiaryAlarm Boolean    @default(false) @map("is_agreed_diary_alarm")
+  diaryAlarmTime     String?    @map("diary_alarm_time")
+  role               Role       @default(USER)
+  status             UserStatus @default(ACTIVE)
+  diary              Diaries[]  @relation("UserDiaries")
   // withdraws         Withdraws    @relation(fields [withdrawId], references [id])
   // report Report[]
-  createdAt          DateTime     @default(now()) @map("created_at")
-  updatedAt          DateTime     @updatedAt @map("updated_at")
-  deletedAt          DateTime?    @map("deleted_at")
-  genres             UserGenres[]
-  Musics             Musics[]
+  createdAt          DateTime   @default(now()) @map("created_at")
+  updatedAt          DateTime   @updatedAt @map("updated_at")
+  deletedAt          DateTime?  @map("deleted_at")
+  genre              Genres[]   @relation("UserGenres")
+  music              Musics[]
 
   @@index([id])
   @@map("users")
 }
 
 model Genres {
-  id    String       @id @default(uuid())
-  label String       @db.VarChar(30)
-  name  String       @db.VarChar(30)
-  color String       @db.VarChar(10)
-  order Int          @default(0)
-  users UserGenres[]
+  id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label String  @db.VarChar(30)
+  name  String  @db.VarChar(30)
+  color String  @db.VarChar(10)
+  order Int     @default(0)
+  user  Users[] @relation("UserGenres")
 
   @@index([id, name])
   @@map("genres")
-}
-
-model UserGenres {
-  id      String @id @unique @default(uuid())
-  userId  String @map("user_id")
-  genreId String @map("genre_id")
-  genre   Genres @relation(fields: [genreId], references: [id], onDelete: NoAction)
-  user    Users  @relation(fields: [userId], references: [id], onDelete: NoAction)
-
-  @@index([id, userId, genreId])
-  @@map("user_genres")
 }
 
 enum Gender {
@@ -73,21 +62,20 @@ enum UserStatus {
 }
 
 model Diaries {
-  id         String        @id @default(uuid())
-  userId     String        @map("user_id")
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
   title      String?       @db.VarChar(30)
   content    String?       @db.VarChar(500)
-  templateId String?       @map("template_id")
+  templateId String?       @map("template_id") @db.Uuid
   status     DiariesStatus
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
 
-  users       Users           @relation("UserDiaries", fields: [userId], references: [id])
-  templates   Templates?      @relation(fields: [templateId], references: [id])
-  topics      DiaryTopics[]
-  emotions    DiaryEmotions[]
-  diaryMusics DiaryMusic[]
-  musics      Musics[]
+  user      Users           @relation("UserDiaries", fields: [userId], references: [id])
+  templates Templates?      @relation(fields: [templateId], references: [id])
+  topics    DiaryTopics[]
+  emotions  DiaryEmotions[]
+  musics    Musics[]
 
   @@index([id, userId, templateId])
   @@map("diaries")
@@ -100,10 +88,11 @@ enum DiariesStatus {
 }
 
 model Emotions {
-  id       String  @id @default(uuid())
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name     String  @db.VarChar(30)
   label    String  @db.VarChar(30)
-  parentId String? @map("parent_id")
+  parentId String? @map("parent_id") @db.Uuid
+  rootId   String? @map("root_id") @db.Uuid
   level    Int     @default(0)
   order    Int     @default(0)
 
@@ -116,19 +105,20 @@ model Emotions {
 }
 
 model DiaryEmotions {
-  id        String @id @default(uuid())
-  diaryId   String @map("diary_id")
-  emotionId String @map("emotion_id")
+  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  diaryId   String  @map("diary_id") @db.Uuid
+  emotionId String  @map("emotion_id") @db.Uuid
+  musicId   String? @map("music_id") @db.Uuid
 
   diary    Diaries  @relation(fields: [diaryId], references: [id])
   emotions Emotions @relation(fields: [emotionId], references: [id])
-  musicsId String?
+  music    Musics?  @relation(fields: [musicId], references: [id])
 
   @@index([id, diaryId, emotionId])
 }
 
 model Topics {
-  id      String        @id @default(uuid())
+  id      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   label   String        @db.VarChar(30)
   name    String        @db.VarChar(30)
   emoji   String?       @db.VarChar(10)
@@ -140,19 +130,20 @@ model Topics {
 }
 
 model DiaryTopics {
-  id      String @id @default(uuid())
-  diaryId String @map("diary_id")
-  topicId String @map("topic_id")
+  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  diaryId String  @map("diary_id") @db.Uuid
+  topicId String  @map("topic_id") @db.Uuid
+  musicId String? @map("music_id") @db.Uuid
 
-  diary    Diaries @relation(fields: [diaryId], references: [id])
-  topic    Topics  @relation(fields: [topicId], references: [id])
-  musicsId String?
+  diary Diaries @relation(fields: [diaryId], references: [id])
+  topic Topics  @relation(fields: [topicId], references: [id])
+  music Musics? @relation(fields: [musicId], references: [id])
 
   @@index([id, diaryId, topicId])
 }
 
 model Templates {
-  id          String @id @default(uuid())
+  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String
   type        String // SCS | KPT | MSG | 4L | 5F
@@ -166,8 +157,8 @@ model Templates {
 }
 
 model TemplateContents {
-  id         String  @id @default(uuid())
-  templateId String  @map("template_id")
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateId String  @map("template_id") @db.Uuid
   content    String? @db.VarChar(200)
   order      Int     @default(0)
   name       String  @db.VarChar(20)
@@ -179,19 +170,8 @@ model TemplateContents {
   @@map("template_contents")
 }
 
-model DiaryMusic {
-  id      String @id @default(uuid())
-  diaryId String @map("diary_id")
-  musicId String @map("mucsic_id")
-
-  diary Diaries @relation(fields: [diaryId], references: [id])
-  music Musics  @relation(fields: [musicId], references: [id])
-
-  @@index([id, diaryId, musicId])
-}
-
 model Musics {
-  id            String   @id @default(uuid())
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   songId        String   @map("song_id") @db.VarChar(20)
   title         String   @db.VarChar(80)
   artist        String   @db.VarChar(80)
@@ -200,14 +180,15 @@ model Musics {
   lyric         String?  @map("lyrics") @db.VarChar(65535)
   originalGenre String?  @map("original_genre") @db.VarChar(30)
   selected      Boolean  @default(false)
-  userId        String?  @map("user_id")
-  diaryId       String?  @map("diary_id")
+  userId        String?  @map("user_id") @db.Uuid
+  diaryId       String?  @map("diary_id") @db.Uuid
   createdAt     DateTime @default(now()) @map("created_at")
   updatedAt     DateTime @updatedAt @map("updated_at")
 
-  users       Users?       @relation(fields: [userId], references: [id])
-  diaryMusics DiaryMusic[]
-  diary       Diaries?     @relation(fields: [diaryId], references: [id])
+  users         Users?          @relation(fields: [userId], references: [id])
+  diary         Diaries?        @relation(fields: [diaryId], references: [id])
+  diaryEmotions DiaryEmotions[]
+  diaryTopics   DiaryTopics[]
 
   @@index([id, userId, diaryId])
   @@map("musics")
