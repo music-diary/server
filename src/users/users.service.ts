@@ -4,22 +4,26 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Users } from '@prisma/client';
+import { Prisma, Users, UserStatus } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
-import { PrismaService } from '../database/prisma.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UsersRepository } from './users.repository';
 import { GenresRepository } from 'src/genres/genres.repository';
+import {
+  WithdrawalReasonsResponseDto,
+  WithdrawUserBodyDto,
+} from './dto/withdrawal.dto';
+import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly logService: LogService,
-    private readonly prismaService: PrismaService,
     private readonly usersRepository: UsersRepository,
     private readonly genresRepository: GenresRepository,
+    private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
   ) {}
 
   async findOne(id: string): Promise<FindUserResponseDto> {
@@ -145,6 +149,56 @@ export class UsersService {
       statusCode: HttpStatus.OK,
       message: 'Users find all',
       users,
+    };
+  }
+
+  async withdraw(
+    id: string,
+    targetId: string,
+    body: WithdrawUserBodyDto,
+  ): Promise<CommonDto> {
+    this.checkPermission(id, targetId);
+
+    const existUser = await this.usersRepository.findUniqueOne({
+      where: { id: targetId, status: UserStatus.ACTIVE },
+    });
+    if (!existUser) {
+      throw new NotFoundException('User not found');
+    }
+    const { withdrawalReasonsId, ...updateData } = body;
+    const createWithdrawalQuery: Prisma.UsersUpdateArgs = {
+      where: { id: targetId },
+      data: {
+        withdrawals: { create: { withdrawalReasonsId } },
+        deletedAt: new Date(),
+        status: UserStatus.DEACTIVE,
+      },
+    };
+    const withdrawalReasonsOther =
+      await this.withdrawalReasonsRepository.findUnique({
+        where: { id: withdrawalReasonsId },
+      });
+    if (withdrawalReasonsOther.name === 'OTHER' && updateData.content) {
+      createWithdrawalQuery.data.withdrawals.update = {
+        data: { content: updateData.content },
+      };
+    }
+    await this.usersRepository.update(createWithdrawalQuery);
+
+    this.logService.verbose(`Withdraw user - ${id}`, UsersService.name);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'User withdraw',
+    };
+  }
+
+  async findWithdrawReasons(): Promise<WithdrawalReasonsResponseDto> {
+    const withdrawalReasons = await this.withdrawalReasonsRepository.findAll();
+    this.logService.verbose(`find Withdrawal Reasons`, UsersService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Find Withdrawal Reasons',
+      withdrawalReasons,
     };
   }
 

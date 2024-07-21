@@ -6,6 +6,7 @@ import { GenresRepository } from 'src/genres/genres.repository';
 import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
+import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
 
 @Module({
   controllers: [UsersController],
@@ -16,6 +17,7 @@ import { UsersService } from './users.service';
     JwtService,
     UsersRepository,
     GenresRepository,
+    WithdrawalReasonsRepository,
   ],
 })
 export class UsersModule {}

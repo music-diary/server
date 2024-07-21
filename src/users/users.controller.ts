@@ -5,6 +5,7 @@ import {
   Get,
   Param,
   Patch,
+  Post,
   UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
@@ -18,6 +19,10 @@ import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UserPayload } from './dto/user.dto';
 import { UsersService } from './users.service';
+import {
+  WithdrawalReasonsResponseDto,
+  WithdrawUserBodyDto,
+} from './dto/withdrawal.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -49,6 +54,25 @@ export class UsersController {
   @Delete(':id')
   delete(@Param('id') id: string): Promise<CommonDto> {
     return this.usersService.delete(id);
+  }
+
+  @ApiOperation({ summary: 'Get Withdraw Reasons' })
+  @Get('withdrawal')
+  findWithdrawReasons(): Promise<WithdrawalReasonsResponseDto> {
+    return this.usersService.findWithdrawReasons();
+  }
+
+  @ApiOperation({ summary: 'Withdraw user' })
+  @ApiBody({ type: WithdrawUserBodyDto })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Post(':id/withdrawal')
+  withdraw(
+    @Param('id') id: string,
+    @User() user: UserPayload,
+    @Body() body: WithdrawUserBodyDto,
+  ): Promise<CommonDto> {
+    return this.usersService.withdraw(user.id, id, body);
   }
 
   @ApiOperation({ summary: '[ADMIN] get all users' })
