@@ -152,26 +152,15 @@ export class AuthService {
     userData: Users,
     genresData: Genres[],
   ): Promise<Users> {
-    return await this.prismaService.$transaction(async (tx) => {
-      const createUserQuery: Prisma.UsersCreateArgs = {
-        data: { ...userData },
-      };
-      const newUser = await tx.users.create(createUserQuery);
-
-      const createUserGenreQuery: Prisma.UserGenresCreateManyArgs = {
-        data: genresData.map((genre) => ({
-          id: randomUUID(),
-          genreId: genre.id,
-          userId: newUser.id,
-        })),
-      };
-      await tx.userGenres.createMany(createUserGenreQuery);
-      this.logService.verbose(
-        'Successfully created a user and genres',
-        AuthService.name,
-      );
-      return newUser;
-    });
+    const createUserQuery: Prisma.UsersCreateArgs = {
+      data: {
+        ...userData,
+        genre: {
+          connect: genresData.map((genre) => ({ id: genre.id })),
+        },
+      },
+    };
+    return await this.usersRepository.create(createUserQuery);
   }
 
   // NOTE: This is a temporary implementation for the test.
