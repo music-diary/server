@@ -10,6 +10,7 @@ import { topicsData } from './topics.seed';
 import { userData } from './users.seed';
 import { musicsData } from './musics.seed';
 import { withdrawalData } from './withdrawal.seed';
+import { contactTypesData } from './contact.seed';
 
 const prisma = new PrismaClient();
 
@@ -267,6 +268,15 @@ async function main() {
     })),
   });
   console.log(`Completed seeding withdrawal reasons...`);
+
+  // create withdrawal reasons
+  console.log(`Seeding Contact Types...`);
+  await prisma.contactTypes.createMany({
+    data: contactTypesData.map((contactType) => ({
+      ...contactType,
+    })),
+  });
+  console.log(`Completed seeding contact types...`);
 
   console.log(`Seeding finished.`);
 }
