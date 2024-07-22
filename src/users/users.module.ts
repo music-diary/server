@@ -7,6 +7,8 @@ import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
 import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
+import { SimpleEmailService } from 'src/simple-email/simple-email.service';
+import { ContactRepository } from './contact.repository';
 
 @Module({
   controllers: [UsersController],
@@ -18,6 +20,8 @@ import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
     UsersRepository,
     GenresRepository,
     WithdrawalReasonsRepository,
+    ContactRepository,
+    SimpleEmailService,
   ],
 })
 export class UsersModule {}

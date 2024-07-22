@@ -16,6 +16,9 @@ import {
   WithdrawUserBodyDto,
 } from './dto/withdrawal.dto';
 import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
+import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
+import { SimpleEmailService } from '../simple-email/simple-email.service';
+import { ContactRepository } from './contact.repository';
 
 @Injectable()
 export class UsersService {
@@ -24,6 +27,8 @@ export class UsersService {
     private readonly usersRepository: UsersRepository,
     private readonly genresRepository: GenresRepository,
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
+    private readonly contactRepository: ContactRepository,
+    private readonly simpleEmailService: SimpleEmailService,
   ) {}
 
   async findOne(id: string): Promise<FindUserResponseDto> {
@@ -199,6 +204,44 @@ export class UsersService {
       statusCode: HttpStatus.OK,
       message: 'Find Withdrawal Reasons',
       withdrawalReasons,
+    };
+  }
+
+  async sendContact(
+    userId: string,
+    body: SendContactBodyDto,
+  ): Promise<CommonDto> {
+    const { senderEmail, contactTypeId, message } = body;
+    const contactType = await this.contactRepository.findContactTypeById({
+      where: { id: contactTypeId },
+    });
+    if (!contactType) {
+      throw new NotFoundException('Contact type not found');
+    }
+    await this.simpleEmailService.sendContactEmail(
+      senderEmail,
+      contactType,
+      message,
+    );
+    const contactHistory = { userId, typeId: contactTypeId, content: message };
+    await this.contactRepository.createContactHistories({
+      data: contactHistory,
+    });
+
+    this.logService.verbose(`Send contact message`, UsersService.name);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Send contact message',
+    };
+  }
+
+  async findContactTypes(): Promise<ContactResponseDto> {
+    const contactTypes = await this.contactRepository.findContactTypes();
+    this.logService.verbose(`find Contact Types`, UsersService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Find Contact Types',
+      contactTypes,
     };
   }
 
