@@ -10,6 +10,7 @@ import { topicsData } from './topics.seed';
 import { userData } from './users.seed';
 import { musicsData } from './musics.seed';
 import { withdrawalData } from './withdrawal.seed';
+import { contactTypesData } from './contact.seed';
 
 const prisma = new PrismaClient();
 
@@ -17,23 +18,23 @@ async function main() {
   console.log(`Start seeding ...`);
 
   // seed genres
-  console.log(`Seeding genres...`);
+  console.info(`Seeding genres...`);
   for (const genreData of genresData) {
     await prisma.genres.create({
       data: genreData,
     });
   }
-  console.log(`Completed seeding genres...`);
+  console.info(`Completed seeding genres...`);
 
   // seed emotions
-  console.log(`Seeding emotions...`);
+  console.info(`Seeding emotions...`);
   for (let i = 0; i < basicEmotionsData.length; i++) {
     const basicEmotion = await prisma.emotions.create({
       data: basicEmotionsData[i],
     });
-    console.log(`Created basic emotion : ${basicEmotion.name}`);
+    console.info(`Created basic emotion : ${basicEmotion.name}`);
     for (let j = 0; j < firstDepthsEmotionsData[i].length; j++) {
-      console.log(
+      console.info(
         `Created first depth emotion : ${firstDepthsEmotionsData[i][j].name}`,
       );
       const firstDepthEmotion = await prisma.emotions.create({
@@ -61,19 +62,19 @@ async function main() {
         });
       }
     }
-    console.log(`Completed seeding emotions...`);
+    console.info(`Completed seeding emotions...`);
   }
   // seed topics
-  console.log(`Seeding topics...`);
+  console.info(`Seeding topics...`);
   for (const topicData of topicsData) {
     await prisma.topics.create({
       data: topicData,
     });
   }
-  console.log(`Completed seeding topics...`);
+  console.info(`Completed seeding topics...`);
 
   // seed templates
-  console.log(`Seeding templates...`);
+  console.info(`Seeding templates...`);
   for (let i = 0; i < templatesData.length; i++) {
     const template = await prisma.templates.create({
       data: templatesData[i],
@@ -90,20 +91,20 @@ async function main() {
         },
       });
     }
-    console.log(`Completed seeding templates...`);
+    console.info(`Completed seeding templates...`);
   }
 
   // seed musics
-  console.log(`Seeding musics...`);
+  console.info(`Seeding musics...`);
   for (const musicData of musicsData) {
     await prisma.musics.create({
       data: musicData,
     });
   }
-  console.log(`Completed seeding musics...`);
+  console.info(`Completed seeding musics...`);
 
   // seed users
-  console.log(`Seeding users...`);
+  console.info(`Seeding users...`);
   const user = await prisma.users.create({ data: userData });
   const dance = await prisma.genres.findFirst({
     where: { name: 'dance' },
@@ -120,10 +121,10 @@ async function main() {
       },
     },
   });
-  console.log(`Completed seeding users...`);
+  console.info(`Completed seeding users...`);
 
   // create diary
-  console.log(`Seeding diary...`);
+  console.info(`Seeding diary...`);
   const selectedTopics = await prisma.topics.findMany({
     where: {
       OR: [{ name: 'relationship' }, { name: 'family' }],
@@ -257,16 +258,23 @@ async function main() {
     },
   });
 
-  console.log(`Completed seeding diary...`);
+  console.info(`Completed seeding diary...`);
 
-  // create withdrawal reasons
-  console.log(`Seeding Withdrawal Reasons...`);
+  console.info(`Seeding Withdrawal Reasons...`);
   await prisma.withdrawalReasons.createMany({
     data: withdrawalData.map((reason) => ({
       ...reason,
     })),
   });
-  console.log(`Completed seeding withdrawal reasons...`);
+  console.info(`Completed seeding withdrawal reasons...`);
+
+  console.info(`Seeding Contact Types...`);
+  await prisma.contactTypes.createMany({
+    data: contactTypesData.map((contactType) => ({
+      ...contactType,
+    })),
+  });
+  console.info(`Completed seeding contact types...`);
 
   console.log(`Seeding finished.`);
 }

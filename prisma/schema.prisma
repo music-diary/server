@@ -22,13 +22,14 @@ model Users {
   status             UserStatus @default(ACTIVE)
   withdrawalsId      String?    @map("withdrawals_id") @db.Uuid
 
-  withdrawals Withdrawals? @relation(fields: [withdrawalsId], references: [id])
-  diary       Diaries[]    @relation("UserDiaries")
-  createdAt   DateTime     @default(now()) @map("created_at")
-  updatedAt   DateTime     @updatedAt @map("updated_at")
-  deletedAt   DateTime?    @map("deleted_at")
-  genre       Genres[]     @relation("UserGenres")
-  music       Musics[]
+  withdrawals    Withdrawals?     @relation(fields: [withdrawalsId], references: [id])
+  diary          Diaries[]        @relation("UserDiaries")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at")
+  genre          Genres[]         @relation("UserGenres")
+  music          Musics[]
+  contactHistory ContactHistory[]
 
   @@index([id])
   @@map("users")
@@ -218,4 +219,30 @@ model WithdrawalReasons {
 
   @@index([id])
   @@map("withdraws_reasons")
+}
+
+model ContactHistory {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  typeId    String   @map("type_id") @db.Uuid
+  content   String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user Users        @relation(fields: [userId], references: [id])
+  type ContactTypes @relation(fields: [typeId], references: [id])
+
+  @@index([id])
+  @@map("contact_history")
+}
+
+model ContactTypes {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String           @db.VarChar(30)
+  label          String           @db.VarChar(100)
+  order          Int              @default(0)
+  contactHistory ContactHistory[]
+
+  @@index([id])
+  @@map("contact_types")
 }

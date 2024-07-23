@@ -23,6 +23,7 @@ import {
   WithdrawalReasonsResponseDto,
   WithdrawUserBodyDto,
 } from './dto/withdrawal.dto';
+import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -60,6 +61,23 @@ export class UsersController {
   @Get('withdrawal')
   findWithdrawReasons(): Promise<WithdrawalReasonsResponseDto> {
     return this.usersService.findWithdrawReasons();
+  }
+
+  @ApiOperation({ summary: 'find contact types' })
+  @Get('contact')
+  findContactTypes(): Promise<ContactResponseDto> {
+    return this.usersService.findContactTypes();
+  }
+
+  @ApiOperation({ summary: 'send contact' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Post('contact')
+  sendContact(
+    @User() user: UserPayload,
+    @Body() body: SendContactBodyDto,
+  ): Promise<CommonDto> {
+    return this.usersService.sendContact(user.id, body);
   }
 
   @ApiOperation({ summary: 'Withdraw user' })
