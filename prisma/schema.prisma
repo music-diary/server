@@ -30,6 +30,8 @@ model Users {
   genre          Genres[]         @relation("UserGenres")
   music          Musics[]
   contactHistory ContactHistory[]
+  DiaryEmotions  DiaryEmotions[]
+  DiaryTopics    DiaryTopics[]
 
   @@index([id])
   @@map("users")
@@ -107,11 +109,15 @@ model Emotions {
 }
 
 model DiaryEmotions {
-  id        String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  diaryId   String  @map("diary_id") @db.Uuid
-  emotionId String  @map("emotion_id") @db.Uuid
-  musicId   String? @map("music_id") @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  diaryId   String   @map("diary_id") @db.Uuid
+  emotionId String   @map("emotion_id") @db.Uuid
+  musicId   String?  @map("music_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  user     Users    @relation(fields: [userId], references: [id])
   diary    Diaries  @relation(fields: [diaryId], references: [id])
   emotions Emotions @relation(fields: [emotionId], references: [id])
   music    Musics?  @relation(fields: [musicId], references: [id])
@@ -132,11 +138,15 @@ model Topics {
 }
 
 model DiaryTopics {
-  id      String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  diaryId String  @map("diary_id") @db.Uuid
-  topicId String  @map("topic_id") @db.Uuid
-  musicId String? @map("music_id") @db.Uuid
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  diaryId   String   @map("diary_id") @db.Uuid
+  topicId   String   @map("topic_id") @db.Uuid
+  musicId   String?  @map("music_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  user  Users   @relation(fields: [userId], references: [id])
   diary Diaries @relation(fields: [diaryId], references: [id])
   topic Topics  @relation(fields: [topicId], references: [id])
   music Musics? @relation(fields: [musicId], references: [id])

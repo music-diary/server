@@ -19,10 +19,10 @@ import { MusicsService } from './musics.service';
 import { User } from 'src/decorator/user.decorator';
 import { UserPayload } from 'src/users/dto/user.dto';
 import {
+  FindAllMusicsArchiveResponse,
   FindAllMusicsResponse,
-  FindMusicsArchiveResponse,
+  FindMusicsArchiveSummaryResponse,
   FindMusicsModelResponse,
-  FindMusicsResponse,
 } from './dto/find-music.dto';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
 import { CommonDto } from 'src/common/common.dto';
@@ -40,8 +40,9 @@ export class MusicsController {
     @User() user: UserPayload,
     @Query('start-at') startAt?: string,
     @Query('end-at') endAt?: string,
-  ): Promise<FindAllMusicsResponse> {
-    return this.musicsService.getMusicsArchive(user.id, startAt, endAt);
+    @Query('group') group?: string,
+  ): Promise<FindAllMusicsArchiveResponse> {
+    return this.musicsService.getMusicsArchive(user.id, startAt, endAt, group);
   }
 
   @ApiOperation({ summary: '(AI) Get musics by title' })
@@ -78,7 +79,7 @@ export class MusicsController {
   @Get('me/archive/summary')
   getMusicsArchiveSummary(
     @User() user: UserPayload,
-  ): Promise<FindMusicsArchiveResponse> {
+  ): Promise<FindMusicsArchiveSummaryResponse> {
     return this.musicsService.getMusicsArchiveSummary(user.id);
   }
 }

@@ -152,6 +152,7 @@ async function main() {
           data: [
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
+              userId: user.id,
             })),
           ],
         },
@@ -162,6 +163,8 @@ async function main() {
             ...selectedPositiveEmotions.map((emotion) => ({
               emotionId: emotion.id,
               musicId: selectedMusics[0].id,
+              userId: user.id,
+              createdAt: new Date('2024-06-30'),
             })),
           ],
         },
@@ -191,6 +194,7 @@ async function main() {
           data: [
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
+              userId: user.id,
             })),
           ],
         },
@@ -201,6 +205,8 @@ async function main() {
             ...selectedNegativeEmotions.map((emotion) => ({
               emotionId: emotion.id,
               musicId: selectedMusics[1].id,
+              userId: user.id,
+              createdAt: new Date('2024-07-01'),
             })),
           ],
         },
@@ -230,6 +236,7 @@ async function main() {
           data: [
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
+              userId: user.id,
             })),
           ],
         },
@@ -240,6 +247,8 @@ async function main() {
             ...selectedNormalEmotions.map((emotion) => ({
               emotionId: emotion.id,
               musicId: selectedMusics[2].id,
+              userId: user.id,
+              createdAt: new Date('2024-07-15'),
             })),
           ],
         },

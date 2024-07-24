@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from './schema/music.schema';
 import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
+import { EmotionsRepository } from 'src/diaries/repository/emotions.repository';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
     PrismaService,
     MusicsRepository,
     DiariesRepository,
+    EmotionsRepository,
     LogService,
     JwtService,
   ],
