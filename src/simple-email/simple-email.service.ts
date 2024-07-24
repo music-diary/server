@@ -33,7 +33,6 @@ export class SimpleEmailService {
       contactType.label,
       message,
     );
-    console.log(contactEmail);
     const command = {
       Destination: {
         ToAddresses: [this.configService.get<string>('CONTACT_EMAIL')],
