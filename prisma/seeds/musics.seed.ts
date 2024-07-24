@@ -8,7 +8,9 @@ export const musicsData: Prisma.MusicsCreateInput[] = [
     songId: '35779855',
     albumUrl:
       'https://cdnimg.melon.co.kr/cm2/album/images/110/89/704/11089704_20221028164631_500.jpg?69ac99c84730353bf3ab2b6838018e15/melon/resize/282/quality/80/optimize',
+    selectedLyric: '너와 처음 손 잡았던 이곳에서\n설레였었던 그날',
     originalGenre: '발라드',
+    selected: true,
     title: '나의 이별 노래',
   },
   {
@@ -26,9 +28,11 @@ export const musicsData: Prisma.MusicsCreateInput[] = [
       '좋은 게 좋은 게\n좋은 거라고\n그렇게 넘겨버렸던\n미처 다 읽지 못했던 마음\n밀려버린 숙제 되어\n날 괴롭히네\n그런 게 그런 게\n인생이라고\n어른들은 말하지만\n달갑지 않은 그런 말을\n꾹 삼키기에\n아직은 나 어린가 봐요\n어렵지 않은 마음으로\n하나 둘 셋\n천천히 더 천천히\n그려가 보겠어요\n꾸미지 않은 마음으로\n순수했던 그날의 색을 품고서\n가려진 나에게로 스며들 거야\n여전히 여전히\n난 허전한데\n더 비워내라 하네요\n얄궂은 그런 말을 모두\n내뱉기에는 아직은 나 어린가 봐요\n어렵지 않은 마음으로\n하나 둘 셋\n천천히 더 천천히\n그려가 보겠어요\n꾸미지 않은 마음으로\n순수했던 그날의 색을 품고서\n가려진 나에게로 스며들 거야\n얼룩이 져도 괜찮을 거야\n그 어떤 물음이 내게 와도\n나다운 색으로 가득 물들일 거야\n누군가 알아주기만을\n바라왔던 그래서 불안했던\n어제 그 모습 위에\n당당히 그려 넣을 거야\n아름답지 않아도 소중한 나를\n하나 둘 셋 조금씩 채워 갈 거야',
     artist: '윤한솔',
     songId: '33666702',
+    selectedLyric: '좋은 게 좋은 게\n좋은 거라고',
     albumUrl:
       'https://cdnimg.melon.co.kr/cm2/album/images/106/48/281/10648281_20230303165747_500.jpg?add8767692baae8edc9427cf1978a0fd/melon/resize/282/quality/80/optimize',
     originalGenre: '인디음악, 포크/블루스',
+    selected: true,
     title: '하나 둘 셋 (Duet with 김부경)',
   },
 ];
