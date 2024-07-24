@@ -271,6 +271,7 @@ export class DiariesService {
           diaryId: id,
           topicId: topic.id,
           musicId: body.music?.id ?? null,
+          userId,
         }));
       const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
         data: createDiaryTopicsData,
@@ -300,6 +301,7 @@ export class DiariesService {
           diaryId: id,
           emotionId: emotion.id,
           musicId: body.music?.id ?? null,
+          userId,
         })),
       };
       await this.diaryEmotionsRepository.createMany(createDiaryEmotionsQuery);

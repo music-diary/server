@@ -2,17 +2,20 @@ import { HttpStatus, Injectable } from '@nestjs/common';
 import { MusicsRepository } from './musics.repository';
 import { LogService } from 'src/common/log.service';
 import {
+  FindAllMusicsArchiveResponse,
   FindAllMusicsResponse,
-  FindMusicsArchiveResponse,
+  FindMusicsArchiveSummaryResponse,
   FindMusicsModelResponse,
 } from './dto/find-music.dto';
-import { Prisma, DiaryEmotions } from '@prisma/client';
+import { DiaryEmotions, Musics, Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
 import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
 import { CommonDto } from 'src/common/common.dto';
 import { PrismaService } from 'src/database/prisma.service';
+import { EmotionsRepository } from '../diaries/repository/emotions.repository';
+import { EmotionsDto } from 'src/diaries/dto/emotions.dto';
 
 @Injectable()
 export class MusicsService {
@@ -21,6 +24,7 @@ export class MusicsService {
     private readonly model: Model<MusicModel, MusicKey>,
     private readonly musicsRepository: MusicsRepository,
     private readonly diariesRepository: DiariesRepository,
+    private readonly emotionsRepository: EmotionsRepository,
     private readonly prismaService: PrismaService,
     private readonly logService: LogService,
   ) {}
@@ -29,24 +33,21 @@ export class MusicsService {
     userId: string,
     startAt?: string,
     endAt?: string,
-  ): Promise<FindAllMusicsResponse> {
-    const endDate = new Date(endAt).setDate(new Date(endAt).getDate() + 1);
+    group?: string,
+  ): Promise<FindAllMusicsArchiveResponse> {
+    const data = {};
+    const startDate = new Date(startAt).toISOString();
+    const endDate = new Date(
+      new Date(endAt).setDate(new Date(endAt).getDate() + 1),
+    ).toISOString();
     const findQuery: Prisma.MusicsFindManyArgs = {
       where: { userId },
       include: {
         diary: {
-          include: {
+          select: {
             emotions: {
               select: {
-                emotions: {
-                  include: {
-                    parent: {
-                      include: {
-                        parent: true,
-                      },
-                    },
-                  },
-                },
+                emotions: { select: { parent: { include: { parent: true } } } },
               },
             },
           },
@@ -55,15 +56,22 @@ export class MusicsService {
     };
     if (startAt) {
       findQuery.where.createdAt = {
-        gte: new Date(startAt).toISOString(),
+        gte: startDate,
       };
     }
     if (endAt) {
       findQuery.where.createdAt = {
-        lte: new Date(endDate).toISOString(),
+        lte: endDate,
       };
     }
     const musics = await this.musicsRepository.findMany(findQuery);
+    data['musics'] = musics;
+
+    if (group) {
+      data['count'] = await this.getMusicCount(userId, startDate, endDate);
+      data['emotion'] = await this.getMostEmotion(userId, startDate, endDate);
+    }
+
     this.logService.verbose(
       `Get all musics archives from ${startAt} to ${endAt}`,
       MusicsService.name,
@@ -71,7 +79,7 @@ export class MusicsService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Get all diaries archives',
-      musics,
+      data,
     };
   }
 
@@ -149,51 +157,8 @@ export class MusicsService {
 
   async getMusicsArchiveSummary(
     userId: string,
-  ): Promise<FindMusicsArchiveResponse> {
-    const musicCount = await this.prismaService.musics.groupBy({
-      by: ['createdAt'],
-      _count: {
-        id: true,
-      },
-      where: {
-        userId,
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    const results = await this.musicsRepository.findMany({
-      where: {
-        userId,
-      },
-      select: {
-        songId: true,
-        title: true,
-        artist: true,
-        albumUrl: true,
-        createdAt: true,
-        diary: {
-          include: {
-            emotions: {
-              select: {
-                emotions: {
-                  include: {
-                    parent: {
-                      include: {
-                        parent: true,
-                      },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      },
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
+  ): Promise<FindMusicsArchiveSummaryResponse> {
+    const summary = await this.getMusicSummaryByMonth(userId);
     this.logService.verbose(
       `Get musics archive summary by user ${userId}`,
       MusicsService.name,
@@ -201,8 +166,145 @@ export class MusicsService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Get musics archive summary',
-      musics: results,
-      count: musicCount,
+      summary,
     };
+  }
+
+  private async getMusicSummaryByMonth(userId: string) {
+    const months = await this.prismaService.musics.findMany({
+      where: { userId },
+      select: { createdAt: true },
+    });
+    const uniqueMonths = Array.from(
+      new Set(
+        months.map((month) => month.createdAt.toISOString().substring(0, 7)),
+      ),
+    );
+
+    const statistics = await Promise.all(
+      uniqueMonths.map(async (month) => {
+        const startDate = new Date(`${month}-01`);
+        const endDate = new Date(startDate);
+        endDate.setMonth(endDate.getMonth() + 1);
+
+        const latestMusic = await this.musicsRepository.findOne({
+          where: {
+            userId,
+            createdAt: { gte: startDate, lt: endDate },
+          },
+          orderBy: { createdAt: 'desc' },
+          select: {
+            id: true,
+            songId: true,
+            title: true,
+            artist: true,
+            albumUrl: true,
+          },
+        });
+
+        const musicCount = await this.prismaService.musics.count({
+          where: { userId, createdAt: { gte: startDate, lt: endDate } },
+        });
+
+        const emotions = await this.prismaService.diaryEmotions.groupBy({
+          by: ['emotionId'],
+          where: {
+            userId,
+            createdAt: {
+              gte: startDate,
+              lt: endDate,
+            },
+          },
+          _count: {
+            emotionId: true,
+          },
+          orderBy: {
+            _count: {
+              emotionId: 'desc',
+            },
+          },
+          take: 1,
+        });
+
+        const mostFrequentEmotion =
+          emotions.length > 0
+            ? await this.emotionsRepository.findUnique({
+                where: {
+                  id: emotions[0].emotionId,
+                },
+                select: {
+                  parent: {
+                    include: {
+                      parent: true,
+                    },
+                  },
+                },
+              })
+            : null;
+
+        return {
+          date: month,
+          music: latestMusic,
+          count: musicCount,
+          emotion: mostFrequentEmotion,
+        };
+      }),
+    );
+
+    return statistics;
+  }
+
+  private async getMusicCount(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ) {
+    return await this.prismaService.musics.count({
+      where: { userId, createdAt: { gte: startDate, lt: endDate } },
+    });
+  }
+
+  private async getMostEmotion(
+    userId: string,
+    startDate: string,
+    endDate: string,
+  ) {
+    const emotions = await this.prismaService.diaryEmotions.groupBy({
+      by: ['emotionId'],
+      where: {
+        userId,
+        createdAt: {
+          gte: startDate,
+          lt: endDate,
+        },
+      },
+      _count: {
+        emotionId: true,
+      },
+      orderBy: {
+        _count: {
+          emotionId: 'desc',
+        },
+      },
+      take: 1,
+    });
+
+    const mostFrequentEmotion =
+      emotions.length > 0
+        ? await this.emotionsRepository.findUnique({
+            where: {
+              id: emotions[0].emotionId,
+            },
+            select: {
+              parent: {
+                include: {
+                  parent: true,
+                },
+              },
+            },
+          })
+        : null;
+
+    return mostFrequentEmotion;
   }
 }
