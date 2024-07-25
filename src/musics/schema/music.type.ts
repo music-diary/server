@@ -9,4 +9,6 @@ export interface MusicModel extends MusicKey {
   feelings: string;
   genre: string;
   lyric?: string;
+  youtubeUrl?: string;
+  editor?: string;
 }
