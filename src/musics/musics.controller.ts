@@ -45,26 +45,30 @@ export class MusicsController {
     return this.musicsService.getMusicsArchive(user.id, startAt, endAt, group);
   }
 
-  @ApiOperation({ summary: '(AI) Get musics by title' })
+  @ApiOperation({ summary: '(AI) Get musics by title or songId' })
   @ApiQuery({ name: 'title', required: false })
+  @ApiQuery({ name: 'songId', required: false })
   @Get()
-  getMusics(@Query('title') title?: string): Promise<FindMusicsModelResponse> {
-    return this.musicsService.getMusics(title);
+  getMusics(
+    @Query('title') title?: string,
+    @Query('songId') songId?: string,
+  ): Promise<FindMusicsModelResponse> {
+    return this.musicsService.getMusics(title, songId);
   }
 
-  @ApiOperation({ summary: '(AI Temp) Generate music candidates' })
+  @ApiOperation({ summary: '(AI) Generate music candidates' })
   @ApiBearerAuth()
   @ApiBody({ type: CreateDiaryMusicBodyDto })
   @UseGuards(AuthGuard)
   @Post('candidates')
-  createDiaryMusics(
+  createMusicCandidates(
     @User() user: UserPayload,
     @Body() body: CreateDiaryMusicBodyDto,
   ): Promise<CommonDto> {
-    return this.musicsService.createDiaryMusics(user.id, body);
+    return this.musicsService.createMusicCandidates(user.id, body);
   }
 
-  @ApiOperation({ summary: '(AI Temp) Get musics candidates' })
+  @ApiOperation({ summary: '(AI) Get musics candidates' })
   @ApiBody({ type: FindAllMusicsResponse })
   @Get('candidates/:diaryId')
   getMusicCandidatesByDiary(
