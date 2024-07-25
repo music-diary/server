@@ -51,6 +51,16 @@ export class MusicsDto implements Musics {
   selected: boolean = false;
 
   @ApiProperty()
+  @IsOptional()
+  @IsString()
+  youtubeUrl: string | null;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  editor: string | null;
+
+  @ApiProperty()
   @IsString()
   userId: string;
 
@@ -99,4 +109,14 @@ export class MusicModelDto implements MusicModel {
   @IsOptional()
   @IsString()
   lyric?: string | null;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  youtubeUrl?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsString()
+  editor?: string;
 }

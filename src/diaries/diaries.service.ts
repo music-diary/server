@@ -1,5 +1,10 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { DiariesStatus, Prisma } from '@prisma/client';
+import {
+  DiariesStatus,
+  Prisma,
+  TemplateContents,
+  Templates,
+} from '@prisma/client';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
 import {
@@ -24,6 +29,10 @@ import { TopicsRepository } from './repository/topics.repository';
 import { CommonDto } from 'src/common/common.dto';
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
+import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
+import { AIService } from 'src/ai/ai.service';
+import { MusicsRepository } from '../musics/musics.repository';
+import { MusicModelRepository } from 'src/musics/music-model.repository';
 
 @Injectable()
 export class DiariesService {
@@ -34,7 +43,9 @@ export class DiariesService {
     private readonly diariesRepository: DiariesRepository,
     private readonly diaryTopicsRepository: DiaryTopicsRepository,
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
-    private readonly prismaService: PrismaService,
+    private readonly musicModelRepository: MusicModelRepository,
+    private readonly musicsRepository: MusicsRepository,
+    private readonly aiService: AIService,
     private readonly logService: LogService,
   ) {}
 
@@ -90,37 +101,35 @@ export class DiariesService {
     endAt?: string,
     group?: string,
   ): Promise<FindDiariesResponseDto> {
-    const endDate = new Date(endAt).setDate(new Date(endAt).getDate() + 1);
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
       where: {
         userId,
         status: DiariesStatus.DONE,
+        ...(startAt && { createdAt: { gte: new Date(startAt).toISOString() } }),
+        ...(endAt && { createdAt: { lte: this.getEndDate(endAt) } }),
+        ...(startAt &&
+          endAt && {
+            createdAt: {
+              gte: new Date(startAt).toISOString(),
+              lte: this.getEndDate(endAt),
+            },
+          }),
       },
-    };
-    if (startAt) {
-      findDiariesQuery.where.createdAt = {
-        gte: new Date(startAt).toISOString(),
-      };
-    }
-    if (endAt) {
-      findDiariesQuery.where.createdAt = {
-        lte: new Date(endDate).toISOString(),
-      };
-    }
-    if (Boolean(group)) {
-      findDiariesQuery.include = {
-        user: { select: { id: true } },
-        emotions: {
-          select: {
-            emotions: { include: { parent: { include: { parent: true } } } },
+      ...(group && {
+        include: {
+          user: { select: { id: true } },
+          emotions: {
+            select: {
+              emotions: { include: { parent: { include: { parent: true } } } },
+            },
+          },
+          topics: { select: { topic: true } },
+          musics: {
+            select: { songId: true, title: true, artist: true, albumUrl: true },
           },
         },
-        topics: { select: { topic: true } },
-        musics: {
-          select: { songId: true, title: true, artist: true, albumUrl: true },
-        },
-      };
-    }
+      }),
+    };
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
     this.logService.verbose(
       `Get all diaries archives from ${startAt} to ${endAt}`,
@@ -172,6 +181,9 @@ export class DiariesService {
             albumUrl: true,
             selectedLyric: true,
             lyric: true,
+            selected: true,
+            youtubeUrl: true,
+            editor: true,
           },
         },
       },
@@ -207,6 +219,83 @@ export class DiariesService {
     };
   }
 
+  async recommendMusics(
+    userId: string,
+    id: string,
+  ): Promise<RecommendMusicResponseDto> {
+    const diary = await this.diariesRepository.update({
+      where: { id, userId },
+      data: { status: DiariesStatus.PENDING },
+      select: {
+        id: true,
+        userId: true,
+        content: true,
+        templates: { select: { templateContents: true } },
+      },
+    });
+    if (!diary) {
+      throw new NotFoundException('Diary not found');
+    }
+
+    const requestAiData = {
+      data:
+        diary['templates'] === null
+          ? diary.content
+          : diary['templates'].templateContents
+              .map(
+                (templateContent: TemplateContents) => templateContent.content,
+              )
+              .join(' '),
+    };
+
+    const musicRecommendResult =
+      await this.aiService.recommendMusicsToAI(requestAiData);
+    // FIXME: editor_pick is not defined
+    // const resultEditors = Object.values(musicRecommendResult.editor_pick);
+    const resultSongIds = Object.values(musicRecommendResult.songId);
+    const musicCandidates = await Promise.all(
+      resultSongIds.map(async (songId) => {
+        const query = `${songId}`;
+        const musicModel = await this.musicModelRepository.findBySongId(query);
+        const music = {
+          songId: musicModel.songId,
+          title: musicModel.title,
+          albumUrl: musicModel.albumUrl,
+          artist: musicModel.artist,
+          lyric: musicModel.lyric,
+          originalGenre: musicModel.genre,
+          youtubeUrl:
+            musicModel.youtubeUrl ??
+            'https://www.youtube.com/watch?v=VXGBogP6I2I', // FIXME: FIX youtubeUrl
+          editor: musicModel.editor ?? null,
+          diaryId: diary.id,
+          userId,
+        };
+        return await this.musicsRepository.create({
+          data: music,
+          select: {
+            id: true,
+            title: true,
+            artist: true,
+            albumUrl: true,
+            selectedLyric: true,
+            lyric: true,
+            selected: true,
+            youtubeUrl: true,
+            editor: true,
+          },
+        });
+      }),
+    );
+
+    this.logService.verbose(`recommend musics by ${id}`, DiariesService.name);
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'recommend musics',
+      data: musicCandidates,
+    };
+  }
+
   async update(
     id: string,
     userId: string,
@@ -227,23 +316,22 @@ export class DiariesService {
       content,
     };
     if ('templates' in body && typeof body.templates === 'object') {
-      updateDiaryDataQuery.templates = {
-        connect: { id: body.templates.id },
-      };
-      const updateTemplateDataQuery: Prisma.TemplatesUpdateArgs = {
-        where: { id: body.templates.id },
+      const createTemplateDataQuery: Prisma.TemplatesCreateArgs = {
         data: {
+          ...body.templates,
           templateContents: {
-            update: body.templates.templateContents.map((templateContent) => ({
-              where: { id: templateContent.id },
-              data: {
-                content: templateContent.content,
-              },
+            create: body.templates.templateContents.map((content) => ({
+              ...content,
             })),
           },
         },
       };
-      await this.templatesRepository.update(updateTemplateDataQuery);
+      const template = await this.templatesRepository.create(
+        createTemplateDataQuery,
+      );
+      updateDiaryDataQuery.templates = {
+        connect: { id: template.id },
+      };
     }
     const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
       where: { id },
@@ -349,5 +437,11 @@ export class DiariesService {
       throw new NotFoundException('Diary not found');
     }
     return true;
+  }
+
+  private getEndDate(endAt: string): string {
+    const endDate = new Date(endAt);
+    endDate.setDate(endDate.getDate() + 1);
+    return endDate.toISOString();
   }
 }

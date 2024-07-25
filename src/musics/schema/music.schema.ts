@@ -30,4 +30,12 @@ export const MusicSchema = new Schema({
     type: String,
     required: false,
   },
+  youtubeUrl: {
+    type: String,
+    required: false,
+  },
+  editor: {
+    type: String,
+    required: false,
+  },
 });

@@ -10,8 +10,24 @@ import { TemplatesRepository } from './repository/templates.repository';
 import { TopicsRepository } from './repository/topics.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
+import { AIService } from 'src/ai/ai.service';
+import { MusicModelRepository } from 'src/musics/music-model.repository';
+import { MusicsRepository } from 'src/musics/musics.repository';
+import { DynamooseModule } from 'nestjs-dynamoose';
+import { MusicSchema } from 'src/musics/schema/music.schema';
 
 @Module({
+  imports: [
+    DynamooseModule.forFeature([
+      {
+        name: 'Music',
+        schema: MusicSchema,
+        options: {
+          tableName: 'musicdiary_table',
+        },
+      },
+    ]),
+  ],
   providers: [
     DiariesService,
     JwtService,
@@ -23,6 +39,9 @@ import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
     DiariesRepository,
     DiaryEmotionsRepository,
     DiaryTopicsRepository,
+    MusicModelRepository,
+    MusicsRepository,
+    AIService,
   ],
   controllers: [DiariesController],
 })

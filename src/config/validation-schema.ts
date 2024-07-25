@@ -8,6 +8,7 @@ export const validationSchema = Joi.object({
   SERVER_DOMAIN: Joi.string().required(),
 
   CONTACT_EMAIL: Joi.string().default('dev.music.diary@gmail.com'),
+  AI_URL: Joi.string().required(),
 
   DATABASE_URL: Joi.string().required(),
   REDIS_HOST: Joi.string().required(),

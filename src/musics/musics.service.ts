@@ -7,7 +7,7 @@ import {
   FindMusicsArchiveSummaryResponse,
   FindMusicsModelResponse,
 } from './dto/find-music.dto';
-import { DiaryEmotions, Musics, Prisma } from '@prisma/client';
+import { Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
@@ -15,7 +15,6 @@ import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
 import { CommonDto } from 'src/common/common.dto';
 import { PrismaService } from 'src/database/prisma.service';
 import { EmotionsRepository } from '../diaries/repository/emotions.repository';
-import { EmotionsDto } from 'src/diaries/dto/emotions.dto';
 
 @Injectable()
 export class MusicsService {
@@ -83,11 +82,19 @@ export class MusicsService {
     };
   }
 
-  async getMusics(title?: string): Promise<FindMusicsModelResponse> {
+  async getMusics(
+    title?: string,
+    songId?: string,
+  ): Promise<FindMusicsModelResponse> {
     const musics: MusicModel[] = title
       ? await this.model.scan('title').contains(title).exec()
-      : await this.model.scan().limit(20).exec();
-    this.logService.verbose(`Get musics`, MusicsService.name);
+      : songId
+        ? await this.model.scan('songId').contains(songId).exec()
+        : await this.model.scan().limit(20).exec();
+    this.logService.verbose(
+      `Get musics ${title} ${songId}`,
+      MusicsService.name,
+    );
     return {
       statusCode: HttpStatus.OK,
       message: 'Get musics',
@@ -95,7 +102,7 @@ export class MusicsService {
     };
   }
 
-  async createDiaryMusics(
+  async createMusicCandidates(
     userId: string,
     body: CreateDiaryMusicBodyDto,
   ): Promise<CommonDto> {

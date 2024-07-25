@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -35,6 +36,7 @@ import {
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
 import { CommonDto } from 'src/common/common.dto';
+import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 
 @ApiTags('Diaries')
 @Controller('diaries')
@@ -109,6 +111,17 @@ export class DiariesController {
     @Body() body: CreateDiaryBodyDto,
   ): Promise<CreateDiaryResponseDto> {
     return this.diariesService.create(user.id, body);
+  }
+
+  @ApiOperation({ summary: 'Request AI music recommendation' })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Put(':id/musics/ai')
+  recommendMusics(
+    @User() user: UserPayload,
+    @Param('id') id: string,
+  ): Promise<RecommendMusicResponseDto> {
+    return this.diariesService.recommendMusics(user.id, id);
   }
 
   @ApiOperation({ summary: 'Update diary' })

@@ -10,6 +10,10 @@ export class TemplatesRepository {
     return await this.prismaService.templates.findMany(query);
   }
 
+  async create(query: Prisma.TemplatesCreateArgs): Promise<Templates> {
+    return await this.prismaService.templates.create(query);
+  }
+
   async update(query: Prisma.TemplatesUpdateArgs): Promise<Templates> {
     return await this.prismaService.templates.update(query);
   }
