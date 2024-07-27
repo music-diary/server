@@ -19,6 +19,15 @@ import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
 import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
 import { SimpleEmailService } from '../simple-email/simple-email.service';
 import { ContactRepository } from './contact.repository';
+import {
+  GetStatisticsQuery,
+  GetStatisticsResponseDto,
+  StatisticsType,
+} from './dto/statistics.dto';
+import { StatisticRepository } from './statistic.repository';
+import { DiaryDto } from 'src/diaries/dto/diaries.dto';
+import { GenresDto } from 'src/genres/dto/genres.dto';
+import { MusicsDto } from 'src/musics/dto/musics.dto';
 
 @Injectable()
 export class UsersService {
@@ -28,6 +37,7 @@ export class UsersService {
     private readonly genresRepository: GenresRepository,
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
     private readonly contactRepository: ContactRepository,
+    private readonly statisticRepository: StatisticRepository,
     private readonly simpleEmailService: SimpleEmailService,
   ) {}
 
@@ -157,6 +167,29 @@ export class UsersService {
     };
   }
 
+  async getStatistics(
+    userId: string,
+    query: GetStatisticsQuery,
+  ): Promise<GetStatisticsResponseDto> {
+    const { type, ...restQuery } = query;
+    let data: any;
+    if (type === StatisticsType.MONTH) {
+      const diaries = await this.getStatisticsByMonth(userId, restQuery.month);
+      data = diaries;
+    } else if (type === StatisticsType.YEAR) {
+      data = await this.getStatisticsByYear(userId, restQuery.year);
+    }
+    this.logService.verbose(
+      `Get statistics user - ${userId}`,
+      UsersService.name,
+    );
+    return {
+      statusCode: HttpStatus.OK,
+      message: `Get statistics user`,
+      data,
+    };
+  }
+
   async withdraw(
     id: string,
     targetId: string,
@@ -250,5 +283,186 @@ export class UsersService {
       throw new ForbiddenException('Forbidden resource');
     }
     return;
+  }
+
+  private async getStatisticsByMonth(
+    userId: string,
+    date: string,
+  ): Promise<any> {
+    const { startDate, endDate } = this.parseDate(date);
+    const whereQuery = {
+      where: { userId, createdAt: { gte: startDate, lt: endDate } },
+    };
+    const diaryCount =
+      await this.statisticRepository.getMonthlyDiaryCount(whereQuery);
+    // NOTE: This is not used (월별 일기 작성 비율)
+    // const daysInMonth = new Date(
+    //   startDate.getFullYear(),
+    //   startDate.getMonth() + 1,
+    //   0,
+    // ).getDate();
+    // const diaryCountRatio = ((diaryCount / daysInMonth) * 100).toFixed(0);
+    const emotions = await this.statisticRepository.getEmotionStatistic(
+      whereQuery.where,
+    );
+
+    const musics = await this.statisticRepository.findMusicsStatistic({
+      where: { selected: true, ...whereQuery.where },
+      select: { id: true, originalGenre: true },
+    });
+    const genres = await this.statisticRepository.findGenres();
+    const genreCounts = this.getGenreCount(genres, musics);
+
+    const topics = await this.statisticRepository.findTopicsStatistic(
+      whereQuery.where,
+    );
+    return { date, diaryCount, emotions, genreCounts, topics };
+  }
+
+  private async getStatisticsByYear(
+    userId: string,
+    year: number,
+  ): Promise<any> {
+    const { startDate, endDate } = this.parseYear(+year);
+    console.log(startDate, endDate);
+    const whereQuery = {
+      where: { userId, createdAt: { gte: startDate, lt: endDate } },
+    };
+    const allDiaries = await this.statisticRepository.getDiaries({
+      distinct: ['createdAt'],
+      select: { createdAt: true },
+      ...whereQuery,
+    });
+    console.log(allDiaries);
+
+    const diaries = await this.getYearlyDiariesCount(
+      allDiaries,
+      startDate,
+      endDate,
+    );
+
+    // NOTE: This is not used (월별 일기 작성 비율)
+    // const daysInMonth = new Date(
+    //   startDate.getFullYear(),
+    //   startDate.getMonth() + 1,
+    //   0,
+    // ).getDate();
+    // const diaryCountRatio = ((diaryCount / daysInMonth) * 100).toFixed(0);
+    const emotions = await this.statisticRepository.getEmotionStatistic(
+      whereQuery.where,
+    );
+
+    const musics = await this.statisticRepository.findMusicsStatistic({
+      where: { selected: true, ...whereQuery.where },
+      select: { id: true, originalGenre: true },
+    });
+    const genres = await this.statisticRepository.findGenres();
+    const genreCounts = this.getGenreCount(genres, musics);
+
+    const topics = await this.statisticRepository.findTopicsStatistic(
+      whereQuery.where,
+    );
+    return { year, diaries, emotions, genreCounts, topics };
+  }
+
+  private getGenreCount(
+    genres: GenresDto[],
+    musics: MusicsDto[],
+  ): { genre: string; count: number }[] {
+    return genres.reduce((acc, genre) => {
+      const count = musics.reduce((genreCount, music) => {
+        if (music.originalGenre && music.originalGenre.includes(genre.label)) {
+          return genreCount + 1;
+        }
+        return genreCount;
+      }, 0);
+
+      if (count > 0) {
+        acc.push({
+          genre: genre.name,
+          count,
+        });
+      }
+      return acc;
+    }, []);
+  }
+
+  private async getYearlyDiariesCount(
+    diaries: DiaryDto[],
+    startDate: Date,
+    _endDate: Date,
+  ): Promise<any> {
+    const uniqueYears = Array.from(
+      new Set(diaries.map((diary) => diary.createdAt.getFullYear())),
+    );
+
+    return await Promise.all(
+      uniqueYears.map(async (year) => {
+        const yearDiaryCount =
+          await this.statisticRepository.getYearlyDiariesCount({
+            where: {
+              createdAt: {
+                gte: startDate,
+                lt: new Date(startDate.getFullYear() + 1, 0, 1),
+              },
+            },
+          });
+
+        // To get the timezone offset in hours
+        const offset = parseInt(
+          `${(new Date().getTimezoneOffset() * -1) / 60}`,
+        );
+
+        // Get the count of diaries for each month in the year
+        const monthDiaryCounts = await Promise.all(
+          Array.from({ length: 12 }, async (_, monthIndex) => {
+            const monthStart = new Date(year, monthIndex, 1, offset); // First day of the month
+            const monthEnd = new Date(year, monthIndex + 1, 0, offset); // Last day of the month
+            console.log(year, monthStart, monthEnd);
+
+            const monthCount =
+              await this.statisticRepository.getMonthlyDiaryCount({
+                where: {
+                  createdAt: {
+                    gte: monthStart,
+                    lt: new Date(
+                      monthStart.getFullYear(),
+                      monthStart.getMonth() + 1,
+                      1,
+                    ),
+                  },
+                },
+              });
+
+            return {
+              month: monthStart.toISOString().substring(0, 7),
+              count: monthCount,
+            };
+          }),
+        );
+
+        return {
+          year,
+          count: yearDiaryCount,
+          months: monthDiaryCounts,
+        };
+      }),
+    );
+  }
+
+  private parseDate(date: string): { startDate: Date; endDate: Date } {
+    const [year, month] = date.split('-');
+    const startDate = new Date(+year, +month - 1, 1);
+    // TODO: Check if this is correct (offset?)
+    const endDate = new Date(+year, +month, 1);
+    return { startDate, endDate };
+  }
+
+  private parseYear(year: number): { startDate: Date; endDate: Date } {
+    const startDate = new Date(`${year}-01-01`);
+    // To get the timezone offset in hours
+    const offset = parseInt(`${(new Date().getTimezoneOffset() * -1) / 60}`);
+    const endDate = new Date(startDate.getFullYear() + 1, 0, 1, offset);
+    return { startDate, endDate };
   }
 }

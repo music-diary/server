@@ -9,6 +9,7 @@ import { UsersService } from './users.service';
 import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
 import { SimpleEmailService } from 'src/simple-email/simple-email.service';
 import { ContactRepository } from './contact.repository';
+import { StatisticRepository } from './statistic.repository';
 
 @Module({
   controllers: [UsersController],
@@ -21,6 +22,7 @@ import { ContactRepository } from './contact.repository';
     GenresRepository,
     WithdrawalReasonsRepository,
     ContactRepository,
+    StatisticRepository,
     SimpleEmailService,
   ],
 })
