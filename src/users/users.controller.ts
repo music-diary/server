@@ -6,9 +6,16 @@ import {
   Param,
   Patch,
   Post,
+  Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiOperation,
+  ApiQuery,
+  ApiTags,
+} from '@nestjs/swagger';
 import { Role } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { Roles } from 'src/decorator/roles.decorator';
@@ -24,6 +31,11 @@ import {
   WithdrawUserBodyDto,
 } from './dto/withdrawal.dto';
 import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
+import {
+  GetStatisticsQuery,
+  GetStatisticsResponseDto,
+  StatisticsType,
+} from './dto/statistics.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -91,6 +103,25 @@ export class UsersController {
     @Body() body: WithdrawUserBodyDto,
   ): Promise<CommonDto> {
     return this.usersService.withdraw(user.id, id, body);
+  }
+
+  @ApiOperation({ summary: 'Get statistics in my page' })
+  @ApiQuery({
+    name: 'type',
+    required: true,
+    type: 'enum',
+    enum: ['month', 'year'],
+  })
+  @ApiQuery({ name: 'month', required: false })
+  @ApiQuery({ name: 'year', required: false })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Get('statistics')
+  getStatistics(
+    @Query() query: GetStatisticsQuery,
+    @User() user: UserPayload,
+  ): Promise<GetStatisticsResponseDto> {
+    return this.usersService.getStatistics(user.id, query);
   }
 
   @ApiOperation({ summary: '[ADMIN] get all users' })
