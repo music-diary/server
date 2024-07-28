@@ -1,12 +1,6 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import {
-  DiariesStatus,
-  Prisma,
-  TemplateContents,
-  Templates,
-} from '@prisma/client';
+import { DiariesStatus, Prisma, TemplateContents } from '@prisma/client';
 import { LogService } from 'src/common/log.service';
-import { PrismaService } from 'src/database/prisma.service';
 import {
   CreateDiaryBodyDto,
   CreateDiaryResponseDto,
@@ -33,6 +27,7 @@ import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 import { AIService } from 'src/ai/ai.service';
 import { MusicsRepository } from '../musics/musics.repository';
 import { MusicModelRepository } from 'src/musics/music-model.repository';
+import { Condition } from 'dynamoose';
 
 @Injectable()
 export class DiariesService {
@@ -183,7 +178,7 @@ export class DiariesService {
             lyric: true,
             selected: true,
             youtubeUrl: true,
-            editor: true,
+            editorPick: true,
           },
         },
       },
@@ -250,13 +245,17 @@ export class DiariesService {
 
     const musicRecommendResult =
       await this.aiService.recommendMusicsToAI(requestAiData);
-    // FIXME: editor_pick is not defined
-    // const resultEditors = Object.values(musicRecommendResult.editor_pick);
-    const resultSongIds = Object.values(musicRecommendResult.songId);
+
+    const resultSongIds = Object.values(musicRecommendResult.songId).map(
+      (songId) => songId.toString(),
+    );
     const musicCandidates = await Promise.all(
       resultSongIds.map(async (songId) => {
-        const query = `${songId}`;
-        const musicModel = await this.musicModelRepository.findBySongId(query);
+        const condition = new Condition().filter('songId').contains(songId);
+        const musicModels =
+          await this.musicModelRepository.findBySongId(condition);
+
+        const musicModel = musicModels[0];
         const music = {
           songId: musicModel.songId,
           title: musicModel.title,
@@ -267,7 +266,7 @@ export class DiariesService {
           youtubeUrl:
             musicModel.youtubeUrl ??
             'https://www.youtube.com/watch?v=VXGBogP6I2I', // FIXME: FIX youtubeUrl
-          editor: musicModel.editor ?? null,
+          editorPick: musicModel.editor_name ?? null,
           diaryId: diary.id,
           userId,
         };
@@ -282,7 +281,7 @@ export class DiariesService {
             lyric: true,
             selected: true,
             youtubeUrl: true,
-            editor: true,
+            editorPick: true,
           },
         });
       }),

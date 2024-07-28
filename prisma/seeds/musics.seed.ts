@@ -12,6 +12,8 @@ export const musicsData: Prisma.MusicsCreateInput[] = [
     originalGenre: '발라드',
     selected: true,
     title: '나의 이별 노래',
+    youtubeUrl: 'https://www.youtube.com/watch?v=cpawxIKGies',
+    editorPick: 'nickname',
   },
   {
     lyric:
@@ -22,6 +24,7 @@ export const musicsData: Prisma.MusicsCreateInput[] = [
       'https://cdnimg.melon.co.kr/cm/album/images/026/85/086/2685086_500.jpg/melon/resize/282/quality/80/optimize',
     originalGenre: '발라드, 국내드라마',
     title: '사랑이 뭔데',
+    youtubeUrl: 'https://www.youtube.com/watch?v=9IWcTyD_7Sw',
   },
   {
     lyric:
@@ -34,5 +37,6 @@ export const musicsData: Prisma.MusicsCreateInput[] = [
     originalGenre: '인디음악, 포크/블루스',
     selected: true,
     title: '하나 둘 셋 (Duet with 김부경)',
+    youtubeUrl: 'https://www.youtube.com/watch?v=UDXdSDg47mA',
   },
 ];

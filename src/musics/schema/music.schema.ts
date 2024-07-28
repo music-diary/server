@@ -4,6 +4,9 @@ export const MusicSchema = new Schema({
   songId: {
     type: String,
     required: true,
+    index: {
+      name: 'songId-index',
+    },
   },
   title: {
     type: String,
@@ -34,7 +37,14 @@ export const MusicSchema = new Schema({
     type: String,
     required: false,
   },
-  editor: {
+  editor_pick: {
+    type: String,
+    required: false,
+    index: {
+      name: 'editor_pick-index',
+    },
+  },
+  editor_name: {
     type: String,
     required: false,
   },

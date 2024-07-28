@@ -324,7 +324,6 @@ export class UsersService {
     year: number,
   ): Promise<any> {
     const { startDate, endDate } = this.parseYear(+year);
-    console.log(startDate, endDate);
     const whereQuery = {
       where: { userId, createdAt: { gte: startDate, lt: endDate } },
     };
@@ -333,7 +332,6 @@ export class UsersService {
       select: { createdAt: true },
       ...whereQuery,
     });
-    console.log(allDiaries);
 
     const diaries = await this.getYearlyDiariesCount(
       allDiaries,
@@ -418,7 +416,6 @@ export class UsersService {
           Array.from({ length: 12 }, async (_, monthIndex) => {
             const monthStart = new Date(year, monthIndex, 1, offset); // First day of the month
             const monthEnd = new Date(year, monthIndex + 1, 0, offset); // Last day of the month
-            console.log(year, monthStart, monthEnd);
 
             const monthCount =
               await this.statisticRepository.getMonthlyDiaryCount({
