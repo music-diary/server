@@ -15,6 +15,7 @@ import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
 import { CommonDto } from 'src/common/common.dto';
 import { PrismaService } from 'src/database/prisma.service';
 import { EmotionsRepository } from '../diaries/repository/emotions.repository';
+import { Condition } from 'dynamoose';
 
 @Injectable()
 export class MusicsService {
@@ -86,11 +87,17 @@ export class MusicsService {
     title?: string,
     songId?: string,
   ): Promise<FindMusicsModelResponse> {
-    const musics: MusicModel[] = title
-      ? await this.model.scan('title').contains(title).exec()
-      : songId
-        ? await this.model.scan('songId').contains(songId).exec()
-        : await this.model.scan().limit(20).exec();
+    const conditions = new Condition();
+    if (title) {
+      conditions.filter('title').contains(title);
+    }
+    if (songId) {
+      conditions.filter('songId').contains(songId);
+    }
+    const musics: MusicModel[] =
+      !title && !songId
+        ? await this.model.scan().limit(20).exec()
+        : await this.model.scan(conditions).all().exec();
     this.logService.verbose(
       `Get musics ${title} ${songId}`,
       MusicsService.name,
@@ -111,7 +118,10 @@ export class MusicsService {
       where: { id: diaryId },
     });
     musics.map(async (music) => {
-      const candidatedMusic = await this.model.get({ title: music.title });
+      const candidatedMusic = await this.model
+        .query('songId')
+        .eq(music.songId)
+        .exec()[0];
       const updateMusicInfo = {
         songId: candidatedMusic.songId,
         title: candidatedMusic.title,
@@ -119,6 +129,8 @@ export class MusicsService {
         artist: candidatedMusic.artist,
         lyric: candidatedMusic.lyric,
         originalGenre: candidatedMusic.genre,
+        youtubeUrl: candidatedMusic.youtubeUrl ?? null,
+        editorPick: candidatedMusic.editor_name ?? null,
         diaryId: diary.id,
         userId,
       };

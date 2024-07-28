@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { InjectModel, Model } from 'nestjs-dynamoose';
-import { ConditionInitializer } from 'dynamoose/dist/Condition';
+import { Condition, ConditionInitializer } from 'dynamoose/dist/Condition';
 
 @Injectable()
 export class MusicModelRepository {
@@ -14,9 +14,7 @@ export class MusicModelRepository {
     return await this.model.scan().exec();
   }
 
-  async findBySongId(query: string): Promise<MusicModel> {
-    // FIXME: FIX title to songId
-    query = '바람이 분다';
-    return await this.model.get({ title: query });
+  async findBySongId(query: Condition): Promise<MusicModel[]> {
+    return await this.model.scan(query).all().exec();
   }
 }

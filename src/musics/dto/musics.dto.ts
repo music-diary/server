@@ -58,7 +58,7 @@ export class MusicsDto implements Musics {
   @ApiProperty()
   @IsOptional()
   @IsString()
-  editor: string | null;
+  editorPick: string | null;
 
   @ApiProperty()
   @IsString()
