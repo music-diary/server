@@ -193,7 +193,7 @@ model Musics {
   originalGenre String?  @map("original_genre") @db.VarChar(30)
   selected      Boolean  @default(false)
   youtubeUrl    String?  @map("youtube_url") @db.VarChar(255)
-  editor        String?  @db.VarChar(30)
+  editorPick    String?  @map("editor_pick") @db.VarChar(30)
   userId        String?  @map("user_id") @db.Uuid
   diaryId       String?  @map("diary_id") @db.Uuid
   createdAt     DateTime @default(now()) @map("created_at")
