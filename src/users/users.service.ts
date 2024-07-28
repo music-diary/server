@@ -369,7 +369,11 @@ export class UsersService {
   ): { genre: string; count: number }[] {
     return genres.reduce((acc, genre) => {
       const count = musics.reduce((genreCount, music) => {
-        if (music.originalGenre && music.originalGenre.includes(genre.label)) {
+        const originalGenre = music?.originalGenre || null;
+        const originalGenreFirst = originalGenre.includes(',')
+          ? originalGenre.split(',')[0]
+          : originalGenre;
+        if (music.originalGenre && originalGenreFirst.includes(genre.label)) {
           return genreCount + 1;
         }
         return genreCount;
