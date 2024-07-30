@@ -1,17 +1,17 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Gender, Role, Users, UserStatus } from '@prisma/client';
+import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
   IsDateString,
-  IsEmail,
   IsEnum,
   IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
   IsUUID,
-  Length,
+  Matches,
   MaxLength,
 } from 'class-validator';
 
@@ -29,18 +29,13 @@ export class UsersDto implements Users {
   phoneNumber: string;
 
   @ApiProperty()
+  @Type(() => String)
+  @Matches(/^[ㄱ-ㅎ가-힣a-zA-Z0-9\s]+$/, {
+    message: 'The name must be Korean, English, number or space',
+  })
   @MaxLength(6, { message: 'The name length must be less than 6' })
   @IsString()
   name: string;
-
-  @ApiProperty()
-  @IsEmail()
-  email: string;
-
-  @ApiProperty()
-  @IsString()
-  @Length(4, null, { message: 'password must be less than 4' })
-  password: string;
 
   @ApiProperty()
   @IsDateString()
@@ -57,16 +52,6 @@ export class UsersDto implements Users {
   @ApiProperty()
   @IsBoolean()
   isAgreedMarketing: boolean;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  profileImageKey: string;
-
-  @ApiProperty()
-  @IsString()
-  @IsOptional()
-  profileImageUrl: string;
 
   @ApiProperty()
   @IsNumber()
