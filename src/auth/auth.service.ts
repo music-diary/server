@@ -178,6 +178,7 @@ export class AuthService {
     return {
       statusCode: HttpStatus.OK,
       message: 'Successfully logged in',
+      user: existedUser,
       token: accessToken,
     };
   }
