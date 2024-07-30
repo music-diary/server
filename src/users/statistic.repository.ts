@@ -84,7 +84,6 @@ export class StatisticRepository {
       },
       {} as Record<string, { count: number; emotions: Record<string, number> }>,
     );
-    // console.log('rootIdFrequency', rootIdFrequency);
 
     // Find the rootId with the highest frequency
     let mostFrequentRootId = '';
@@ -93,18 +92,13 @@ export class StatisticRepository {
         rootIdFrequency[a].count > rootIdFrequency[b].count ? a : b,
       );
     }
-    // console.log('mostFrequentRootId', mostFrequentRootId);
 
-    // Find the top 3 emotions for the most frequent rootId
     const topEmotions = mostFrequentRootId
       ? Object.entries(rootIdFrequency[mostFrequentRootId].emotions)
           .sort(([, aCount], [, bCount]) => bCount - aCount)
           .slice(0, 3)
           .map(([emotionLabel]) => emotionLabel)
       : [];
-
-    // Calculate the total number of emotions for percentage calculation
-    // const totalEmotions = emotionsWithRoot.length;
 
     const rootIdStats = await Promise.all(
       Object.keys(rootIdFrequency).map(async (rootId) => {
@@ -124,7 +118,6 @@ export class StatisticRepository {
           rootId,
           rootIdName: rootEmotion?.name || '',
           count,
-          // percentage,
           topEmotions: rootId === mostFrequentRootId ? topEmotions : [],
         };
       }),

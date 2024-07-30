@@ -55,10 +55,10 @@ export class UpdateUserBodyDto {
 
   @ApiProperty({
     isArray: true,
-    type: GenresDto,
+    type: Array<Pick<GenresDto, 'id'>>,
   })
   @IsArray()
-  @Type(() => Array<GenresDto>)
+  @Type(() => Array<Pick<GenresDto, 'id'>>)
   @IsOptional()
-  genres: Genres[] | null;
+  genres: Array<Pick<GenresDto, 'id'>> | null;
 }

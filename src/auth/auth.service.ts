@@ -20,8 +20,9 @@ import {
   VerifyPhoneNumberCodeBody,
   VerifyPhoneNumberCodeResponseDto,
 } from './dto/auth.dto';
-import { SignUpResponseDto } from './dto/sign-up.dto';
+import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 import { randomUUID } from 'crypto';
+import { GenresDto } from 'src/genres/dto/genres.dto';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -83,7 +84,7 @@ export class AuthService {
       return {
         statusCode: HttpStatus.OK,
         message: `Successfully verified the existed phone number.`,
-        userId: existedUser.id,
+        user: existedUser,
         token: accessToken,
       };
     } else {
@@ -99,7 +100,7 @@ export class AuthService {
       };
     }
   }
-  async create(body: any): Promise<SignUpResponseDto> {
+  async create(body: SignUpBody): Promise<SignUpResponseDto> {
     const { phoneNumber, birthDay, genres, ...data } = body;
     const birthDayDate = new Date(birthDay);
 
@@ -128,7 +129,7 @@ export class AuthService {
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Successfully sign up',
-      userId: newUser.id,
+      user: newUser,
       token: accessToken,
     };
   }
@@ -149,8 +150,8 @@ export class AuthService {
   }
 
   private async createUserAndGenres(
-    userData: Users,
-    genresData: Genres[],
+    userData: SignUpBody,
+    genresData: Array<Pick<GenresDto, 'id'>>,
   ): Promise<Users> {
     const createUserQuery: Prisma.UsersCreateArgs = {
       data: {

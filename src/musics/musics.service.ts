@@ -7,7 +7,7 @@ import {
   FindMusicsArchiveSummaryResponse,
   FindMusicsModelResponse,
 } from './dto/find-music.dto';
-import { Prisma } from '@prisma/client';
+import { DiariesStatus, Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
@@ -41,9 +41,10 @@ export class MusicsService {
       new Date(endAt).setDate(new Date(endAt).getDate() + 1),
     ).toISOString();
     const findQuery: Prisma.MusicsFindManyArgs = {
-      where: { userId },
+      where: { userId, createdAt: { gte: startDate, lt: endDate } },
       include: {
         diary: {
+          where: { userId, status: DiariesStatus.DONE },
           select: {
             emotions: {
               select: {
@@ -68,7 +69,7 @@ export class MusicsService {
     data['musics'] = musics;
 
     if (group) {
-      data['count'] = await this.getMusicCount(userId, startDate, endDate);
+      data['count'] = await this.getDiariesCount(userId, startDate, endDate);
       data['emotion'] = await this.getMostEmotion(userId, startDate, endDate);
     }
 
@@ -273,13 +274,17 @@ export class MusicsService {
     return statistics;
   }
 
-  private async getMusicCount(
+  private async getDiariesCount(
     userId: string,
     startDate: string,
     endDate: string,
   ) {
-    return await this.prismaService.musics.count({
-      where: { userId, createdAt: { gte: startDate, lt: endDate } },
+    return await this.prismaService.diaries.count({
+      where: {
+        userId,
+        createdAt: { gte: startDate, lt: endDate },
+        status: DiariesStatus.DONE,
+      },
     });
   }
 
