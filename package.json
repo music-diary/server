@@ -28,9 +28,9 @@
     "db:reset": "npx prisma migrate reset"
   },
   "dependencies": {
-    "@aws-sdk/client-dynamodb": "^3.614.0",
-    "@aws-sdk/client-ses": "^3.616.0",
-    "@aws-sdk/client-sns": "^3.577.0",
+    "@aws-sdk/client-dynamodb": "^3.529.0",
+    "@aws-sdk/client-ses": "^3.529.0",
+    "@aws-sdk/client-sns": "^3.529.0",
     "@nestjs/common": "^10.0.0",
     "@nestjs/config": "^3.2.2",
     "@nestjs/core": "^10.0.0",

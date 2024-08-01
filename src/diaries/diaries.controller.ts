@@ -116,7 +116,7 @@ export class DiariesController {
   @ApiOperation({ summary: 'Request AI music recommendation' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
-  @Put(':id/musics/ai')
+  @Get(':id/musics/ai')
   recommendMusics(
     @User() user: UserPayload,
     @Param('id') id: string,
