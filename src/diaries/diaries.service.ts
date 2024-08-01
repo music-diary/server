@@ -146,7 +146,10 @@ export class DiariesService {
     userId: string,
     query?: GetDiariesQueryDto,
   ): Promise<FindDiariesResponseDto> {
-    const findDiariesQuery: Prisma.DiariesFindManyArgs = { where: { userId } };
+    const findDiariesQuery: Prisma.DiariesFindManyArgs = {
+      where: { userId },
+      include: { musics: true },
+    };
     if (query.status) {
       findDiariesQuery.where.status = query.status;
     }
