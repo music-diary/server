@@ -155,11 +155,12 @@ model DiaryTopics {
 }
 
 model Templates {
-  id          String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String
   description String
   type        String // SCS | KPT | MSG | 4L | 5F
-  order       Int    @default(0)
+  order       Int     @default(0)
+  isExample   Boolean @default(false) @map("is_example")
 
   diaries          Diaries[]
   templateContents TemplateContents[]
