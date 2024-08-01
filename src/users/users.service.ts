@@ -28,6 +28,7 @@ import { StatisticRepository } from './statistic.repository';
 import { DiaryDto } from 'src/diaries/dto/diaries.dto';
 import { GenresDto } from 'src/genres/dto/genres.dto';
 import { MusicsDto } from 'src/musics/dto/musics.dto';
+import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
 export class UsersService {
@@ -38,6 +39,7 @@ export class UsersService {
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
     private readonly contactRepository: ContactRepository,
     private readonly statisticRepository: StatisticRepository,
+    private readonly prismaService: PrismaService,
     private readonly simpleEmailService: SimpleEmailService,
   ) {}
 
@@ -120,27 +122,18 @@ export class UsersService {
           },
         },
       });
-      genres.map(async (genre) => {
-        await this.usersRepository.update({
-          where: { id: targetId },
-          data: {
-            genre: {
-              disconnect: {
-                id: genre.id,
-              },
-            },
+      if (genres.length === 0) {
+        throw new NotFoundException('User genres not found');
+      }
+
+      await this.prismaService.users.update({
+        where: { id: targetId },
+        data: {
+          genre: {
+            disconnect: [],
+            connect: body.genres.map((genre) => ({ id: genre.id })),
           },
-        });
-      });
-      body.genres.map(async (genre) => {
-        await this.usersRepository.update({
-          where: { id: targetId },
-          data: {
-            genre: {
-              connect: { id: genre.id },
-            },
-          },
-        });
+        },
       });
     }
     const { genres: _genres, ...updateData } = body;
