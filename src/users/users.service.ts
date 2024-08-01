@@ -4,7 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { Prisma, Users, UserStatus } from '@prisma/client';
+import { DiariesStatus, Prisma, Users, UserStatus } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
@@ -286,8 +286,11 @@ export class UsersService {
     const whereQuery = {
       where: { userId, createdAt: { gte: startDate, lt: endDate } },
     };
+    const whereDiaryQuery = {
+      where: { ...whereQuery.where, status: DiariesStatus.DONE },
+    };
     const diaryCount =
-      await this.statisticRepository.getMonthlyDiaryCount(whereQuery);
+      await this.statisticRepository.getMonthlyDiaryCount(whereDiaryQuery);
     // NOTE: This is not used (월별 일기 작성 비율)
     // const daysInMonth = new Date(
     //   startDate.getFullYear(),
@@ -318,15 +321,23 @@ export class UsersService {
   ): Promise<any> {
     const { startDate, endDate } = this.parseYear(+year);
     const whereQuery = {
-      where: { userId, createdAt: { gte: startDate, lt: endDate } },
+      where: {
+        userId,
+        createdAt: { gte: startDate, lt: endDate },
+        // diary: { status: DiariesStatus.DONE },
+      },
+    };
+    const whereDiaryQuery = {
+      where: { ...whereQuery.where, status: DiariesStatus.DONE },
     };
     const allDiaries = await this.statisticRepository.getDiaries({
       distinct: ['createdAt'],
       select: { createdAt: true },
-      ...whereQuery,
+      ...whereDiaryQuery,
     });
 
     const diaries = await this.getYearlyDiariesCount(
+      userId,
       allDiaries,
       startDate,
       endDate,
@@ -383,6 +394,7 @@ export class UsersService {
   }
 
   private async getYearlyDiariesCount(
+    userId: string,
     diaries: DiaryDto[],
     startDate: Date,
     _endDate: Date,
@@ -396,10 +408,12 @@ export class UsersService {
         const yearDiaryCount =
           await this.statisticRepository.getYearlyDiariesCount({
             where: {
+              userId,
               createdAt: {
                 gte: startDate,
                 lt: new Date(startDate.getFullYear() + 1, 0, 1),
               },
+              status: DiariesStatus.DONE,
             },
           });
 
@@ -417,6 +431,8 @@ export class UsersService {
             const monthCount =
               await this.statisticRepository.getMonthlyDiaryCount({
                 where: {
+                  userId,
+                  status: DiariesStatus.DONE,
                   createdAt: {
                     gte: monthStart,
                     lt: new Date(
