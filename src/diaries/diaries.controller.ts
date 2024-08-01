@@ -37,8 +37,6 @@ import {
 } from './dto/update.diary.dto';
 import { CommonDto } from 'src/common/common.dto';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
-import { DiariesStatus } from '@prisma/client';
-import { ValidationPipe } from '@nestjs/common';
 
 @ApiTags('Diaries')
 @Controller('diaries')

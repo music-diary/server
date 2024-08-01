@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
+import { DiariesStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 import { DiaryDto } from 'src/diaries/dto/diaries.dto';
 import { MusicsDto } from 'src/musics/dto/musics.dto';
@@ -53,7 +53,7 @@ export class StatisticRepository {
 
   async getEmotionStatistic(query: any): Promise<any> {
     const emotionsWithRoot = await this.prismaService.diaryEmotions.findMany({
-      where: query,
+      where: { ...query, diary: { status: DiariesStatus.DONE } },
       select: {
         emotions: {
           select: {
