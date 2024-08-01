@@ -8,6 +8,7 @@ import {
 import {
   FindDiariesResponseDto,
   FindDiaryResponseDto,
+  GetDiariesQueryDto,
 } from './dto/find.diary.dto';
 import { FindEmotionsResponseDto } from './dto/find.emotions.dto';
 import { FindTemplatesResponseDto } from './dto/find.templates.dto';
@@ -28,6 +29,8 @@ import { AIService } from 'src/ai/ai.service';
 import { MusicsRepository } from '../musics/musics.repository';
 import { MusicModelRepository } from 'src/musics/music-model.repository';
 import { Condition } from 'dynamoose';
+import { PrismaService } from 'src/database/prisma.service';
+import { MusicModelDto } from 'src/musics/dto/musics.dto';
 
 @Injectable()
 export class DiariesService {
@@ -40,6 +43,7 @@ export class DiariesService {
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
     private readonly musicModelRepository: MusicModelRepository,
     private readonly musicsRepository: MusicsRepository,
+    private readonly prismaService: PrismaService,
     private readonly aiService: AIService,
     private readonly logService: LogService,
   ) {}
@@ -75,7 +79,9 @@ export class DiariesService {
   async getTemplates(): Promise<FindTemplatesResponseDto> {
     const findParams: Prisma.TemplatesFindManyArgs = {
       include: {
-        templateContents: true,
+        templateContents: {
+          where: { content: null },
+        },
       },
       orderBy: {
         order: 'asc',
@@ -137,8 +143,14 @@ export class DiariesService {
     };
   }
 
-  async getDiaries(userId: string): Promise<FindDiariesResponseDto> {
+  async getDiaries(
+    userId: string,
+    query?: GetDiariesQueryDto,
+  ): Promise<FindDiariesResponseDto> {
     const findDiariesQuery: Prisma.DiariesFindManyArgs = { where: { userId } };
+    if (query.status) {
+      findDiariesQuery.where.status = query.status;
+    }
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
     this.logService.verbose(`Get all diaries`, DiariesService.name);
     return {
@@ -218,73 +230,87 @@ export class DiariesService {
     userId: string,
     id: string,
   ): Promise<RecommendMusicResponseDto> {
-    const diary = await this.diariesRepository.update({
-      where: { id, userId },
-      data: { status: DiariesStatus.PENDING },
-      select: {
-        id: true,
-        userId: true,
-        content: true,
-        templates: { select: { templateContents: true } },
-      },
-    });
-    if (!diary) {
-      throw new NotFoundException('Diary not found');
-    }
-
-    const requestAiData = {
-      data:
-        diary['templates'] === null
-          ? diary.content
-          : diary['templates'].templateContents
-              .map(
-                (templateContent: TemplateContents) => templateContent.content,
-              )
-              .join(' '),
-    };
-
-    const musicRecommendResult =
-      await this.aiService.recommendMusicsToAI(requestAiData);
-
-    const resultSongIds = Object.values(musicRecommendResult.songId).map(
-      (songId) => songId.toString(),
-    );
-    const musicCandidates = await Promise.all(
-      resultSongIds.map(async (songId) => {
-        const condition = new Condition().filter('songId').contains(songId);
-        const musicModels =
-          await this.musicModelRepository.findBySongId(condition);
-
-        const musicModel = musicModels[0];
-        const music = {
-          songId: musicModel.songId,
-          title: musicModel.title,
-          albumUrl: musicModel.albumUrl,
-          artist: musicModel.artist,
-          lyric: musicModel.lyric,
-          originalGenre: musicModel.genre,
-          youtubeUrl:
-            musicModel.youtubeUrl ??
-            'https://www.youtube.com/watch?v=VXGBogP6I2I', // FIXME: FIX youtubeUrl
-          editorPick: musicModel.editor_name ?? null,
-          diaryId: diary.id,
-          userId,
-        };
-        return await this.musicsRepository.create({
-          data: music,
+    let musicCandidates: Partial<MusicModelDto>[];
+    await this.prismaService.$transaction(
+      async (tx) => {
+        const diary = await tx.diaries.update({
+          where: { id, userId },
+          data: { status: DiariesStatus.PENDING },
           select: {
             id: true,
-            title: true,
-            artist: true,
-            albumUrl: true,
-            selectedLyric: true,
-            lyric: true,
-            selected: true,
-            youtubeUrl: true,
-            editorPick: true,
+            userId: true,
+            content: true,
+            templates: { select: { templateContents: true } },
           },
         });
-      }),
+        if (!diary) {
+          throw new NotFoundException('Diary not found');
+        }
+
+        const requestAiData = {
+          data:
+            diary['templates'] === null
+              ? diary.content
+              : diary['templates'].templateContents
+                  .map(
+                    (templateContent: TemplateContents) =>
+                      templateContent.content,
+                  )
+                  .join(' '),
+        };
+
+        const musicRecommendResult =
+          await this.aiService.recommendMusicsToAI(requestAiData);
+
+        const resultSongIds = Object.values(musicRecommendResult.songId).map(
+          (songId) => songId.toString(),
+        );
+        musicCandidates = await Promise.all(
+          resultSongIds.map(async (songId) => {
+            const condition = new Condition().filter('songId').contains(songId);
+            const musicModels =
+              await this.musicModelRepository.findBySongId(condition);
+
+            const musicModel = musicModels[0];
+            const music = {
+              songId: musicModel.songId,
+              title: musicModel.title,
+              albumUrl: musicModel.albumUrl,
+              artist: musicModel.artist,
+              lyric: musicModel.lyric,
+              originalGenre: musicModel.genre,
+              youtubeUrl:
+                musicModel.youtubeUrl ??
+                'https://www.youtube.com/watch?v=VXGBogP6I2I', // FIXME: FIX youtubeUrl
+              editorPick: musicModel.editor_name ?? null,
+              diaryId: diary.id,
+              userId,
+            };
+            return await tx.musics.create({
+              data: music,
+              select: {
+                id: true,
+                title: true,
+                artist: true,
+                albumUrl: true,
+                selectedLyric: true,
+                lyric: true,
+                selected: true,
+                youtubeUrl: true,
+                editorPick: true,
+              },
+            });
+          }),
+        );
+        await tx.diaries.update({
+          where: { id, userId },
+          data: { status: DiariesStatus.EDIT },
+        });
+      },
+      {
+        maxWait: 10000,
+        timeout: 50000,
+      },
     );
 
     this.logService.verbose(`recommend musics by ${id}`, DiariesService.name);

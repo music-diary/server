@@ -6,7 +6,6 @@ import {
   Param,
   Patch,
   Post,
-  Put,
   Query,
   UseGuards,
 } from '@nestjs/common';
@@ -27,6 +26,7 @@ import {
 import {
   FindDiariesResponseDto,
   FindDiaryResponseDto,
+  GetDiariesQueryDto,
 } from './dto/find.diary.dto';
 import { FindEmotionsResponseDto } from './dto/find.emotions.dto';
 import { FindTemplatesResponseDto } from './dto/find.templates.dto';
@@ -37,6 +37,8 @@ import {
 } from './dto/update.diary.dto';
 import { CommonDto } from 'src/common/common.dto';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
+import { DiariesStatus } from '@prisma/client';
+import { ValidationPipe } from '@nestjs/common';
 
 @ApiTags('Diaries')
 @Controller('diaries')
@@ -87,8 +89,11 @@ export class DiariesController {
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Get('me')
-  getDiaries(@User() user: UserPayload): Promise<FindDiariesResponseDto> {
-    return this.diariesService.getDiaries(user.id);
+  getDiaries(
+    @User() user: UserPayload,
+    @Query() query?: GetDiariesQueryDto,
+  ): Promise<FindDiariesResponseDto> {
+    return this.diariesService.getDiaries(user.id, query);
   }
 
   @ApiOperation({ summary: 'Get one diary' })
