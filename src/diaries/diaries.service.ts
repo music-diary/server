@@ -78,10 +78,9 @@ export class DiariesService {
 
   async getTemplates(): Promise<FindTemplatesResponseDto> {
     const findParams: Prisma.TemplatesFindManyArgs = {
+      where: { isExample: true },
       include: {
-        templateContents: {
-          where: { content: null },
-        },
+        templateContents: true,
       },
       orderBy: {
         order: 'asc',

@@ -1,7 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { TemplateContents, Templates } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { IsNumber, IsOptional, IsString, IsUUID } from 'class-validator';
+import {
+  IsBoolean,
+  IsNumber,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 
 export class templateContentsDto implements TemplateContents {
   @ApiProperty()
@@ -51,6 +57,11 @@ export class TemplatesDto implements Templates {
   @IsOptional()
   @IsNumber()
   order: number | null;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsBoolean()
+  isExample: boolean | null;
 
   @ApiProperty({ type: templateContentsDto, isArray: true })
   @Type(() => templateContentsDto)
