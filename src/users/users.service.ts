@@ -130,7 +130,7 @@ export class UsersService {
         where: { id: targetId },
         data: {
           genre: {
-            disconnect: [],
+            disconnect: genres.map((genre) => ({ id: genre.id })),
             connect: body.genres.map((genre) => ({ id: genre.id })),
           },
         },
