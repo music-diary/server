@@ -11,8 +11,7 @@ export const validationSchema = Joi.object({
   AI_URL: Joi.string().required(),
 
   DATABASE_URL: Joi.string().required(),
-  REDIS_HOST: Joi.string().required(),
-  REDIS_PORT: Joi.number().port().default(6379),
+  REDIS_URL: Joi.string().required(),
 
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_ACCESS_EXPIRE_IN: Joi.string().required(),
