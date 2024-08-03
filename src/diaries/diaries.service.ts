@@ -17,10 +17,10 @@ import {
   UpdateDiaryBodyDto,
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
-import { DiariesRepository } from './repository/diaires.repository';
-import { EmotionsRepository } from './repository/emotions.repository';
-import { TemplatesRepository } from './repository/templates.repository';
-import { TopicsRepository } from './repository/topics.repository';
+import { DiaryRepository } from './repository/diairy.repository';
+import { EmotionsRepository } from './repository/emotion.repository';
+import { TemplatesRepository } from './repository/template.repository';
+import { TopicsRepository } from './repository/topic.repository';
 import { CommonDto } from 'src/common/common.dto';
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
@@ -38,7 +38,7 @@ export class DiariesService {
     private readonly emotionsRepository: EmotionsRepository,
     private readonly topicsRepository: TopicsRepository,
     private readonly templatesRepository: TemplatesRepository,
-    private readonly diariesRepository: DiariesRepository,
+    private readonly diariesRepository: DiaryRepository,
     private readonly diaryTopicsRepository: DiaryTopicsRepository,
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
     private readonly musicModelRepository: MusicModelRepository,
@@ -445,6 +445,7 @@ export class DiariesService {
     const deleteDiaryParams: Prisma.DiariesDeleteArgs = {
       where: { id, userId },
     };
+    // const diary = await this.diariesRepository.delete(deleteDiaryParams);
     const diary = await this.diariesRepository.delete(deleteDiaryParams);
     this.logService.verbose(`Delete diary by ${diary.id}`, DiariesService.name);
     return {

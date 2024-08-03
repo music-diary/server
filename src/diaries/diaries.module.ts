@@ -4,10 +4,10 @@ import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { DiariesController } from './diaries.controller';
 import { DiariesService } from './diaries.service';
-import { DiariesRepository } from './repository/diaires.repository';
-import { EmotionsRepository } from './repository/emotions.repository';
-import { TemplatesRepository } from './repository/templates.repository';
-import { TopicsRepository } from './repository/topics.repository';
+import { DiaryRepository } from './repository/diairy.repository';
+import { EmotionsRepository } from './repository/emotion.repository';
+import { TemplatesRepository } from './repository/template.repository';
+import { TopicsRepository } from './repository/topic.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { AIService } from 'src/ai/ai.service';
@@ -36,7 +36,7 @@ import { MusicSchema } from 'src/musics/schema/music.schema';
     EmotionsRepository,
     TopicsRepository,
     TemplatesRepository,
-    DiariesRepository,
+    DiaryRepository,
     DiaryEmotionsRepository,
     DiaryTopicsRepository,
     MusicModelRepository,

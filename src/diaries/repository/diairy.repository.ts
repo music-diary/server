@@ -3,7 +3,7 @@ import { Diaries, Prisma } from '@prisma/client';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
-export class DiariesRepository {
+export class DiaryRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAll(query?: Prisma.DiariesFindManyArgs): Promise<Diaries[]> {
