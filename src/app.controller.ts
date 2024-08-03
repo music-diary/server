@@ -1,13 +1,15 @@
-import { Controller, Get } from '@nestjs/common';
-import { AppService } from './app.service';
+import { Controller, Get, HttpStatus } from '@nestjs/common';
 import { CommonDto } from './common/common.dto';
 
 @Controller()
 export class AppController {
-  constructor(private readonly appService: AppService) {}
+  constructor() {}
 
   @Get()
   health(): CommonDto {
-    return this.appService.health();
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Service is up and running!',
+    };
   }
 }
