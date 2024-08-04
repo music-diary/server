@@ -16,7 +16,7 @@ import {
 } from './dto/auth.dto';
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 import { LogService } from '@common/log.service';
-import { RedisRepository } from 'database/redis.repository';
+import { RedisRepository } from '@database/redis.repository';
 import { SimpleNotificationService } from '@service/simple-notification/simple-notification.service';
 import { UserRepository } from '@user/user.repository';
 import { generateSignUpCode } from '@common/util/code-generator';

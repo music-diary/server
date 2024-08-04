@@ -6,7 +6,7 @@ import { LoggerInterceptor } from '@common/interceptors/logger.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from 'app.module';
+import { AppModule } from './app.module';
 
 const PORT = process.env.PORT || 5000;
 const SERVER_DOMAIN = process.env.SERVER_DOMAIN;

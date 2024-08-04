@@ -11,6 +11,17 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
+    "paths": {
+      "@auth/*": ["./src/auth/*"],
+      "@diary/*": ["./src/diaries/*"],
+      "@genre/*": ["./src/genres/*"],
+      "@music/*": ["./src/musics/*"],
+      "@user/*": ["./src/users/*"],
+      "@service/*": ["./src/services/*"],
+      "@common/*": ["./src/common/*"],
+      "@database/*": ["./src/database/*"],
+      "@test/*": ["../test/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
