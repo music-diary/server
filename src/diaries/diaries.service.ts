@@ -360,12 +360,6 @@ export class DiariesService {
         connect: { id: template.id },
       };
     }
-    const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
-      where: { id },
-      data: {
-        ...updateDiaryDataQuery,
-      },
-    };
     if ('topics' in body && typeof body.topics !== undefined) {
       const diaryTopics = await this.diaryTopicsRepository.findAll({
         where: { diaryId: id },
@@ -422,12 +416,20 @@ export class DiariesService {
       await this.diaryEmotionsRepository.createMany(createDiaryEmotionsQuery);
     }
     if ('music' in body && typeof body.music === 'object') {
+      const { id: musicId, ...restMusic } = body.music;
       updateDiaryDataQuery.musics = {
-        connect: {
-          id: body.music.id,
+        update: {
+          where: { id: musicId },
+          data: { ...restMusic },
         },
       };
     }
+    const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
+      where: { id },
+      data: {
+        ...updateDiaryDataQuery,
+      },
+    };
     const result = await this.diariesRepository.update(updateDiaryQuery);
 
     this.logService.verbose(
