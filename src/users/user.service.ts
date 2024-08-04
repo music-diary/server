@@ -11,7 +11,7 @@ import { GenreRepository } from '@genre/genre.repository';
 import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
 import { ContactRepository } from './contact.repository';
 import { StatisticRepository } from './statistic.repository';
-import { PrismaService } from '@common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { SimpleEmailService } from '@service/simple-email/simple-email.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { CommonDto } from '@common/dto/common.dto';

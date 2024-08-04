@@ -12,7 +12,7 @@ import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
 import { CommonDto } from '@common/dto/common.dto';
-import { PrismaService } from '@common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
 import { DiaryRepository } from '@diary/repository/diairy.repository';

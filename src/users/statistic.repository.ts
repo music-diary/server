@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { DiariesStatus, Prisma } from '@prisma/client';
-import { PrismaService } from '../common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { DiaryDto } from '@diary/dto/diaries.dto';
 import { MusicsDto } from '@music/dto/musics.dto';
 import { GenresDto } from '@genre/dto/genres.dto';

@@ -1,7 +1,7 @@
 import { AuthModule } from '@auth/auth.module';
 import { validationSchema } from '@common/config/validation-schema';
-import { DatabaseModule } from '@common/database/database.module';
-import { PrismaService } from '@common/database/prisma.service';
+import { DatabaseModule } from 'database/database.module';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { LogService } from '@common/log.service';
 import { DiaryModule } from '@diary/diary.module';
 import { GenreModule } from '@genre/genre.module';

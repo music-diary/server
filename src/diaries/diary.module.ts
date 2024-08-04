@@ -10,9 +10,9 @@ import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from '@music/schema/music.schema';
-import { DatabaseModule } from '@common/database/database.module';
+import { DatabaseModule } from 'database/database.module';
 import { LogService } from '@common/log.service';
-import { PrismaService } from '@common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { MusicModelRepository } from '@music/music-model.repository';
 import { MusicRepository } from '@music/music.repository';
 import { AIService } from '@service/ai/ai.service';

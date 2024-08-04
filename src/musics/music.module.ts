@@ -5,7 +5,7 @@ import { MusicRepository } from './music.repository';
 import { JwtService } from '@nestjs/jwt';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from './schema/music.schema';
-import { PrismaService } from '@common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { DiaryRepository } from '@diary/repository/diairy.repository';
 import { EmotionsRepository } from '@diary/repository/emotion.repository';
 import { LogService } from '@common/log.service';

@@ -1,6 +1,6 @@
+import { PrismaService } from '@database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { Genres, Prisma } from '@prisma/client';
-import { PrismaService } from '../common/database/prisma.service';
 
 @Injectable()
 export class GenreRepository {

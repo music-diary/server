@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Musics, Prisma } from '@prisma/client';
-import { PrismaService } from '../common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 
 @Injectable()
 export class MusicRepository {

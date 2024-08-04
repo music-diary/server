@@ -27,7 +27,7 @@ import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 import { Condition } from 'dynamoose';
 import { MusicModelRepository } from '@music/music-model.repository';
-import { PrismaService } from '@common/database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { AIService } from '@service/ai/ai.service';
 import { MusicModelDto } from '@music/dto/musics.dto';
 

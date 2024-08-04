@@ -1,7 +1,6 @@
+import { PrismaService } from '@database/prisma/prisma.service';
 import { Injectable } from '@nestjs/common';
 import { DiaryEmotions, Prisma } from '@prisma/client';
-import { PrismaService } from '../../common/database/prisma.service';
-
 @Injectable()
 export class DiaryEmotionsRepository {
   constructor(private readonly prismaService: PrismaService) {}

@@ -1,0 +1,263 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Users {
+  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneNumber        String     @map("phone_number") // TODO production 시, unique 처리 필수
+  name               String     @db.VarChar(6)
+  birthDay           DateTime   @map("birth_day") @db.Date()
+  gender             Gender     @default(FEMALE)
+  isGenreSuggested   Boolean    @map("is_genre_suggested") // 새로운 장르 추천 여부
+  isAgreedMarketing  Boolean    @map("is_agreed_marketing") // 마케팅 동의여부
+  useLimitCount      Int        @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
+  IsAgreedDiaryAlarm Boolean    @default(false) @map("is_agreed_diary_alarm")
+  diaryAlarmTime     String?    @map("diary_alarm_time")
+  role               Role       @default(USER)
+  status             UserStatus @default(ACTIVE)
+  withdrawalsId      String?    @map("withdrawals_id") @db.Uuid
+
+  withdrawals    Withdrawals?     @relation(fields: [withdrawalsId], references: [id])
+  diary          Diaries[]        @relation("UserDiaries")
+  createdAt      DateTime         @default(now()) @map("created_at")
+  updatedAt      DateTime         @updatedAt @map("updated_at")
+  deletedAt      DateTime?        @map("deleted_at")
+  genre          Genres[]         @relation("UserGenres")
+  music          Musics[]
+  contactHistory ContactHistory[]
+  DiaryEmotions  DiaryEmotions[]
+  DiaryTopics    DiaryTopics[]
+
+  @@index([id])
+  @@map("users")
+}
+
+model Genres {
+  id    String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label String  @db.VarChar(30)
+  name  String  @db.VarChar(30)
+  color String  @db.VarChar(10)
+  order Int     @default(0)
+  user  Users[] @relation("UserGenres")
+
+  @@index([id, name, label])
+  @@map("genres")
+}
+
+enum Gender {
+  FEMALE
+  MALE
+  OTHER
+}
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  DEACTIVE
+}
+
+model Diaries {
+  id         String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId     String        @map("user_id") @db.Uuid
+  title      String?       @db.VarChar(30)
+  content    String?       @db.VarChar(500)
+  templateId String?       @map("template_id") @db.Uuid
+  status     DiariesStatus
+  createdAt  DateTime      @default(now()) @map("created_at")
+  updatedAt  DateTime      @updatedAt @map("updated_at")
+  deletedAt  DateTime?     @map("deleted_at")
+
+  user      Users           @relation("UserDiaries", fields: [userId], references: [id])
+  templates Templates?      @relation(fields: [templateId], references: [id])
+  topics    DiaryTopics[]
+  emotions  DiaryEmotions[]
+  musics    Musics[]
+
+  @@index([id, userId, templateId])
+  @@map("diaries")
+}
+
+enum DiariesStatus {
+  EDIT // 노래 추천 이전까지 (임시저장)
+  PENDING // 노래 추천 대기 중
+  DONE // 일기 작성 완료
+}
+
+model Emotions {
+  id       String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name     String  @db.VarChar(30)
+  label    String  @db.VarChar(30)
+  parentId String? @map("parent_id") @db.Uuid
+  rootId   String? @map("root_id") @db.Uuid
+  level    Int     @default(0)
+  order    Int     @default(0)
+  // aiScale  Int     @map("ai_scale")
+
+  children Emotions[]      @relation("EmotionToEmotion")
+  parent   Emotions?       @relation("EmotionToEmotion", fields: [parentId], references: [id])
+  diaries  DiaryEmotions[]
+
+  @@index([id, parentId, rootId])
+  @@map("emotions")
+}
+
+model DiaryEmotions {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  diaryId   String   @map("diary_id") @db.Uuid
+  emotionId String   @map("emotion_id") @db.Uuid
+  musicId   String?  @map("music_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user     Users    @relation(fields: [userId], references: [id])
+  diary    Diaries  @relation(fields: [diaryId], references: [id])
+  emotions Emotions @relation(fields: [emotionId], references: [id])
+  music    Musics?  @relation(fields: [musicId], references: [id])
+
+  @@index([id, diaryId, emotionId])
+}
+
+model Topics {
+  id      String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  label   String        @db.VarChar(30)
+  name    String        @db.VarChar(30)
+  emoji   String?       @db.VarChar(10)
+  order   Int           @default(0)
+  diaries DiaryTopics[]
+
+  @@index([id])
+  @@map("topics")
+}
+
+model DiaryTopics {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  diaryId   String   @map("diary_id") @db.Uuid
+  topicId   String   @map("topic_id") @db.Uuid
+  musicId   String?  @map("music_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user  Users   @relation(fields: [userId], references: [id])
+  diary Diaries @relation(fields: [diaryId], references: [id])
+  topic Topics  @relation(fields: [topicId], references: [id])
+  music Musics? @relation(fields: [musicId], references: [id])
+
+  @@index([id, diaryId, topicId, musicId])
+}
+
+model Templates {
+  id          String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String
+  description String
+  type        String // SCS | KPT | MSG | 4L | 5F
+  order       Int     @default(0)
+  isExample   Boolean @default(false) @map("is_example")
+
+  diaries          Diaries[]
+  templateContents TemplateContents[]
+
+  @@index([id])
+  @@map("templates")
+}
+
+model TemplateContents {
+  id         String  @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  templateId String  @map("template_id") @db.Uuid
+  content    String? @db.VarChar(200)
+  order      Int     @default(0)
+  name       String  @db.VarChar(20)
+  label      String  @db.VarChar(50)
+
+  templates Templates? @relation(fields: [templateId], references: [id])
+
+  @@index([id, templateId])
+  @@map("template_contents")
+}
+
+model Musics {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  songId        String   @map("song_id") @db.VarChar(20)
+  title         String   @db.VarChar(80)
+  artist        String   @db.VarChar(80)
+  albumUrl      String?  @map("album_url") @db.VarChar(255)
+  selectedLyric String?  @map("selected_lyric") @db.VarChar(1000)
+  lyric         String?  @map("lyrics") @db.VarChar(65535)
+  originalGenre String?  @map("original_genre") @db.VarChar(30)
+  selected      Boolean  @default(false)
+  youtubeUrl    String?  @map("youtube_url") @db.VarChar(255)
+  editorPick    String?  @map("editor_pick") @db.VarChar(30)
+  userId        String?  @map("user_id") @db.Uuid
+  diaryId       String?  @map("diary_id") @db.Uuid
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  users         Users?          @relation(fields: [userId], references: [id])
+  diary         Diaries?        @relation(fields: [diaryId], references: [id])
+  diaryEmotions DiaryEmotions[]
+  diaryTopics   DiaryTopics[]
+
+  @@index([id, userId, diaryId])
+  @@map("musics")
+}
+
+model Withdrawals {
+  id                  String             @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  withdrawalReasonsId String?            @map("withdrawal_reasons_id") @db.Uuid
+  withdrawalReasons   WithdrawalReasons? @relation(fields: [withdrawalReasonsId], references: [id])
+  content             String?            @db.VarChar(255)
+  createdAt           DateTime           @default(now()) @map("created_at")
+  updatedAt           DateTime           @updatedAt @map("updated_at")
+  users               Users[]
+
+  @@index([id, withdrawalReasonsId])
+  @@map("withdraws")
+}
+
+model WithdrawalReasons {
+  id    String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name  String @db.VarChar(30)
+  label String @db.VarChar(100)
+  order Int    @default(0)
+
+  withdrawals Withdrawals[]
+
+  @@index([id])
+  @@map("withdraws_reasons")
+}
+
+model ContactHistory {
+  id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  typeId    String   @map("type_id") @db.Uuid
+  content   String?  @db.VarChar(255)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user Users        @relation(fields: [userId], references: [id])
+  type ContactTypes @relation(fields: [typeId], references: [id])
+
+  @@index([id])
+  @@map("contact_history")
+}
+
+model ContactTypes {
+  id             String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name           String           @db.VarChar(30)
+  label          String           @db.VarChar(100)
+  order          Int              @default(0)
+  contactHistory ContactHistory[]
+
+  @@index([id])
+  @@map("contact_types")
+}
