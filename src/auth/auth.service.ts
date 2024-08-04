@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Genres, Prisma, Users } from '@prisma/client';
+import { Prisma, Users, UserStatus } from '@prisma/client';
 import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
@@ -21,7 +21,6 @@ import {
   VerifyPhoneNumberCodeResponseDto,
 } from './dto/auth.dto';
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
-import { randomUUID } from 'crypto';
 import { GenresDto } from 'src/genres/dto/genres.dto';
 
 const EXPIRE = 60 * 3; // 3 min
@@ -74,7 +73,7 @@ export class AuthService {
     }
     if (isVerified) {
       const existedUser = await this.usersRepository.findOne({
-        where: { phoneNumber },
+        where: { phoneNumber, status: UserStatus.ACTIVE },
       });
       const { accessToken } = await this.createAccessToken(existedUser.id);
       this.logService.verbose(
