@@ -15,7 +15,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { AuthGuard } from 'src/guards/auth.guard';
-import { MusicsService } from './musics.service';
+import { MusicService } from './music.service';
 import { User } from 'src/decorator/user.decorator';
 import { UserPayload } from 'src/users/dto/user.dto';
 import {
@@ -29,8 +29,8 @@ import { CommonDto } from 'src/common/common.dto';
 
 @ApiTags('Musics')
 @Controller('musics')
-export class MusicsController {
-  constructor(private readonly musicsService: MusicsService) {}
+export class MusicController {
+  constructor(private readonly musicService: MusicService) {}
 
   @ApiOperation({ summary: 'Get all musics archives' })
   @ApiBearerAuth()
@@ -42,7 +42,7 @@ export class MusicsController {
     @Query('end-at') endAt?: string,
     @Query('group') group?: string,
   ): Promise<FindAllMusicsArchiveResponse> {
-    return this.musicsService.getMusicsArchive(user.id, startAt, endAt, group);
+    return this.musicService.getMusicsArchive(user.id, startAt, endAt, group);
   }
 
   @ApiOperation({ summary: '(AI) Get musics by title or songId' })
@@ -53,7 +53,7 @@ export class MusicsController {
     @Query('title') title?: string,
     @Query('songId') songId?: string,
   ): Promise<FindMusicsModelResponse> {
-    return this.musicsService.getMusics(title, songId);
+    return this.musicService.getMusics(title, songId);
   }
 
   @ApiOperation({ summary: '(AI) Generate music candidates' })
@@ -65,7 +65,7 @@ export class MusicsController {
     @User() user: UserPayload,
     @Body() body: CreateDiaryMusicBodyDto,
   ): Promise<CommonDto> {
-    return this.musicsService.createMusicCandidates(user.id, body);
+    return this.musicService.createMusicCandidates(user.id, body);
   }
 
   @ApiOperation({ summary: '(AI) Get musics candidates' })
@@ -74,7 +74,7 @@ export class MusicsController {
   getMusicCandidatesByDiary(
     @Param('diaryId') diaryId: string,
   ): Promise<FindAllMusicsResponse> {
-    return this.musicsService.getMusicCandidatesByDiary(diaryId);
+    return this.musicService.getMusicCandidatesByDiary(diaryId);
   }
 
   @ApiOperation({ summary: 'Get all musics archive summary' })
@@ -84,6 +84,6 @@ export class MusicsController {
   getMusicsArchiveSummary(
     @User() user: UserPayload,
   ): Promise<FindMusicsArchiveSummaryResponse> {
-    return this.musicsService.getMusicsArchiveSummary(user.id);
+    return this.musicService.getMusicsArchiveSummary(user.id);
   }
 }

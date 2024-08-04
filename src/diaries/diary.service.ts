@@ -26,7 +26,7 @@ import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 import { AIService } from 'src/ai/ai.service';
-import { MusicsRepository } from '../musics/musics.repository';
+import { MusicRepository } from '../musics/music.repository';
 import { MusicModelRepository } from 'src/musics/music-model.repository';
 import { Condition } from 'dynamoose';
 import { PrismaService } from 'src/database/prisma.service';
@@ -42,7 +42,7 @@ export class DiaryService {
     private readonly diaryTopicsRepository: DiaryTopicsRepository,
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
     private readonly musicModelRepository: MusicModelRepository,
-    private readonly musicsRepository: MusicsRepository,
+    private readonly musicRepository: MusicRepository,
     private readonly prismaService: PrismaService,
     private readonly aiService: AIService,
     private readonly logService: LogService,

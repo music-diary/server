@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { MusicsRepository } from './musics.repository';
+import { MusicRepository } from './music.repository';
 import { LogService } from 'src/common/log.service';
 import {
   FindAllMusicsArchiveResponse,
@@ -18,11 +18,11 @@ import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
 
 @Injectable()
-export class MusicsService {
+export class MusicService {
   constructor(
     @InjectModel('Music')
     private readonly model: Model<MusicModel, MusicKey>,
-    private readonly musicsRepository: MusicsRepository,
+    private readonly musicRepository: MusicRepository,
     private readonly diariesRepository: DiaryRepository,
     private readonly emotionsRepository: EmotionsRepository,
     private readonly prismaService: PrismaService,
@@ -65,7 +65,7 @@ export class MusicsService {
         lte: endDate,
       };
     }
-    const musics = await this.musicsRepository.findMany(findQuery);
+    const musics = await this.musicRepository.findMany(findQuery);
     data['musics'] = musics;
 
     if (group) {
@@ -75,7 +75,7 @@ export class MusicsService {
 
     this.logService.verbose(
       `Get all musics archives from ${startAt} to ${endAt}`,
-      MusicsService.name,
+      MusicService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -99,10 +99,7 @@ export class MusicsService {
       !title && !songId
         ? await this.model.scan().limit(20).exec()
         : await this.model.scan(conditions).all().exec();
-    this.logService.verbose(
-      `Get musics ${title} ${songId}`,
-      MusicsService.name,
-    );
+    this.logService.verbose(`Get musics ${title} ${songId}`, MusicService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get musics',
@@ -135,12 +132,12 @@ export class MusicsService {
         diaryId: diary.id,
         userId,
       };
-      await this.musicsRepository.createMany({ data: updateMusicInfo });
+      await this.musicRepository.createMany({ data: updateMusicInfo });
     });
 
     this.logService.verbose(
       `Create Diary musics by user - ${userId}, diary - ${diaryId}`,
-      MusicsService.name,
+      MusicService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -163,10 +160,10 @@ export class MusicsService {
         },
       },
     };
-    const musics = await this.musicsRepository.findMany(findQuery);
+    const musics = await this.musicRepository.findMany(findQuery);
     this.logService.verbose(
       `Get music Candidates by diaryId: ${diaryId}`,
-      MusicsService.name,
+      MusicService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -181,7 +178,7 @@ export class MusicsService {
     const summary = await this.getMusicSummaryByMonth(userId);
     this.logService.verbose(
       `Get musics archive summary by user ${userId}`,
-      MusicsService.name,
+      MusicService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -207,7 +204,7 @@ export class MusicsService {
         const endDate = new Date(startDate);
         endDate.setMonth(endDate.getMonth() + 1);
 
-        const latestMusic = await this.musicsRepository.findOne({
+        const latestMusic = await this.musicRepository.findOne({
           where: {
             userId,
             createdAt: { gte: startDate, lt: endDate },

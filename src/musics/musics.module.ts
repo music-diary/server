@@ -1,8 +1,8 @@
 import { Module } from '@nestjs/common';
-import { MusicsController } from './musics.controller';
-import { MusicsService } from './musics.service';
+import { MusicController } from './music.controller';
+import { MusicService } from './music.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { MusicsRepository } from './musics.repository';
+import { MusicRepository } from './music.repository';
 import { LogService } from 'src/common/log.service';
 import { JwtService } from '@nestjs/jwt';
 import { DynamooseModule } from 'nestjs-dynamoose';
@@ -22,11 +22,11 @@ import { EmotionsRepository } from 'src/diaries/repository/emotion.repository';
       },
     ]),
   ],
-  controllers: [MusicsController],
+  controllers: [MusicController],
   providers: [
-    MusicsService,
+    MusicService,
     PrismaService,
-    MusicsRepository,
+    MusicRepository,
     DiaryRepository,
     EmotionsRepository,
     LogService,

@@ -12,7 +12,7 @@ import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { AIService } from 'src/ai/ai.service';
 import { MusicModelRepository } from 'src/musics/music-model.repository';
-import { MusicsRepository } from 'src/musics/musics.repository';
+import { MusicRepository } from 'src/musics/music.repository';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from 'src/musics/schema/music.schema';
 import { DatabaseModule } from 'src/database/database.module';
@@ -42,7 +42,7 @@ import { DatabaseModule } from 'src/database/database.module';
     DiaryEmotionsRepository,
     DiaryTopicsRepository,
     MusicModelRepository,
-    MusicsRepository,
+    MusicRepository,
     AIService,
   ],
   controllers: [DiaryController],

@@ -3,7 +3,7 @@ import { Musics, Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class MusicsRepository {
+export class MusicRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findMany(query?: Prisma.MusicsFindManyArgs): Promise<Musics[]> {
