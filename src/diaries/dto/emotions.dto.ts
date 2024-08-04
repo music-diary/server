@@ -41,4 +41,9 @@ export class EmotionsDto implements Emotions {
   @ApiProperty()
   @IsNumber()
   level: number;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsNumber()
+  aiScale: number | null;
 }
