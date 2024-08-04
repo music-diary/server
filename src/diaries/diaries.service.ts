@@ -442,11 +442,10 @@ export class DiariesService {
   }
 
   async delete(id: string, userId: string): Promise<CommonDto> {
-    const deleteDiaryParams: Prisma.DiariesDeleteArgs = {
-      where: { id, userId },
-    };
-    // const diary = await this.diariesRepository.delete(deleteDiaryParams);
-    const diary = await this.diariesRepository.delete(deleteDiaryParams);
+    const deleteDiaryWhereParams = { id, userId };
+    const diary = await this.diariesRepository.softDelete(
+      deleteDiaryWhereParams,
+    );
     this.logService.verbose(`Delete diary by ${diary.id}`, DiariesService.name);
     return {
       statusCode: HttpStatus.OK,

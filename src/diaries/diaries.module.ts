@@ -15,6 +15,7 @@ import { MusicModelRepository } from 'src/musics/music-model.repository';
 import { MusicsRepository } from 'src/musics/musics.repository';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from 'src/musics/schema/music.schema';
+import { DatabaseModule } from 'src/database/database.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { MusicSchema } from 'src/musics/schema/music.schema';
         },
       },
     ]),
+    DatabaseModule,
   ],
   providers: [
     DiariesService,
