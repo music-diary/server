@@ -1,9 +1,9 @@
+import { CommonDto } from '@common/dto/common.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Users } from '@prisma/client';
 import { Type } from 'class-transformer';
-import { CommonDto } from 'src/common/common.dto';
-import { UsersDto } from './user.dto';
 import { IsArray } from 'class-validator';
+import { UsersDto } from './user.dto';
 
 export class FindUserResponseDto extends CommonDto {
   @ApiProperty({ type: UsersDto })

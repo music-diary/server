@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
-import { PrismaService } from '../database/prisma.service';
+import { PrismaService } from '@database/prisma/prisma.service';
 import { ContactHistoryDto, ContactTypesDto } from './dto/contact.dto';
 
 @Injectable()
@@ -22,6 +22,8 @@ export class ContactRepository {
   async createContactHistories(
     query?: Prisma.ContactHistoryCreateArgs,
   ): Promise<ContactHistoryDto> {
-    return await this.prismaService.contactHistory.create(query);
+    return await this.prismaService.client.contactHistory.createAtKoreaTime(
+      query,
+    );
   }
 }

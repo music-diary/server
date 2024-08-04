@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { DiariesStatus, Prisma } from '@prisma/client';
-import { PrismaService } from '../database/prisma.service';
-import { DiaryDto } from 'src/diaries/dto/diaries.dto';
-import { MusicsDto } from 'src/musics/dto/musics.dto';
-import { GenresDto } from 'src/genres/dto/genres.dto';
+import { PrismaService } from '@database/prisma/prisma.service';
+import { DiaryDto } from '@diary/dto/diaries.dto';
+import { MusicsDto } from '@music/dto/musics.dto';
+import { GenresDto } from '@genre/dto/genres.dto';
 
 @Injectable()
 export class StatisticRepository {

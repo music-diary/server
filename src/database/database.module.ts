@@ -1,11 +1,11 @@
 import { Global, Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { DynamooseModule } from 'nestjs-dynamoose';
-import { PrismaService } from './prisma.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-ioredis-yet';
 import { RedisRepository } from './redis.repository';
-import { validationSchema } from 'src/config/validation-schema';
+import { validationSchema } from '@common/config/validation-schema';
+import { PrismaService } from './prisma/prisma.service';
 
 @Global()
 @Module({

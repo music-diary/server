@@ -1,28 +1,28 @@
+import { AuthModule } from '@auth/auth.module';
+import { validationSchema } from '@common/config/validation-schema';
+import { DatabaseModule } from 'database/database.module';
+import { PrismaService } from '@database/prisma/prisma.service';
+import { LogService } from '@common/log.service';
+import { DiaryModule } from '@diary/diary.module';
+import { GenreModule } from '@genre/genre.module';
+import { MusicModule } from '@music/music.module';
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
-import { AppController } from './app.controller';
-import { AuthModule } from './auth/auth.module';
-import { LogService } from './common/log.service';
-import { validationSchema } from './config/validation-schema';
-import { PrismaService } from './database/prisma.service';
-import { DiariesModule } from './diaries/diaries.module';
-import { GenresModule } from './genres/genres.module';
-import { UsersModule } from './users/users.module';
-import { MusicsModule } from './musics/musics.module';
-import { DatabaseModule } from './database/database.module';
+import { ConfigModule } from '@nestjs/config';
+import { UserModule } from '@user/user.module';
+import { AppController } from 'app.controller';
 
 @Module({
   imports: [
     AuthModule,
-    UsersModule,
+    UserModule,
     ConfigModule.forRoot({
       validationSchema,
       isGlobal: true,
       envFilePath: ['.env'],
     }),
-    GenresModule,
-    DiariesModule,
-    MusicsModule,
+    GenreModule,
+    DiaryModule,
+    MusicModule,
     DatabaseModule,
   ],
   controllers: [AppController],

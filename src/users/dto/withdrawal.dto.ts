@@ -1,3 +1,4 @@
+import { CommonDto } from '@common/dto/common.dto';
 import { ApiProperty, IntersectionType, PickType } from '@nestjs/swagger';
 import { WithdrawalReasons, Withdrawals } from '@prisma/client';
 import { Type } from 'class-transformer';
@@ -8,7 +9,6 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { CommonDto } from 'src/common/common.dto';
 
 export class WithdrawalDto implements Withdrawals {
   @ApiProperty()

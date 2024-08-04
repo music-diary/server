@@ -1,7 +1,7 @@
+import { CommonDto } from '@common/dto/common.dto';
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsEnum, IsOptional, IsPositive, IsString } from 'class-validator';
-import { CommonDto } from 'src/common/common.dto';
 
 export enum StatisticsType {
   MONTH = 'month',

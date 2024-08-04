@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { CommonDto } from 'src/common/common.dto';
+import { CommonDto } from '@common/dto/common.dto';
 import { MusicModelDto, MusicsDto } from './musics.dto';
 
 export class FindAllMusicsResponse extends CommonDto {

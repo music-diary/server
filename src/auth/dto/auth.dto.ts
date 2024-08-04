@@ -1,8 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsPhoneNumber, IsString } from 'class-validator';
-import { CommonDto } from 'src/common/common.dto';
-import { UsersDto } from 'src/users/dto/user.dto';
+import { CommonDto } from '@common/dto/common.dto';
+import { UsersDto } from '@user/dto/user.dto';
 
 export class SendPhoneNumberCodeBody {
   @ApiProperty()

@@ -7,13 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, Users, UserStatus } from '@prisma/client';
-import { CommonDto } from 'src/common/common.dto';
-import { LogService } from 'src/common/log.service';
-import { PrismaService } from 'src/database/prisma.service';
-import { RedisRepository } from 'src/database/redis.repository';
-import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
-import { UsersRepository } from 'src/users/users.repository';
-import { generateSignUpCode } from 'src/util/code-generator';
+import { CommonDto } from '@common/dto/common.dto';
 import {
   LoginBody,
   SendPhoneNumberCodeBody,
@@ -21,7 +15,12 @@ import {
   VerifyPhoneNumberCodeResponseDto,
 } from './dto/auth.dto';
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
-import { GenresDto } from 'src/genres/dto/genres.dto';
+import { LogService } from '@common/log.service';
+import { RedisRepository } from 'database/redis.repository';
+import { SimpleNotificationService } from '@service/simple-notification/simple-notification.service';
+import { UserRepository } from '@user/user.repository';
+import { generateSignUpCode } from '@common/util/code-generator';
+import { GenresDto } from '@genre/dto/genres.dto';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -33,14 +32,13 @@ export class AuthService {
     private readonly simpleNotificationService: SimpleNotificationService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly prismaService: PrismaService,
-    private readonly usersRepository: UsersRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
     const { phoneNumber } = body;
 
-    const existedUser = await this.usersRepository.findOne({
+    const existedUser = await this.userRepository.findOne({
       where: { phoneNumber, status: UserStatus.ACTIVE },
     });
     const { key, code } = generateSignUpCode(phoneNumber);
@@ -72,7 +70,7 @@ export class AuthService {
       throw new BadRequestException('The code is incorrect.');
     }
     if (isVerified) {
-      const existedUser = await this.usersRepository.findOne({
+      const existedUser = await this.userRepository.findOne({
         where: { phoneNumber, status: UserStatus.ACTIVE },
       });
       const { accessToken } = await this.createAccessToken(existedUser.id);
@@ -160,13 +158,13 @@ export class AuthService {
         },
       },
     };
-    return await this.usersRepository.create(createUserQuery);
+    return await this.userRepository.create(createUserQuery);
   }
 
   // NOTE: This is a temporary implementation for the test.
   async login(body: LoginBody) {
     const { id } = body;
-    const existedUser = await this.usersRepository.findUniqueOne({
+    const existedUser = await this.userRepository.findUniqueOne({
       where: { id },
     });
     if (!existedUser) {

@@ -1,5 +1,5 @@
+import { CommonDto } from '@common/dto/common.dto';
 import { Controller, Get, HttpStatus } from '@nestjs/common';
-import { CommonDto } from './common/common.dto';
 
 @Controller()
 export class AppController {

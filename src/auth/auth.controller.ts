@@ -1,7 +1,7 @@
 import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
 import { Response } from 'express';
-import { CommonDto } from 'src/common/common.dto';
+
 import { AuthService } from './auth.service';
 import {
   LoginBody,
@@ -9,6 +9,7 @@ import {
   VerifyPhoneNumberCodeBody,
 } from './dto/auth.dto';
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
+import { CommonDto } from '@common/dto/common.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
