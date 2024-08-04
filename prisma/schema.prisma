@@ -45,7 +45,7 @@ model Genres {
   order Int     @default(0)
   user  Users[] @relation("UserGenres")
 
-  @@index([id, name])
+  @@index([id, name, label])
   @@map("genres")
 }
 
@@ -74,6 +74,7 @@ model Diaries {
   status     DiariesStatus
   createdAt  DateTime      @default(now()) @map("created_at")
   updatedAt  DateTime      @updatedAt @map("updated_at")
+  deletedAt  DateTime?     @map("deleted_at")
 
   user      Users           @relation("UserDiaries", fields: [userId], references: [id])
   templates Templates?      @relation(fields: [templateId], references: [id])
@@ -99,12 +100,13 @@ model Emotions {
   rootId   String? @map("root_id") @db.Uuid
   level    Int     @default(0)
   order    Int     @default(0)
+  // aiScale  Int     @map("ai_scale")
 
   children Emotions[]      @relation("EmotionToEmotion")
   parent   Emotions?       @relation("EmotionToEmotion", fields: [parentId], references: [id])
   diaries  DiaryEmotions[]
 
-  @@index([id, parentId, level])
+  @@index([id, parentId, rootId])
   @@map("emotions")
 }
 
@@ -151,7 +153,7 @@ model DiaryTopics {
   topic Topics  @relation(fields: [topicId], references: [id])
   music Musics? @relation(fields: [musicId], references: [id])
 
-  @@index([id, diaryId, topicId])
+  @@index([id, diaryId, topicId, musicId])
 }
 
 model Templates {
