@@ -24,7 +24,9 @@ export class DiaryEmotionsRepository {
   }
 
   async create(query: Prisma.DiaryEmotionsCreateArgs): Promise<DiaryEmotions> {
-    return await this.prismaService.diaryEmotions.create(query);
+    return await this.prismaService.client.diaryEmotions.createAtKoreaTime(
+      query,
+    );
   }
 
   async createMany(
@@ -34,7 +36,9 @@ export class DiaryEmotionsRepository {
   }
 
   async update(query: Prisma.DiaryEmotionsUpdateArgs): Promise<DiaryEmotions> {
-    return await this.prismaService.diaryEmotions.update(query);
+    return await this.prismaService.client.diaryEmotions.updateAtKoreaTime(
+      query,
+    );
   }
 
   async delete(query: Prisma.DiaryEmotionsDeleteArgs): Promise<DiaryEmotions> {

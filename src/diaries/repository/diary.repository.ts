@@ -19,11 +19,11 @@ export class DiaryRepository {
   }
 
   async create(query?: Prisma.DiariesCreateArgs): Promise<Diaries> {
-    return await this.prismaService.diaries.create(query);
+    return await this.prismaService.client.diaries.createAtKoreaTime(query);
   }
 
   async update(query?: Prisma.DiariesUpdateArgs): Promise<Diaries> {
-    return await this.prismaService.diaries.update(query);
+    return await this.prismaService.client.diaries.updateAtKoreaTime(query);
   }
 
   async delete(query?: Prisma.DiariesDeleteArgs): Promise<Diaries> {

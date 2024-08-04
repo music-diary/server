@@ -19,17 +19,17 @@ export class MusicRepository {
   }
 
   async create(query?: Prisma.MusicsCreateArgs): Promise<Musics> {
-    return await this.prismaService.musics.create(query);
+    return await this.prismaService.client.musics.createAtKoreaTime(query);
   }
 
   async createMany(
     query?: Prisma.MusicsCreateManyArgs,
   ): Promise<{ count: number }> {
-    return await this.prismaService.musics.createMany(query);
+    return await this.prismaService.client.musics.createManyAtKoreaTime(query);
   }
 
   async update(query?: Prisma.MusicsUpdateArgs): Promise<Musics> {
-    return await this.prismaService.musics.update(query);
+    return await this.prismaService.client.musics.updateAtKoreaTime(query);
   }
 
   async delete(query?: Prisma.MusicsDeleteArgs): Promise<Musics> {

@@ -23,17 +23,19 @@ export class DiaryTopicsRepository {
   }
 
   async create(query?: Prisma.DiaryTopicsCreateArgs): Promise<DiaryTopics> {
-    return await this.prismaService.diaryTopics.create(query);
+    return await this.prismaService.client.diaryTopics.createAtKoreaTime(query);
   }
 
   async createMany(
     query?: Prisma.DiaryTopicsCreateManyArgs,
   ): Promise<{ count: number }> {
-    return await this.prismaService.diaryTopics.createMany(query);
+    return await this.prismaService.client.diaryTopics.createManyAtKoreaTime(
+      query,
+    );
   }
 
   async update(query?: Prisma.DiaryTopicsUpdateArgs): Promise<DiaryTopics> {
-    return await this.prismaService.diaryTopics.update(query);
+    return await this.prismaService.client.diaryTopics.updateAtKoreaTime(query);
   }
 
   async delete(query?: Prisma.DiaryTopicsDeleteArgs): Promise<DiaryTopics> {

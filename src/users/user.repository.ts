@@ -7,7 +7,7 @@ export class UserRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async create(query: Prisma.UsersCreateArgs): Promise<Users> {
-    return await this.prismaService.users.create(query);
+    return await this.prismaService.client.users.createAtKoreaTime(query);
   }
 
   async findAll(query?: Prisma.UsersFindManyArgs): Promise<Users[]> {
@@ -27,6 +27,6 @@ export class UserRepository {
   }
 
   async update(query: Prisma.UsersUpdateArgs): Promise<Users> {
-    return await this.prismaService.users.update(query);
+    return await this.prismaService.client.users.updateAtKoreaTime(query);
   }
 }

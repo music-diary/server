@@ -22,6 +22,8 @@ export class ContactRepository {
   async createContactHistories(
     query?: Prisma.ContactHistoryCreateArgs,
   ): Promise<ContactHistoryDto> {
-    return await this.prismaService.contactHistory.create(query);
+    return await this.prismaService.client.contactHistory.createAtKoreaTime(
+      query,
+    );
   }
 }
