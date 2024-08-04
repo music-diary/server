@@ -14,10 +14,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { AuthGuard } from 'src/guards/auth.guard';
 import { MusicService } from './music.service';
-import { User } from 'src/decorator/user.decorator';
-import { UserPayload } from 'src/users/dto/user.dto';
 import {
   FindAllMusicsArchiveResponse,
   FindAllMusicsResponse,
@@ -25,7 +22,10 @@ import {
   FindMusicsModelResponse,
 } from './dto/find-music.dto';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
-import { CommonDto } from 'src/common/common.dto';
+import { CommonDto } from '@common/dto/common.dto';
+import { AuthGuard } from '@common/guards/auth.guard';
+import { User } from '@common/decorator/user.decorator';
+import { UserPayload } from '@user/dto/user.dto';
 
 @ApiTags('Musics')
 @Controller('musics')

@@ -1,3 +1,4 @@
+import { LogService } from '@common/log.service';
 import {
   ForbiddenException,
   HttpStatus,
@@ -5,30 +6,29 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { DiariesStatus, Prisma, Users, UserStatus } from '@prisma/client';
-import { CommonDto } from 'src/common/common.dto';
-import { LogService } from 'src/common/log.service';
-import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
-import { UpdateUserBodyDto } from './dto/update.dto';
 import { UserRepository } from './user.repository';
-import { GenreRepository } from 'src/genres/genre.repository';
-import {
-  WithdrawalReasonsResponseDto,
-  WithdrawUserBodyDto,
-} from './dto/withdrawal.dto';
+import { GenreRepository } from '@genre/genre.repository';
 import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
-import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
-import { SimpleEmailService } from '../simple-email/simple-email.service';
 import { ContactRepository } from './contact.repository';
+import { StatisticRepository } from './statistic.repository';
+import { PrismaService } from '@common/database/prisma.service';
+import { SimpleEmailService } from '@service/simple-email/simple-email.service';
+import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
+import { CommonDto } from '@common/dto/common.dto';
+import { UpdateUserBodyDto } from './dto/update.dto';
 import {
   GetStatisticsQuery,
   GetStatisticsResponseDto,
   StatisticsType,
 } from './dto/statistics.dto';
-import { StatisticRepository } from './statistic.repository';
-import { DiaryDto } from 'src/diaries/dto/diaries.dto';
-import { GenresDto } from 'src/genres/dto/genres.dto';
-import { MusicsDto } from 'src/musics/dto/musics.dto';
-import { PrismaService } from 'src/database/prisma.service';
+import {
+  WithdrawalReasonsResponseDto,
+  WithdrawUserBodyDto,
+} from './dto/withdrawal.dto';
+import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
+import { MusicsDto } from '@music/dto/musics.dto';
+import { GenresDto } from '@genre/dto/genres.dto';
+import { DiaryDto } from '@diary/dto/diaries.dto';
 
 @Injectable()
 export class UserService {

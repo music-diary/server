@@ -1,5 +1,5 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
-import { LogService } from 'src/common/log.service';
+import { LogService } from '@common/log.service';
 import { findAllGenresResponse } from './dto/find.dto';
 import { GenreRepository } from './genre.repository';
 import { Prisma } from '@prisma/client';

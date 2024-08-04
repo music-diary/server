@@ -1,14 +1,14 @@
 import { Module } from '@nestjs/common';
 import { MusicController } from './music.controller';
 import { MusicService } from './music.service';
-import { PrismaService } from 'src/database/prisma.service';
 import { MusicRepository } from './music.repository';
-import { LogService } from 'src/common/log.service';
 import { JwtService } from '@nestjs/jwt';
 import { DynamooseModule } from 'nestjs-dynamoose';
 import { MusicSchema } from './schema/music.schema';
-import { DiaryRepository } from 'src/diaries/repository/diairy.repository';
-import { EmotionsRepository } from 'src/diaries/repository/emotion.repository';
+import { PrismaService } from '@common/database/prisma.service';
+import { DiaryRepository } from '@diary/repository/diairy.repository';
+import { EmotionsRepository } from '@diary/repository/emotion.repository';
+import { LogService } from '@common/log.service';
 
 @Module({
   imports: [

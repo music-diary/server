@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { MusicRepository } from './music.repository';
-import { LogService } from 'src/common/log.service';
+import { LogService } from '@common/log.service';
 import {
   FindAllMusicsArchiveResponse,
   FindAllMusicsResponse,
@@ -11,11 +11,11 @@ import { DiariesStatus, Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
-import { DiaryRepository } from 'src/diaries/repository/diairy.repository';
-import { CommonDto } from 'src/common/common.dto';
-import { PrismaService } from 'src/database/prisma.service';
+import { CommonDto } from '@common/dto/common.dto';
+import { PrismaService } from '@common/database/prisma.service';
 import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
+import { DiaryRepository } from '@diary/repository/diairy.repository';
 
 @Injectable()
 export class MusicService {

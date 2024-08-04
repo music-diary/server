@@ -15,9 +15,6 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { User } from 'src/decorator/user.decorator';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { UserPayload } from 'src/users/dto/user.dto';
 import { DiaryService } from './diary.service';
 import {
   CreateDiaryBodyDto,
@@ -35,8 +32,11 @@ import {
   UpdateDiaryBodyDto,
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
-import { CommonDto } from 'src/common/common.dto';
+import { CommonDto } from '@common/dto/common.dto';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
+import { AuthGuard } from '@common/guards/auth.guard';
+import { User } from '@common/decorator/user.decorator';
+import { UserPayload } from '@user/dto/user.dto';
 
 @ApiTags('Diaries')
 @Controller('diaries')

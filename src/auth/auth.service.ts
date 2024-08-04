@@ -7,13 +7,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { Prisma, Users, UserStatus } from '@prisma/client';
-import { CommonDto } from 'src/common/common.dto';
-import { LogService } from 'src/common/log.service';
-import { PrismaService } from 'src/database/prisma.service';
-import { RedisRepository } from 'src/database/redis.repository';
-import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
-import { UserRepository } from 'src/users/user.repository';
-import { generateSignUpCode } from 'src/util/code-generator';
+import { CommonDto } from '@common/dto/common.dto';
 import {
   LoginBody,
   SendPhoneNumberCodeBody,
@@ -21,7 +15,12 @@ import {
   VerifyPhoneNumberCodeResponseDto,
 } from './dto/auth.dto';
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
-import { GenresDto } from 'src/genres/dto/genres.dto';
+import { LogService } from '@common/log.service';
+import { RedisRepository } from '@common/database/redis.repository';
+import { SimpleNotificationService } from '@service/simple-notification/simple-notification.service';
+import { UserRepository } from '@user/user.repository';
+import { generateSignUpCode } from '@common/util/code-generator';
+import { GenresDto } from '@genre/dto/genres.dto';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -33,7 +32,6 @@ export class AuthService {
     private readonly simpleNotificationService: SimpleNotificationService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
-    private readonly prismaService: PrismaService,
     private readonly userRepository: UserRepository,
   ) {}
 

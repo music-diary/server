@@ -1,23 +1,9 @@
-import { ApiProperty, OmitType, PickType } from '@nestjs/swagger';
+import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import {
-  IsArray,
-  IsBoolean,
-  IsDateString,
-  IsEnum,
-  IsPhoneNumber,
-  IsString,
-  MaxLength,
-} from 'class-validator';
-import { CommonDto } from 'src/common/common.dto';
-import { GenresDto } from 'src/genres/dto/genres.dto';
-import { UsersDto } from 'src/users/dto/user.dto';
-
-enum Gender {
-  FEMALE = 'FEMALE',
-  MALE = 'MALE',
-  OTHER = 'OTHER',
-}
+import { IsArray } from 'class-validator';
+import { CommonDto } from '@common/dto/common.dto';
+import { UsersDto } from '@user/dto/user.dto';
+import { GenresDto } from '@genre/dto/genres.dto';
 
 export class SignUpBody extends PickType(UsersDto, [
   'phoneNumber',

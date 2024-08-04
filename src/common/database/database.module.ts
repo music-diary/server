@@ -5,7 +5,7 @@ import { PrismaService } from './prisma.service';
 import { CacheModule } from '@nestjs/cache-manager';
 import { redisStore } from 'cache-manager-ioredis-yet';
 import { RedisRepository } from './redis.repository';
-import { validationSchema } from 'src/config/validation-schema';
+import { validationSchema } from '@common/config/validation-schema';
 
 @Global()
 @Module({

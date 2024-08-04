@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
-import { LogService } from 'src/common/log.service';
-import { PrismaService } from 'src/database/prisma.service';
+import { LogService } from '@common/log.service';
+import { PrismaService } from '@common/database/prisma.service';
 import { GenreController } from './genre.controller';
 import { GenreRepository } from './genre.repository';
 import { GenreService } from './genre.service';

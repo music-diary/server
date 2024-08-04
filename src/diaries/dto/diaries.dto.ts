@@ -15,11 +15,11 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { UsersDto } from 'src/users/dto/user.dto';
 import { EmotionsDto } from './emotions.dto';
 import { TemplatesDto } from './templates.dto';
 import { TopicsDto } from './topics.dto';
-import { MusicsDto } from 'src/musics/dto/musics.dto';
+import { UsersDto } from '@user/dto/user.dto';
+import { MusicsDto } from '@music/dto/musics.dto';
 
 export class DiaryDto implements Diaries {
   @ApiProperty()

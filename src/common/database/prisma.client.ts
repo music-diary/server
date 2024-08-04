@@ -1,5 +1,5 @@
+import { setKoreaTime } from '@common/util/date-time-converter';
 import { PrismaClient, Prisma } from '@prisma/client';
-import { setKoreaTime } from '../util/date-time-converter';
 
 export const customPrismaClient = (prismaClient: PrismaClient) => {
   return prismaClient.$extends({

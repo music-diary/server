@@ -5,7 +5,7 @@ import {
 } from '@aws-sdk/client-sns';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LogService } from 'src/common/log.service';
+import { LogService } from '@common/log.service';
 
 @Injectable()
 export class SimpleNotificationService {

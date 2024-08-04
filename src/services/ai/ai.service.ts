@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LogService } from 'src/common/log.service';
 import {
   RecommendMusicToAIBodyDto,
   RecommendMusicToAIResponseDto,
-} from './dtos/recommend-ai.dto';
+} from './dto/recommend-ai.dto';
 import axios, { AxiosRequestConfig, AxiosResponse } from 'axios';
 import aws4Interceptor from 'aws4-axios';
+import { LogService } from '@common/log.service';
 
 @Injectable()
 export class AIService {

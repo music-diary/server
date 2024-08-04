@@ -1,6 +1,6 @@
 import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
 import { DiariesStatus, Prisma, TemplateContents } from '@prisma/client';
-import { LogService } from 'src/common/log.service';
+import { LogService } from '@common/log.service';
 import {
   CreateDiaryBodyDto,
   CreateDiaryResponseDto,
@@ -21,16 +21,15 @@ import { DiaryRepository } from './repository/diairy.repository';
 import { EmotionsRepository } from './repository/emotion.repository';
 import { TemplatesRepository } from './repository/template.repository';
 import { TopicsRepository } from './repository/topic.repository';
-import { CommonDto } from 'src/common/common.dto';
+import { CommonDto } from '@common/dto/common.dto';
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
-import { AIService } from 'src/ai/ai.service';
-import { MusicRepository } from '../musics/music.repository';
-import { MusicModelRepository } from 'src/musics/music-model.repository';
 import { Condition } from 'dynamoose';
-import { PrismaService } from 'src/database/prisma.service';
-import { MusicModelDto } from 'src/musics/dto/musics.dto';
+import { MusicModelRepository } from '@music/music-model.repository';
+import { PrismaService } from '@common/database/prisma.service';
+import { AIService } from '@service/ai/ai.service';
+import { MusicModelDto } from '@music/dto/musics.dto';
 
 @Injectable()
 export class DiaryService {
@@ -42,7 +41,6 @@ export class DiaryService {
     private readonly diaryTopicsRepository: DiaryTopicsRepository,
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
     private readonly musicModelRepository: MusicModelRepository,
-    private readonly musicRepository: MusicRepository,
     private readonly prismaService: PrismaService,
     private readonly aiService: AIService,
     private readonly logService: LogService,

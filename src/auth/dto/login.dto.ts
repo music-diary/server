@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsPhoneNumber } from 'class-validator';
-import { CommonDto } from 'src/common/common.dto';
+import { CommonDto } from '@common/dto/common.dto';
 
 export class LoginBody {
   @ApiProperty()

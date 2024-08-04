@@ -17,11 +17,7 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 import { Role } from '@prisma/client';
-import { CommonDto } from 'src/common/common.dto';
-import { Roles } from 'src/decorator/roles.decorator';
-import { User } from 'src/decorator/user.decorator';
-import { AuthGuard } from 'src/guards/auth.guard';
-import { RolesGuard } from 'src/guards/role.guard';
+import { CommonDto } from '@common/dto/common.dto';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UserPayload } from './dto/user.dto';
@@ -35,6 +31,10 @@ import {
   GetStatisticsQuery,
   GetStatisticsResponseDto,
 } from './dto/statistics.dto';
+import { AuthGuard } from '@common/guards/auth.guard';
+import { User } from '@common/decorator/user.decorator';
+import { RolesGuard } from '@common/guards/role.guard';
+import { Roles } from '@common/decorator/roles.decorator';
 
 @ApiTags('Users')
 @Controller('users')

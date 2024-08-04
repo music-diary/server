@@ -1,7 +1,5 @@
 import { Module } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { LogService } from 'src/common/log.service';
-import { PrismaService } from 'src/database/prisma.service';
 import { DiaryController } from './diary.controller';
 import { DiaryService } from './diary.service';
 import { DiaryRepository } from './repository/diairy.repository';
@@ -10,12 +8,14 @@ import { TemplatesRepository } from './repository/template.repository';
 import { TopicsRepository } from './repository/topic.repository';
 import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
 import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
-import { AIService } from 'src/ai/ai.service';
-import { MusicModelRepository } from 'src/musics/music-model.repository';
-import { MusicRepository } from 'src/musics/music.repository';
 import { DynamooseModule } from 'nestjs-dynamoose';
-import { MusicSchema } from 'src/musics/schema/music.schema';
-import { DatabaseModule } from 'src/database/database.module';
+import { MusicSchema } from '@music/schema/music.schema';
+import { DatabaseModule } from '@common/database/database.module';
+import { LogService } from '@common/log.service';
+import { PrismaService } from '@common/database/prisma.service';
+import { MusicModelRepository } from '@music/music-model.repository';
+import { MusicRepository } from '@music/music.repository';
+import { AIService } from '@service/ai/ai.service';
 
 @Module({
   imports: [

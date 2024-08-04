@@ -1,12 +1,12 @@
+import { swaggerConfig } from '@common/docs/swagger.options';
+import { DynamoDBExceptionFilter } from '@common/filters/dynamoose-exception.filter';
+import { HttpExceptionFilter } from '@common/filters/http-exception.filter';
+import { PrismaExceptionFilter } from '@common/filters/prisma-exception.filter';
+import { LoggerInterceptor } from '@common/interceptors/logger.interceptor';
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { SwaggerModule } from '@nestjs/swagger';
-import { AppModule } from './app.module';
-import { swaggerConfig } from './docs/swagger.options';
-import { HttpExceptionFilter } from './filters/http-exception.filter';
-import { PrismaExceptionFilter } from './filters/prisma-exception.filter';
-import { LoggerInterceptor } from './interceptors/logger.interceptor';
-import { DynamoDBExceptionFilter } from './filters/dynamoose-exception.filter';
+import { AppModule } from 'app.module';
 
 const PORT = process.env.PORT || 5000;
 const SERVER_DOMAIN = process.env.SERVER_DOMAIN;

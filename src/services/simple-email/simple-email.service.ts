@@ -1,9 +1,9 @@
 import { SendEmailCommand, SESClient } from '@aws-sdk/client-ses';
 import { Injectable, ServiceUnavailableException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { LogService } from 'src/common/log.service';
-import { ContactTypesDto } from 'src/users/dto/contact.dto';
+import { LogService } from '@common/log.service';
 import { sendContactEmailTemplate } from './templates/contact.template';
+import { ContactTypesDto } from '@user/dto/contact.dto';
 
 @Injectable()
 export class SimpleEmailService {

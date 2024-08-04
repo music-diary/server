@@ -1,26 +1,16 @@
+import { CommonDto } from '@common/dto/common.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  ContactHistory,
-  ContactTypes,
-  Gender,
-  Genres,
-  Users,
-} from '@prisma/client';
+import { ContactHistory, ContactTypes } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
-  IsBoolean,
   IsDate,
-  IsDateString,
   IsEmail,
-  IsEnum,
   IsNumber,
   IsOptional,
   IsString,
   IsUUID,
-  Matches,
 } from 'class-validator';
-import { CommonDto } from 'src/common/common.dto';
 
 export class ContactTypesDto implements ContactTypes {
   @ApiProperty()

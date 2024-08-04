@@ -1,5 +1,6 @@
+import { GenresDto } from '@genre/dto/genres.dto';
 import { ApiProperty } from '@nestjs/swagger';
-import { Gender, Genres, Users } from '@prisma/client';
+import { Gender } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsArray,
@@ -11,7 +12,6 @@ import {
   Matches,
   MaxLength,
 } from 'class-validator';
-import { GenresDto } from 'src/genres/dto/genres.dto';
 
 export class UpdateUserBodyDto {
   @ApiProperty()
