@@ -10,7 +10,7 @@ import { LogService } from 'src/common/log.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UsersRepository } from './users.repository';
-import { GenresRepository } from 'src/genres/genre.repository';
+import { GenreRepository } from 'src/genres/genre.repository';
 import {
   WithdrawalReasonsResponseDto,
   WithdrawUserBodyDto,
@@ -35,7 +35,7 @@ export class UsersService {
   constructor(
     private readonly logService: LogService,
     private readonly usersRepository: UsersRepository,
-    private readonly genresRepository: GenresRepository,
+    private readonly genreRepository: GenreRepository,
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
     private readonly contactRepository: ContactRepository,
     private readonly statisticRepository: StatisticRepository,
@@ -115,7 +115,7 @@ export class UsersService {
       body.birthDay = birthDayDate;
     }
     if ('genres' in body && typeof body.genres !== undefined) {
-      const genres = await this.genresRepository.findAll({
+      const genres = await this.genreRepository.findAll({
         where: {
           user: {
             some: { id: targetId },

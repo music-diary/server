@@ -2,7 +2,7 @@ import { Module } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { GenresRepository } from 'src/genres/genre.repository';
+import { GenreRepository } from 'src/genres/genre.repository';
 import { UsersController } from './users.controller';
 import { UsersRepository } from './users.repository';
 import { UsersService } from './users.service';
@@ -19,7 +19,7 @@ import { StatisticRepository } from './statistic.repository';
     PrismaService,
     JwtService,
     UsersRepository,
-    GenresRepository,
+    GenreRepository,
     WithdrawalReasonsRepository,
     ContactRepository,
     StatisticRepository,

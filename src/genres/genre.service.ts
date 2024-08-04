@@ -1,14 +1,14 @@
 import { HttpStatus, Injectable } from '@nestjs/common';
 import { LogService } from 'src/common/log.service';
 import { findAllGenresResponse } from './dto/find.dto';
-import { GenresRepository } from './genre.repository';
+import { GenreRepository } from './genre.repository';
 import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class GenreService {
   constructor(
     private readonly logService: LogService,
-    private readonly genresRepository: GenresRepository,
+    private readonly genreRepository: GenreRepository,
   ) {}
 
   async findAll(): Promise<findAllGenresResponse> {
@@ -18,7 +18,7 @@ export class GenreService {
         order: 'asc',
       },
     };
-    const genres = await this.genresRepository.findAll(findParams);
+    const genres = await this.genreRepository.findAll(findParams);
     return {
       statusCode: HttpStatus.OK,
       message: 'Find all genres',

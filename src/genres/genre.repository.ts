@@ -3,7 +3,7 @@ import { Genres, Prisma } from '@prisma/client';
 import { PrismaService } from '../database/prisma.service';
 
 @Injectable()
-export class GenresRepository {
+export class GenreRepository {
   constructor(private readonly prismaService: PrismaService) {}
 
   async findAll(query?: Prisma.GenresFindManyArgs): Promise<Genres[]> {
