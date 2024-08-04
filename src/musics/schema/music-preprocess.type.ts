@@ -1,10 +1,9 @@
-export interface MusicKey {
+export interface MusicPreprocessKey {
   title: string;
   songId: string;
-  editor_pick?: string;
 }
 
-export interface MusicModel extends MusicKey {
+export interface MusicPreprocessModel extends MusicPreprocessKey {
   songId: string;
   title: string;
   albumUrl?: string;
@@ -14,4 +13,6 @@ export interface MusicModel extends MusicKey {
   lyric?: string;
   editor_pick?: string;
   editor_name?: string;
+  videoId?: string;
+  yt_url?: string;
 }

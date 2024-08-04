@@ -9,6 +9,7 @@ import { PrismaService } from '@database/prisma/prisma.service';
 import { DiaryRepository } from '@diary/repository/diary.repository';
 import { EmotionsRepository } from '@diary/repository/emotion.repository';
 import { LogService } from '@common/log.service';
+import { MusicPreprocessSchema } from './schema/music-preprocess.schema';
 
 @Module({
   imports: [
@@ -18,6 +19,13 @@ import { LogService } from '@common/log.service';
         schema: MusicSchema,
         options: {
           tableName: 'musicdiary_table',
+        },
+      },
+      {
+        name: 'MusicPreprocess',
+        schema: MusicPreprocessSchema,
+        options: {
+          tableName: 'musicdiary_preprocess',
         },
       },
     ]),
