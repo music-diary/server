@@ -71,6 +71,11 @@ export class DiaryDto implements Diaries {
   @IsDate()
   updatedAt: Date;
 
+  @ApiProperty()
+  @IsOptional()
+  @IsDate()
+  deletedAt: Date | null;
+
   @ApiProperty({ type: UsersDto })
   @IsOptional()
   @IsObject()

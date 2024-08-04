@@ -1,25 +1,24 @@
-import { Injectable } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import {
+  Inject,
+  Injectable,
+  OnModuleDestroy,
+  OnModuleInit,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import Redis from 'ioredis';
 
 @Injectable()
 export class RedisRepository {
-  protected readonly client: Redis;
-  constructor(private readonly configService: ConfigService) {
-    if (!this.client) {
-      const redisOptions = {
-        host: this.configService.get('REDIS_HOST'),
-        port: this.configService.get('REDIS_PORT'),
-      };
-      this.client = Redis.createClient();
-      this.client.options = redisOptions;
-      return this;
-    }
-    return this;
+  protected client: Redis;
+  constructor(private readonly configService: ConfigService) {}
+
+  async onModuleInit() {
+    this.client = new Redis(this.configService.get('REDIS_URL'));
   }
 
-  async connect(): Promise<void> {
-    await this.client.connect();
+  async onModuleDestroy() {
+    await this.client.quit();
   }
 
   async set(key: string, value: string, seconds?: number): Promise<void> {
@@ -30,7 +29,7 @@ export class RedisRepository {
     return this.client.get(key);
   }
 
-  async disconnect(): Promise<void> {
-    this.client.disconnect();
+  async del(key: string): Promise<void> {
+    await this.client.del(key);
   }
 }

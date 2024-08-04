@@ -11,10 +11,10 @@ import { DiariesStatus, Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
 import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
-import { DiariesRepository } from 'src/diaries/repository/diaires.repository';
+import { DiaryRepository } from 'src/diaries/repository/diairy.repository';
 import { CommonDto } from 'src/common/common.dto';
 import { PrismaService } from 'src/database/prisma.service';
-import { EmotionsRepository } from '../diaries/repository/emotions.repository';
+import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
 
 @Injectable()
@@ -23,7 +23,7 @@ export class MusicsService {
     @InjectModel('Music')
     private readonly model: Model<MusicModel, MusicKey>,
     private readonly musicsRepository: MusicsRepository,
-    private readonly diariesRepository: DiariesRepository,
+    private readonly diariesRepository: DiaryRepository,
     private readonly emotionsRepository: EmotionsRepository,
     private readonly prismaService: PrismaService,
     private readonly logService: LogService,
