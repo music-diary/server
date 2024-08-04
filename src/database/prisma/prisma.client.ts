@@ -65,13 +65,14 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
 
         async createAtKoreaTime<M, A>(
           this: M,
-          where: Prisma.Args<M, 'create'>['where'],
+          args?: Prisma.Args<M, 'create'>,
         ): Promise<Prisma.Result<M, A, 'create'>> {
           const context = Prisma.getExtensionContext(this);
 
           return (context as any).create({
-            where,
+            where: { ...args?.where },
             data: {
+              ...args?.data,
               createdAt: setKoreaTime(),
               updatedAt: setKoreaTime(),
             },
@@ -80,13 +81,14 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
 
         async createManyAtKoreaTime<M, A>(
           this: M,
-          where: Prisma.Args<M, 'createMany'>['where'],
+          args?: Prisma.Args<M, 'createMany'>,
         ): Promise<Prisma.Result<M, A, 'createMany'>> {
           const context = Prisma.getExtensionContext(this);
 
           return (context as any).createMany({
-            where,
+            where: { ...args?.where },
             data: {
+              ...args?.data,
               createdAt: setKoreaTime(),
               updatedAt: setKoreaTime(),
             },
@@ -95,13 +97,13 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
 
         async updateAtKoreaTime<M, A>(
           this: M,
-          where: Prisma.Args<M, 'update'>['where'],
+          args?: Prisma.Args<M, 'update'>,
         ): Promise<Prisma.Result<M, A, 'update'>> {
           const context = Prisma.getExtensionContext(this);
-
           return (context as any).update({
-            where,
+            where: { ...args?.where },
             data: {
+              ...args?.data,
               updatedAt: setKoreaTime(),
             },
           });
@@ -109,13 +111,14 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
 
         async updatedManyAtKoreaTime<M, A>(
           this: M,
-          where: Prisma.Args<M, 'updateMany'>['where'],
+          args?: Prisma.Args<M, 'updateMany'>,
         ): Promise<Prisma.Result<M, A, 'updateMany'>> {
           const context = Prisma.getExtensionContext(this);
 
           return (context as any).updateMany({
-            where,
+            where: { ...args?.where },
             data: {
+              ...args?.data,
               updatedAt: setKoreaTime(),
             },
           });
