@@ -6,7 +6,7 @@ import { LogService } from './common/log.service';
 import { validationSchema } from './config/validation-schema';
 import { PrismaService } from './database/prisma.service';
 import { DiariesModule } from './diaries/diary.module';
-import { GenresModule } from './genres/genres.module';
+import { GenresModule } from './genres/genre.module';
 import { UsersModule } from './users/users.module';
 import { MusicsModule } from './musics/musics.module';
 import { DatabaseModule } from './database/database.module';

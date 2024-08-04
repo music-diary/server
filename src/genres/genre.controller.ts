@@ -1,16 +1,16 @@
 import { Controller, Get } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { findAllGenresResponse } from './dto/find.dto';
-import { GenresService } from './genres.service';
+import { GenreService } from './genre.service';
 
 @ApiTags('Genres')
 @Controller('genres')
-export class GenresController {
-  constructor(private readonly genresService: GenresService) {}
+export class GenreController {
+  constructor(private readonly genreService: GenreService) {}
 
   @ApiOperation({ summary: 'Find all genres' })
   @Get()
   findAll(): Promise<findAllGenresResponse> {
-    return this.genresService.findAll();
+    return this.genreService.findAll();
   }
 }

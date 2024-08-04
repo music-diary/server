@@ -10,7 +10,7 @@ import { LogService } from 'src/common/log.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UsersRepository } from './users.repository';
-import { GenresRepository } from 'src/genres/genres.repository';
+import { GenresRepository } from 'src/genres/genre.repository';
 import {
   WithdrawalReasonsResponseDto,
   WithdrawUserBodyDto,
