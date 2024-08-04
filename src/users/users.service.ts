@@ -122,10 +122,6 @@ export class UsersService {
           },
         },
       });
-      if (genres.length === 0) {
-        throw new NotFoundException('User genres not found');
-      }
-
       await this.prismaService.users.update({
         where: { id: targetId },
         data: {
