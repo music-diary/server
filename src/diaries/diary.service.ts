@@ -33,7 +33,7 @@ import { PrismaService } from 'src/database/prisma.service';
 import { MusicModelDto } from 'src/musics/dto/musics.dto';
 
 @Injectable()
-export class DiariesService {
+export class DiaryService {
   constructor(
     private readonly emotionsRepository: EmotionsRepository,
     private readonly topicsRepository: TopicsRepository,
@@ -53,7 +53,7 @@ export class DiariesService {
       ? { where: { name } }
       : {};
     const emotions = await this.emotionsRepository.findAll(whereParams);
-    this.logService.verbose(`Get all emotions`, DiariesService.name);
+    this.logService.verbose(`Get all emotions`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get all emotions',
@@ -68,7 +68,7 @@ export class DiariesService {
       },
     };
     const topics = await this.topicsRepository.findAll(findParams);
-    this.logService.verbose(`Get all topics`, DiariesService.name);
+    this.logService.verbose(`Get all topics`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get all emotions',
@@ -87,7 +87,7 @@ export class DiariesService {
       },
     };
     const templates = await this.templatesRepository.findAll(findParams);
-    this.logService.verbose(`Get all templates`, DiariesService.name);
+    this.logService.verbose(`Get all templates`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get all emotions',
@@ -133,7 +133,7 @@ export class DiariesService {
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
     this.logService.verbose(
       `Get all diaries archives from ${startAt} to ${endAt}`,
-      DiariesService.name,
+      DiaryService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -154,7 +154,7 @@ export class DiariesService {
       findDiariesQuery.where.status = query.status;
     }
     const diaries = await this.diariesRepository.findAll(findDiariesQuery);
-    this.logService.verbose(`Get all diaries`, DiariesService.name);
+    this.logService.verbose(`Get all diaries`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get all diaries',
@@ -201,7 +201,7 @@ export class DiariesService {
       throw new NotFoundException('Diary not found');
     }
 
-    this.logService.verbose(`Get diary by ${diary.id}`, DiariesService.name);
+    this.logService.verbose(`Get diary by ${diary.id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get diary',
@@ -220,7 +220,7 @@ export class DiariesService {
       },
     };
     const diary = await this.diariesRepository.create(createDiaryQuery);
-    this.logService.verbose(`Create diary by ${diary.id}`, DiariesService.name);
+    this.logService.verbose(`Create diary by ${diary.id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Create diary',
@@ -315,7 +315,7 @@ export class DiariesService {
       },
     );
 
-    this.logService.verbose(`recommend musics by ${id}`, DiariesService.name);
+    this.logService.verbose(`recommend musics by ${id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'recommend musics',
@@ -432,10 +432,7 @@ export class DiariesService {
     };
     const result = await this.diariesRepository.update(updateDiaryQuery);
 
-    this.logService.verbose(
-      `Update diary by ${result.id}`,
-      DiariesService.name,
-    );
+    this.logService.verbose(`Update diary by ${result.id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Update diary',
@@ -448,7 +445,7 @@ export class DiariesService {
     const diary = await this.diariesRepository.softDelete(
       deleteDiaryWhereParams,
     );
-    this.logService.verbose(`Delete diary by ${diary.id}`, DiariesService.name);
+    this.logService.verbose(`Delete diary by ${diary.id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Delete diary',

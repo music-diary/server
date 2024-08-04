@@ -1,11 +1,11 @@
 import { Module } from '@nestjs/common';
-import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AuthModule } from './auth/auth.module';
 import { LogService } from './common/log.service';
 import { validationSchema } from './config/validation-schema';
 import { PrismaService } from './database/prisma.service';
-import { DiariesModule } from './diaries/diaries.module';
+import { DiariesModule } from './diaries/diary.module';
 import { GenresModule } from './genres/genres.module';
 import { UsersModule } from './users/users.module';
 import { MusicsModule } from './musics/musics.module';

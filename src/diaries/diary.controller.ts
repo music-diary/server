@@ -18,7 +18,7 @@ import {
 import { User } from 'src/decorator/user.decorator';
 import { AuthGuard } from 'src/guards/auth.guard';
 import { UserPayload } from 'src/users/dto/user.dto';
-import { DiariesService } from './diaries.service';
+import { DiaryService } from './diary.service';
 import {
   CreateDiaryBodyDto,
   CreateDiaryResponseDto,
@@ -40,26 +40,26 @@ import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 
 @ApiTags('Diaries')
 @Controller('diaries')
-export class DiariesController {
-  constructor(private readonly diariesService: DiariesService) {}
+export class DiaryController {
+  constructor(private readonly diaryService: DiaryService) {}
 
   @ApiOperation({ summary: 'Get all emotions' })
   @ApiQuery({ name: 'name', required: false })
   @Get('emotions')
   getEmotions(@Query('name') name?: string): Promise<FindEmotionsResponseDto> {
-    return this.diariesService.getEmotions(name);
+    return this.diaryService.getEmotions(name);
   }
 
   @ApiOperation({ summary: 'Get all topics' })
   @Get('topics')
   getTopics(): Promise<FindTopicsResponseDto> {
-    return this.diariesService.getTopics();
+    return this.diaryService.getTopics();
   }
 
   @ApiOperation({ summary: 'Get all templates' })
   @Get('templates')
   getTemplates(): Promise<FindTemplatesResponseDto> {
-    return this.diariesService.getTemplates();
+    return this.diaryService.getTemplates();
   }
 
   @ApiOperation({ summary: 'Get my diaries archive' })
@@ -75,12 +75,7 @@ export class DiariesController {
     @Query('end-at') endAt?: string,
     @Query('group') group?: string,
   ): Promise<FindDiariesResponseDto> {
-    return this.diariesService.getDiariesArchive(
-      user.id,
-      startAt,
-      endAt,
-      group,
-    );
+    return this.diaryService.getDiariesArchive(user.id, startAt, endAt, group);
   }
 
   @ApiOperation({ summary: 'Get all diaries' })
@@ -91,7 +86,7 @@ export class DiariesController {
     @User() user: UserPayload,
     @Query() query?: GetDiariesQueryDto,
   ): Promise<FindDiariesResponseDto> {
-    return this.diariesService.getDiaries(user.id, query);
+    return this.diaryService.getDiaries(user.id, query);
   }
 
   @ApiOperation({ summary: 'Get one diary' })
@@ -102,7 +97,7 @@ export class DiariesController {
     @Param('id') id: string,
     @User() user: UserPayload,
   ): Promise<FindDiaryResponseDto> {
-    return this.diariesService.getDiary(id, user.id);
+    return this.diaryService.getDiary(id, user.id);
   }
 
   @ApiOperation({ summary: 'Create diary' })
@@ -113,7 +108,7 @@ export class DiariesController {
     @User() user: UserPayload,
     @Body() body: CreateDiaryBodyDto,
   ): Promise<CreateDiaryResponseDto> {
-    return this.diariesService.create(user.id, body);
+    return this.diaryService.create(user.id, body);
   }
 
   @ApiOperation({ summary: 'Request AI music recommendation' })
@@ -124,7 +119,7 @@ export class DiariesController {
     @User() user: UserPayload,
     @Param('id') id: string,
   ): Promise<RecommendMusicResponseDto> {
-    return this.diariesService.recommendMusics(user.id, id);
+    return this.diaryService.recommendMusics(user.id, id);
   }
 
   @ApiOperation({ summary: 'Update diary' })
@@ -136,7 +131,7 @@ export class DiariesController {
     @User() user: UserPayload,
     @Body() body: UpdateDiaryBodyDto,
   ): Promise<UpdateDiaryResponseDto> {
-    return this.diariesService.update(id, user.id, body);
+    return this.diaryService.update(id, user.id, body);
   }
 
   @ApiOperation({ summary: 'Delete diary' })
@@ -147,6 +142,6 @@ export class DiariesController {
     @Param('id') id: string,
     @User() user: UserPayload,
   ): Promise<CommonDto> {
-    return this.diariesService.delete(id, user.id);
+    return this.diaryService.delete(id, user.id);
   }
 }

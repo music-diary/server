@@ -2,8 +2,8 @@ import { Module } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
-import { DiariesController } from './diaries.controller';
-import { DiariesService } from './diaries.service';
+import { DiaryController } from './diary.controller';
+import { DiaryService } from './diary.service';
 import { DiaryRepository } from './repository/diairy.repository';
 import { EmotionsRepository } from './repository/emotion.repository';
 import { TemplatesRepository } from './repository/template.repository';
@@ -31,7 +31,7 @@ import { DatabaseModule } from 'src/database/database.module';
     DatabaseModule,
   ],
   providers: [
-    DiariesService,
+    DiaryService,
     JwtService,
     LogService,
     PrismaService,
@@ -45,6 +45,6 @@ import { DatabaseModule } from 'src/database/database.module';
     MusicsRepository,
     AIService,
   ],
-  controllers: [DiariesController],
+  controllers: [DiaryController],
 })
 export class DiariesModule {}
