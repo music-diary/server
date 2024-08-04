@@ -41,7 +41,7 @@ export class AuthService {
     const { phoneNumber } = body;
 
     const existedUser = await this.usersRepository.findOne({
-      where: { phoneNumber },
+      where: { phoneNumber, status: UserStatus.ACTIVE },
     });
     const { key, code } = generateSignUpCode(phoneNumber);
     const isVerified = existedUser ? true : false;
