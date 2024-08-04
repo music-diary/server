@@ -17,13 +17,13 @@ import {
   UpdateDiaryBodyDto,
   UpdateDiaryResponseDto,
 } from './dto/update.diary.dto';
-import { DiaryRepository } from './repository/diairy.repository';
+import { DiaryRepository } from './repository/diary.repository';
 import { EmotionsRepository } from './repository/emotion.repository';
 import { TemplatesRepository } from './repository/template.repository';
 import { TopicsRepository } from './repository/topic.repository';
 import { CommonDto } from '@common/dto/common.dto';
-import { DiaryTopicsRepository } from './repository/diairy-topics.repository';
-import { DiaryEmotionsRepository } from './repository/diairy-emotions.repository';
+import { DiaryTopicsRepository } from './repository/diary-topics.repository';
+import { DiaryEmotionsRepository } from './repository/diary-emotions.repository';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 import { Condition } from 'dynamoose';
 import { MusicModelRepository } from '@music/music-model.repository';

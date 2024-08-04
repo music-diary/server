@@ -15,7 +15,7 @@ import { CommonDto } from '@common/dto/common.dto';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
-import { DiaryRepository } from '@diary/repository/diairy.repository';
+import { DiaryRepository } from '@diary/repository/diary.repository';
 
 @Injectable()
 export class MusicService {
