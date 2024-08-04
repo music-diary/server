@@ -34,7 +34,6 @@ import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
 import {
   GetStatisticsQuery,
   GetStatisticsResponseDto,
-  StatisticsType,
 } from './dto/statistics.dto';
 
 @ApiTags('Users')
