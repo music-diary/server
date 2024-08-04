@@ -30,6 +30,7 @@ import { MusicModelRepository } from '@music/music-model.repository';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { AIService } from '@service/ai/ai.service';
 import { MusicModelDto } from '@music/dto/musics.dto';
+import { MusicPreModelRepository } from '@music/music-pre-model.repository';
 
 @Injectable()
 export class DiaryService {
@@ -41,6 +42,7 @@ export class DiaryService {
     private readonly diaryTopicsRepository: DiaryTopicsRepository,
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
     private readonly musicModelRepository: MusicModelRepository,
+    private readonly musicPreModelRepository: MusicPreModelRepository,
     private readonly prismaService: PrismaService,
     private readonly aiService: AIService,
     private readonly logService: LogService,
@@ -232,7 +234,7 @@ export class DiaryService {
   ): Promise<RecommendMusicResponseDto> {
     let musicCandidates: Partial<MusicModelDto>[];
     await this.prismaService.$transaction(
-      async (tx) => {
+      async (tx: Prisma.TransactionClient) => {
         const diary = await tx.diaries.update({
           where: { id, userId },
           data: { status: DiariesStatus.PENDING },
@@ -241,6 +243,16 @@ export class DiaryService {
             userId: true,
             content: true,
             templates: { select: { templateContents: true } },
+            emotions: {
+              select: { emotions: { select: { id: true, aiScale: true } } },
+            },
+            user: {
+              select: {
+                id: true,
+                isGenreSuggested: true,
+                genre: { select: { label: true } },
+              },
+            },
           },
         });
         if (!diary) {
@@ -257,6 +269,13 @@ export class DiaryService {
                       templateContent.content,
                   )
                   .join(' '),
+
+          // FIXME: Schema 전달 나오면 수정
+          // is_genre_suggested: diary.user.isGenreSuggested,
+          // selected_genres: diary.user.genre, // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
+          // selected_feeling: diary.emotions.map(
+          //   (emotion) => emotion.emotions.aiScale,
+          // ), // # 1: 매우좋음, 2: 좋음, 3: 보통, 4:나쁨, 5:매우나쁨
         };
 
         const musicRecommendResult =
@@ -268,10 +287,13 @@ export class DiaryService {
         musicCandidates = await Promise.all(
           resultSongIds.map(async (songId) => {
             const condition = new Condition().filter('songId').contains(songId);
-            const musicModels =
-              await this.musicModelRepository.findBySongId(condition);
+            const [musicModels, musicPreModels] = await Promise.all([
+              await this.musicModelRepository.findBySongId(condition),
+              await this.musicPreModelRepository.findBySongId(condition),
+            ]);
 
             const musicModel = musicModels[0];
+            const musicPreModel = musicPreModels[0];
             const music = {
               songId: musicModel.songId,
               title: musicModel.title,
@@ -279,9 +301,7 @@ export class DiaryService {
               artist: musicModel.artist,
               lyric: musicModel.lyric,
               originalGenre: musicModel.genre,
-              youtubeUrl:
-                musicModel.youtubeUrl ??
-                'https://www.youtube.com/watch?v=VXGBogP6I2I', // FIXME: FIX youtubeUrl
+              youtubeUrl: musicPreModel.yt_url ?? null,
               editorPick: musicModel.editor_name ?? null,
               diaryId: diary.id,
               userId,

@@ -1,6 +1,6 @@
 import { Schema } from 'dynamoose';
 
-export const MusicSchema = new Schema({
+export const MusicPreprocessSchema = new Schema({
   songId: {
     type: String,
     required: true,
@@ -36,11 +36,16 @@ export const MusicSchema = new Schema({
   editor_pick: {
     type: String,
     required: false,
-    index: {
-      name: 'editor_pick-index',
-    },
   },
   editor_name: {
+    type: String,
+    required: false,
+  },
+  videoId: {
+    type: String,
+    required: false,
+  },
+  yt_url: {
     type: String,
     required: false,
   },

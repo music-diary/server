@@ -16,6 +16,8 @@ import { PrismaService } from '@database/prisma/prisma.service';
 import { MusicModelRepository } from '@music/music-model.repository';
 import { MusicRepository } from '@music/music.repository';
 import { AIService } from '@service/ai/ai.service';
+import { MusicPreprocessSchema } from '@music/schema/music-preprocess.schema';
+import { MusicPreModelRepository } from '@music/music-pre-model.repository';
 
 @Module({
   imports: [
@@ -25,6 +27,13 @@ import { AIService } from '@service/ai/ai.service';
         schema: MusicSchema,
         options: {
           tableName: 'musicdiary_table',
+        },
+      },
+      {
+        name: 'MusicPreprocess',
+        schema: MusicPreprocessSchema,
+        options: {
+          tableName: 'musicdiary_preprocess',
         },
       },
     ]),
@@ -42,6 +51,7 @@ import { AIService } from '@service/ai/ai.service';
     DiaryEmotionsRepository,
     DiaryTopicsRepository,
     MusicModelRepository,
+    MusicPreModelRepository,
     MusicRepository,
     AIService,
   ],
