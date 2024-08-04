@@ -12,7 +12,7 @@ import { LogService } from 'src/common/log.service';
 import { PrismaService } from 'src/database/prisma.service';
 import { RedisRepository } from 'src/database/redis.repository';
 import { SimpleNotificationService } from 'src/simple-notification/simple-notification.service';
-import { UsersRepository } from 'src/users/users.repository';
+import { UserRepository } from 'src/users/user.repository';
 import { generateSignUpCode } from 'src/util/code-generator';
 import {
   LoginBody,
@@ -34,13 +34,13 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly prismaService: PrismaService,
-    private readonly usersRepository: UsersRepository,
+    private readonly userRepository: UserRepository,
   ) {}
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
     const { phoneNumber } = body;
 
-    const existedUser = await this.usersRepository.findOne({
+    const existedUser = await this.userRepository.findOne({
       where: { phoneNumber, status: UserStatus.ACTIVE },
     });
     const { key, code } = generateSignUpCode(phoneNumber);
@@ -72,7 +72,7 @@ export class AuthService {
       throw new BadRequestException('The code is incorrect.');
     }
     if (isVerified) {
-      const existedUser = await this.usersRepository.findOne({
+      const existedUser = await this.userRepository.findOne({
         where: { phoneNumber, status: UserStatus.ACTIVE },
       });
       const { accessToken } = await this.createAccessToken(existedUser.id);
@@ -160,13 +160,13 @@ export class AuthService {
         },
       },
     };
-    return await this.usersRepository.create(createUserQuery);
+    return await this.userRepository.create(createUserQuery);
   }
 
   // NOTE: This is a temporary implementation for the test.
   async login(body: LoginBody) {
     const { id } = body;
-    const existedUser = await this.usersRepository.findUniqueOne({
+    const existedUser = await this.userRepository.findUniqueOne({
       where: { id },
     });
     if (!existedUser) {

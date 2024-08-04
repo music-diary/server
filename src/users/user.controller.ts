@@ -25,7 +25,7 @@ import { RolesGuard } from 'src/guards/role.guard';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
 import { UserPayload } from './dto/user.dto';
-import { UsersService } from './users.service';
+import { UserService } from './user.service';
 import {
   WithdrawalReasonsResponseDto,
   WithdrawUserBodyDto,
@@ -38,15 +38,15 @@ import {
 
 @ApiTags('Users')
 @Controller('users')
-export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+export class UserController {
+  constructor(private readonly userService: UserService) {}
 
   @ApiOperation({ summary: 'Get current user' })
   @ApiBearerAuth()
   @UseGuards(AuthGuard)
   @Get('me')
   getSelf(@User() user: UserPayload): Promise<FindUserResponseDto> {
-    return this.usersService.getMe(user.id);
+    return this.userService.getMe(user.id);
   }
 
   @ApiOperation({ summary: 'Update user info' })
@@ -59,25 +59,25 @@ export class UsersController {
     @User() user: UserPayload,
     @Body() body: UpdateUserBodyDto,
   ): Promise<CommonDto> {
-    return this.usersService.update(user.id, id, body);
+    return this.userService.update(user.id, id, body);
   }
 
   @ApiOperation({ summary: '[Dev] Delete user' })
   @Delete(':id')
   delete(@Param('id') id: string): Promise<CommonDto> {
-    return this.usersService.delete(id);
+    return this.userService.delete(id);
   }
 
   @ApiOperation({ summary: 'Get Withdraw Reasons' })
   @Get('withdrawal')
   findWithdrawReasons(): Promise<WithdrawalReasonsResponseDto> {
-    return this.usersService.findWithdrawReasons();
+    return this.userService.findWithdrawReasons();
   }
 
   @ApiOperation({ summary: 'find contact types' })
   @Get('contact')
   findContactTypes(): Promise<ContactResponseDto> {
-    return this.usersService.findContactTypes();
+    return this.userService.findContactTypes();
   }
 
   @ApiOperation({ summary: 'send contact' })
@@ -88,7 +88,7 @@ export class UsersController {
     @User() user: UserPayload,
     @Body() body: SendContactBodyDto,
   ): Promise<CommonDto> {
-    return this.usersService.sendContact(user.id, body);
+    return this.userService.sendContact(user.id, body);
   }
 
   @ApiOperation({ summary: 'Withdraw user' })
@@ -101,7 +101,7 @@ export class UsersController {
     @User() user: UserPayload,
     @Body() body: WithdrawUserBodyDto,
   ): Promise<CommonDto> {
-    return this.usersService.withdraw(user.id, id, body);
+    return this.userService.withdraw(user.id, id, body);
   }
 
   @ApiOperation({ summary: 'Get statistics in my page' })
@@ -120,7 +120,7 @@ export class UsersController {
     @Query() query: GetStatisticsQuery,
     @User() user: UserPayload,
   ): Promise<GetStatisticsResponseDto> {
-    return this.usersService.getStatistics(user.id, query);
+    return this.userService.getStatistics(user.id, query);
   }
 
   @ApiOperation({ summary: '[ADMIN] get all users' })
@@ -129,7 +129,7 @@ export class UsersController {
   @Roles([Role.ADMIN])
   @Get()
   findAll(): Promise<FindAllUsersResponseDto> {
-    return this.usersService.findAll();
+    return this.userService.findAll();
   }
 
   @ApiOperation({ summary: '[ADMIN] get user by id' })
@@ -138,6 +138,6 @@ export class UsersController {
   @Roles([Role.ADMIN])
   @Get(':id')
   findOne(@Param('id') id: string): Promise<FindUserResponseDto> {
-    return this.usersService.findOne(id);
+    return this.userService.findOne(id);
   }
 }

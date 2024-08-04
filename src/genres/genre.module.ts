@@ -9,4 +9,4 @@ import { GenreService } from './genre.service';
   controllers: [GenreController],
   providers: [GenreService, LogService, PrismaService, GenreRepository],
 })
-export class GenresModule {}
+export class GenreModule {}

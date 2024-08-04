@@ -33,4 +33,4 @@ import { EmotionsRepository } from 'src/diaries/repository/emotion.repository';
     JwtService,
   ],
 })
-export class MusicsModule {}
+export class MusicModule {}

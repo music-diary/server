@@ -47,4 +47,4 @@ import { DatabaseModule } from 'src/database/database.module';
   ],
   controllers: [DiaryController],
 })
-export class DiariesModule {}
+export class DiaryModule {}

@@ -5,24 +5,24 @@ import { AuthModule } from './auth/auth.module';
 import { LogService } from './common/log.service';
 import { validationSchema } from './config/validation-schema';
 import { PrismaService } from './database/prisma.service';
-import { DiariesModule } from './diaries/diary.module';
-import { GenresModule } from './genres/genre.module';
-import { UsersModule } from './users/users.module';
-import { MusicsModule } from './musics/musics.module';
+import { DiaryModule } from './diaries/diary.module';
+import { GenreModule } from './genres/genre.module';
+import { UserModule } from './users/user.module';
+import { MusicModule } from './musics/music.module';
 import { DatabaseModule } from './database/database.module';
 
 @Module({
   imports: [
     AuthModule,
-    UsersModule,
+    UserModule,
     ConfigModule.forRoot({
       validationSchema,
       isGlobal: true,
       envFilePath: ['.env'],
     }),
-    GenresModule,
-    DiariesModule,
-    MusicsModule,
+    GenreModule,
+    DiaryModule,
+    MusicModule,
     DatabaseModule,
   ],
   controllers: [AppController],

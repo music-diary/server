@@ -9,7 +9,7 @@ import { CommonDto } from 'src/common/common.dto';
 import { LogService } from 'src/common/log.service';
 import { FindAllUsersResponseDto, FindUserResponseDto } from './dto/find.dto';
 import { UpdateUserBodyDto } from './dto/update.dto';
-import { UsersRepository } from './users.repository';
+import { UserRepository } from './user.repository';
 import { GenreRepository } from 'src/genres/genre.repository';
 import {
   WithdrawalReasonsResponseDto,
@@ -31,10 +31,10 @@ import { MusicsDto } from 'src/musics/dto/musics.dto';
 import { PrismaService } from 'src/database/prisma.service';
 
 @Injectable()
-export class UsersService {
+export class UserService {
   constructor(
     private readonly logService: LogService,
-    private readonly usersRepository: UsersRepository,
+    private readonly userRepository: UserRepository,
     private readonly genreRepository: GenreRepository,
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
     private readonly contactRepository: ContactRepository,
@@ -49,13 +49,13 @@ export class UsersService {
         id,
       },
     };
-    const user = await this.usersRepository.findUniqueOne(query);
+    const user = await this.userRepository.findUniqueOne(query);
     if (!user) {
       throw new NotFoundException('User not found');
     }
     this.logService.verbose(
       `Find user by id - ${user.id} ${user.name}`,
-      UsersService.name,
+      UserService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -71,11 +71,11 @@ export class UsersService {
         genre: true,
       },
     };
-    const user = await this.usersRepository.findUniqueOne(query);
+    const user = await this.userRepository.findUniqueOne(query);
     if (!user) {
       throw new NotFoundException('User not found');
     }
-    this.logService.verbose(`Get current user - ${userId}`, UsersService.name);
+    this.logService.verbose(`Get current user - ${userId}`, UserService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Get current user',
@@ -85,12 +85,12 @@ export class UsersService {
 
   async delete(id: string): Promise<CommonDto> {
     const query = { where: { id } };
-    const existedUser: Users = await this.usersRepository.findUniqueOne(query);
+    const existedUser: Users = await this.userRepository.findUniqueOne(query);
     if (!existedUser) {
       throw new NotFoundException('User not found');
     }
-    await this.usersRepository.delete(query);
-    this.logService.verbose(`Delete user by id - ${id}`, UsersService.name);
+    await this.userRepository.delete(query);
+    this.logService.verbose(`Delete user by id - ${id}`, UserService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'User deleted',
@@ -104,7 +104,7 @@ export class UsersService {
   ): Promise<CommonDto> {
     this.checkPermission(id, targetId);
 
-    const existUser = await this.usersRepository.findUniqueOne({
+    const existUser = await this.userRepository.findUniqueOne({
       where: { id: targetId },
     });
     if (!existUser) {
@@ -137,9 +137,9 @@ export class UsersService {
       where: { id: targetId },
       data: { ...updateData },
     };
-    await this.usersRepository.update(updateUserQuery);
+    await this.userRepository.update(updateUserQuery);
 
-    this.logService.verbose(`Update user - ${id}`, UsersService.name);
+    this.logService.verbose(`Update user - ${id}`, UserService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'User updated',
@@ -147,8 +147,8 @@ export class UsersService {
   }
 
   async findAll(): Promise<FindAllUsersResponseDto> {
-    this.logService.verbose(`Get all users`, UsersService.name);
-    const users = await this.usersRepository.findAll();
+    this.logService.verbose(`Get all users`, UserService.name);
+    const users = await this.userRepository.findAll();
     return {
       statusCode: HttpStatus.OK,
       message: 'Users find all',
@@ -170,7 +170,7 @@ export class UsersService {
     }
     this.logService.verbose(
       `Get statistics user - ${userId}`,
-      UsersService.name,
+      UserService.name,
     );
     return {
       statusCode: HttpStatus.OK,
@@ -186,7 +186,7 @@ export class UsersService {
   ): Promise<CommonDto> {
     this.checkPermission(id, targetId);
 
-    const existUser = await this.usersRepository.findUniqueOne({
+    const existUser = await this.userRepository.findUniqueOne({
       where: { id: targetId, status: UserStatus.ACTIVE },
     });
     if (!existUser) {
@@ -210,9 +210,9 @@ export class UsersService {
         data: { content: updateData.content },
       };
     }
-    await this.usersRepository.update(createWithdrawalQuery);
+    await this.userRepository.update(createWithdrawalQuery);
 
-    this.logService.verbose(`Withdraw user - ${id}`, UsersService.name);
+    this.logService.verbose(`Withdraw user - ${id}`, UserService.name);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'User withdraw',
@@ -221,7 +221,7 @@ export class UsersService {
 
   async findWithdrawReasons(): Promise<WithdrawalReasonsResponseDto> {
     const withdrawalReasons = await this.withdrawalReasonsRepository.findAll();
-    this.logService.verbose(`find Withdrawal Reasons`, UsersService.name);
+    this.logService.verbose(`find Withdrawal Reasons`, UserService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Find Withdrawal Reasons',
@@ -250,7 +250,7 @@ export class UsersService {
       data: contactHistory,
     });
 
-    this.logService.verbose(`Send contact message`, UsersService.name);
+    this.logService.verbose(`Send contact message`, UserService.name);
     return {
       statusCode: HttpStatus.CREATED,
       message: 'Send contact message',
@@ -259,7 +259,7 @@ export class UsersService {
 
   async findContactTypes(): Promise<ContactResponseDto> {
     const contactTypes = await this.contactRepository.findContactTypes();
-    this.logService.verbose(`find Contact Types`, UsersService.name);
+    this.logService.verbose(`find Contact Types`, UserService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Find Contact Types',
