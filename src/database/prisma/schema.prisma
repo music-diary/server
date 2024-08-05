@@ -100,7 +100,7 @@ model Emotions {
   rootId   String? @map("root_id") @db.Uuid
   level    Int     @default(0)
   order    Int     @default(0)
-  // aiScale  Int     @map("ai_scale")
+  aiScale  Int?    @map("ai_scale")
 
   children Emotions[]      @relation("EmotionToEmotion")
   parent   Emotions?       @relation("EmotionToEmotion", fields: [parentId], references: [id])
