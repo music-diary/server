@@ -72,7 +72,7 @@ export const templateContentsData: Prisma.TemplateContentsCreateInput[][] = [
     },
     {
       order: 2,
-      name: 'Stop',
+      name: 'Try',
       label: '시도해볼 것',
     },
   ],
