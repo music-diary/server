@@ -31,6 +31,7 @@ import { PrismaService } from '@database/prisma/prisma.service';
 import { AIService } from '@service/ai/ai.service';
 import { MusicModelDto } from '@music/dto/musics.dto';
 import { MusicPreModelRepository } from '@music/music-pre-model.repository';
+import { setKoreaTime } from '@common/util/date-time-converter';
 
 @Injectable()
 export class DiaryService {
@@ -272,10 +273,10 @@ export class DiaryService {
 
           // FIXME: Schema 전달 나오면 수정
           // is_genre_suggested: diary.user.isGenreSuggested,
-          // selected_genres: diary.user.genre, // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
-          // selected_feeling: diary.emotions.map(
-          //   (emotion) => emotion.emotions.aiScale,
-          // ), // # 1: 매우좋음, 2: 좋음, 3: 보통, 4:나쁨, 5:매우나쁨
+          selected_genres: diary.user.genre.map((g) => g.label), // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
+          selected_feeling: diary.emotions.map(
+            (emotion) => emotion.emotions.aiScale ?? 3,
+          )[0], // # 1: 매우좋음, 2: 좋음, 3: 보통, 4:나쁨, 5:매우나쁨 --> 추후 다중선택
         };
 
         const musicRecommendResult =
@@ -305,6 +306,8 @@ export class DiaryService {
               editorPick: musicModel.editor_name ?? null,
               diaryId: diary.id,
               userId,
+              createdAt: setKoreaTime(),
+              updatedAt: setKoreaTime(),
             };
             return await tx.musics.create({
               data: music,
@@ -328,8 +331,8 @@ export class DiaryService {
         });
       },
       {
-        maxWait: 10000,
-        timeout: 50000,
+        maxWait: 5000,
+        timeout: 10000,
       },
     );
 
