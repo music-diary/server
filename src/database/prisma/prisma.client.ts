@@ -85,11 +85,11 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
           const context = Prisma.getExtensionContext(this);
 
           return (context as any).createMany({
-            data: {
-              ...args?.data,
+            data: args?.data.map((data: any) => ({
+              ...data,
               createdAt: setKoreaTime(),
               updatedAt: setKoreaTime(),
-            },
+            })),
           });
         },
 
@@ -115,10 +115,10 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
 
           return (context as any).updateMany({
             where: { ...args?.where },
-            data: {
-              ...args?.data,
+            data: args?.data.map((data: any) => ({
+              ...data,
               updatedAt: setKoreaTime(),
-            },
+            })),
           });
         },
       },
