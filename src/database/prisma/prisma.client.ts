@@ -70,7 +70,6 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
           const context = Prisma.getExtensionContext(this);
 
           return (context as any).create({
-            where: { ...args?.where },
             data: {
               ...args?.data,
               createdAt: setKoreaTime(),
@@ -86,7 +85,6 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
           const context = Prisma.getExtensionContext(this);
 
           return (context as any).createMany({
-            where: { ...args?.where },
             data: {
               ...args?.data,
               createdAt: setKoreaTime(),
