@@ -30,7 +30,7 @@ export class AIService {
       };
       const result = await this.aws4Axios(config);
       this.logService.verbose(
-        `Successfully request recommendation musics`,
+        `Successfully request recommendation musics - ${JSON.stringify(data)}`,
         AIService.name,
       );
       return result.data;
