@@ -271,12 +271,14 @@ export class DiaryService {
                   )
                   .join(' '),
 
-          // FIXME: Schema 전달 나오면 수정
-          // is_genre_suggested: diary.user.isGenreSuggested,
           selected_genres: diary.user.genre.map((g) => g.label), // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
           selected_feeling: diary.emotions.map(
             (emotion) => emotion.emotions.aiScale ?? 3,
           )[0], // # 1: 매우좋음, 2: 좋음, 3: 보통, 4:나쁨, 5:매우나쁨 --> 추후 다중선택
+          selected_feeling_2: diary.emotions.map(
+            (emotion) => emotion.emotions.aiScale,
+          ) ?? [1, 2],
+          genre_yn: Number(diary.user.isGenreSuggested) === 0 ? 0 : 1, // #0: 비선호 장르 추천 받지 않음, 1: 비선호 장르 추천 받음
         };
 
         const musicRecommendResult =
@@ -302,8 +304,8 @@ export class DiaryService {
               artist: musicModel.artist,
               lyric: musicModel.lyric,
               originalGenre: musicModel.genre,
-              youtubeUrl: musicPreModel.yt_url ?? null,
-              editorPick: musicModel.editor_name ?? null,
+              youtubeUrl: musicPreModel?.yt_url ?? null,
+              editorPick: musicModel?.editor_name ?? null,
               diaryId: diary.id,
               userId,
               createdAt: setKoreaTime(),
