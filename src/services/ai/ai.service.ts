@@ -33,6 +33,7 @@ export class AIService {
         `Successfully request recommendation musics - ${JSON.stringify(data)}`,
         AIService.name,
       );
+      this.logService.verbose(result.data, AIService.name);
       return result.data;
     } catch (error) {
       this.logService.error(JSON.stringify(error), AIService.name);
