@@ -29,6 +29,7 @@ import { ContactResponseDto, SendContactBodyDto } from './dto/contact.dto';
 import { MusicsDto } from '@music/dto/musics.dto';
 import { GenresDto } from '@genre/dto/genres.dto';
 import { DiaryDto } from '@diary/dto/diaries.dto';
+import { RedisRepository } from '@database/redis.repository';
 
 @Injectable()
 export class UserService {
@@ -41,6 +42,7 @@ export class UserService {
     private readonly statisticRepository: StatisticRepository,
     private readonly prismaService: PrismaService,
     private readonly simpleEmailService: SimpleEmailService,
+    private readonly redisRepository: RedisRepository,
   ) {}
 
   async findOne(id: string): Promise<FindUserResponseDto> {
@@ -210,6 +212,8 @@ export class UserService {
         data: { content: updateData.content },
       };
     }
+    const key = `signUp:${existUser.phoneNumber}`;
+    await this.redisRepository.del(key);
     await this.userRepository.update(createWithdrawalQuery);
 
     this.logService.verbose(`Withdraw user - ${id}`, UserService.name);
