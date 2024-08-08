@@ -11,7 +11,7 @@ export class UserRepository {
   }
 
   async findAll(query?: Prisma.UsersFindManyArgs): Promise<Users[]> {
-    return await this.prismaService.users.findMany(query);
+    return await this.prismaService.client.users.findManyAvailable(query);
   }
 
   async findOne(query: Prisma.UsersFindFirstArgs): Promise<Users> {
@@ -19,11 +19,15 @@ export class UserRepository {
   }
 
   async findUniqueOne(query: Prisma.UsersFindUniqueArgs): Promise<Users> {
-    return await this.prismaService.users.findUnique(query);
+    return await this.prismaService.client.users.findUniqueAvailable(query);
   }
 
   async delete(query: Prisma.UsersDeleteArgs): Promise<Users> {
     return await this.prismaService.users.delete(query);
+  }
+
+  async softDelete(query: Prisma.UsersWhereUniqueInput): Promise<Users> {
+    return await this.prismaService.client.users.softDelete(query);
   }
 
   async update(query: Prisma.UsersUpdateArgs): Promise<Users> {
