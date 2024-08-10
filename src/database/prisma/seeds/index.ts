@@ -7,12 +7,21 @@ import {
 import { genresData } from './genres.seed';
 import { templateContentsData, templatesData } from './templates.seed';
 import { topicsData } from './topics.seed';
-import { userData } from './users.seed';
+import { adminUserData, userData } from './users.seed';
 import { musicsData } from './musics.seed';
 import { withdrawalData } from './withdrawal.seed';
 import { contactTypesData } from './contact.seed';
+import { parseArgs } from 'node:util';
+import { demo } from './demo.seed';
 
 const prisma = new PrismaClient();
+
+const options = {
+  environment: { type: 'string' as const, default: 'seed' },
+};
+const {
+  values: { environment },
+} = parseArgs({ options });
 
 async function main() {
   console.log(`Start seeding ...`);
@@ -105,7 +114,10 @@ async function main() {
 
   // seed users
   console.info(`Seeding users...`);
-  const user = await prisma.users.create({ data: userData });
+  const createdUsers = await prisma.users.createManyAndReturn({
+    data: [userData, adminUserData],
+  });
+  const user = createdUsers[0];
   const dance = await prisma.genres.findFirst({
     where: { name: 'dance' },
   });
@@ -115,11 +127,7 @@ async function main() {
   const selectedGenres = [dance, indie];
   await prisma.users.update({
     where: { id: user.id },
-    data: {
-      genre: {
-        connect: selectedGenres,
-      },
-    },
+    data: { genre: { connect: selectedGenres } },
   });
   console.info(`Completed seeding users...`);
 
@@ -288,12 +296,29 @@ async function main() {
   console.log(`Seeding finished.`);
 }
 
-main()
-  .then(async () => {
-    await prisma.$disconnect();
-  })
-  .catch(async (e) => {
-    console.error(e);
-    await prisma.$disconnect();
-    process.exit(1);
-  });
+switch (environment) {
+  case 'seed':
+    main()
+      .then(async () => {
+        await prisma.$disconnect();
+      })
+      .catch(async (e) => {
+        console.error(e);
+        await prisma.$disconnect();
+        process.exit(1);
+      });
+    break;
+  case 'demo':
+    demo()
+      .then(async () => {
+        await prisma.$disconnect();
+      })
+      .catch(async (e) => {
+        console.error(e);
+        await prisma.$disconnect();
+        process.exit(1);
+      });
+    break;
+  default:
+    break;
+}
