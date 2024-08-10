@@ -37,11 +37,9 @@ export class MusicService {
   ): Promise<FindAllMusicsArchiveResponse> {
     const data = {};
     const startDate = new Date(startAt).toISOString();
-    const endDate = new Date(
-      new Date(endAt).setDate(new Date(endAt).getDate() + 1),
-    ).toISOString();
+    const endDate = new Date(endAt).toISOString();
     const findQuery: Prisma.MusicsFindManyArgs = {
-      where: { userId, createdAt: { gte: startDate, lt: endDate } },
+      where: { userId, createdAt: { gte: startDate, lte: endDate } },
       include: {
         diary: {
           where: { userId, status: DiariesStatus.DONE },
@@ -201,13 +199,12 @@ export class MusicService {
     const statistics = await Promise.all(
       uniqueMonths.map(async (month) => {
         const startDate = new Date(`${month}-01`);
-        const endDate = new Date(startDate);
-        endDate.setMonth(endDate.getMonth() + 1);
+        const endDate = new Date(startDate).toISOString();
 
         const latestMusic = await this.musicRepository.findOne({
           where: {
             userId,
-            createdAt: { gte: startDate, lt: endDate },
+            createdAt: { gte: startDate, lte: endDate },
           },
           orderBy: { createdAt: 'desc' },
           select: {
@@ -220,7 +217,7 @@ export class MusicService {
         });
 
         const musicCount = await this.prismaService.musics.count({
-          where: { userId, createdAt: { gte: startDate, lt: endDate } },
+          where: { userId, createdAt: { gte: startDate, lte: endDate } },
         });
 
         const emotions = await this.prismaService.diaryEmotions.groupBy({
@@ -229,7 +226,7 @@ export class MusicService {
             userId,
             createdAt: {
               gte: startDate,
-              lt: endDate,
+              lte: endDate,
             },
           },
           _count: {
@@ -279,7 +276,7 @@ export class MusicService {
     return await this.prismaService.diaries.count({
       where: {
         userId,
-        createdAt: { gte: startDate, lt: endDate },
+        createdAt: { gte: startDate, lte: endDate },
         status: DiariesStatus.DONE,
       },
     });
@@ -296,7 +293,7 @@ export class MusicService {
         userId,
         createdAt: {
           gte: startDate,
-          lt: endDate,
+          lte: endDate,
         },
       },
       _count: {

@@ -107,12 +107,12 @@ export class DiaryService {
         userId,
         status: DiariesStatus.DONE,
         ...(startAt && { createdAt: { gte: new Date(startAt).toISOString() } }),
-        ...(endAt && { createdAt: { lte: this.getEndDate(endAt) } }),
+        ...(endAt && { createdAt: { lte: new Date(endAt).toISOString() } }),
         ...(startAt &&
           endAt && {
             createdAt: {
               gte: new Date(startAt).toISOString(),
-              lte: this.getEndDate(endAt),
+              lte: new Date(endAt).toISOString(),
             },
           }),
       },
