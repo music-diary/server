@@ -324,7 +324,6 @@ export class UserService {
       where: {
         userId,
         createdAt: { gte: startDate, lt: endDate },
-        // diary: { status: DiariesStatus.DONE },
       },
     };
     const whereDiaryQuery = {
