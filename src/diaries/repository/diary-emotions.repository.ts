@@ -32,7 +32,9 @@ export class DiaryEmotionsRepository {
   async createMany(
     query?: Prisma.DiaryEmotionsCreateManyArgs,
   ): Promise<{ count: number }> {
-    return await this.prismaService.diaryEmotions.createMany(query);
+    return await this.prismaService.client.diaryEmotions.createManyAtKoreaTime(
+      query,
+    );
   }
 
   async update(query: Prisma.DiaryEmotionsUpdateArgs): Promise<DiaryEmotions> {

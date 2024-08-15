@@ -53,16 +53,6 @@ export class MusicService {
         },
       },
     };
-    if (startAt) {
-      findQuery.where.createdAt = {
-        gte: startDate,
-      };
-    }
-    if (endAt) {
-      findQuery.where.createdAt = {
-        lte: endDate,
-      };
-    }
     const musics = await this.musicRepository.findMany(findQuery);
     data['musics'] = musics;
 
