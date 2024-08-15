@@ -354,7 +354,6 @@ export class DiaryService {
     await this.checkPermission(userId, id);
     const existed = await this.diariesRepository.findUniqueOne({
       where: { id },
-      // include: { emotions: true, topics: true },
     });
     if (!existed) {
       throw new NotFoundException('Diary not found');
@@ -443,15 +442,13 @@ export class DiaryService {
       updateDiaryDataQuery.musics = {
         update: {
           where: { id: musicId },
-          data: { ...restMusic },
+          data: { ...restMusic, updatedAt: setKoreaTime() },
         },
       };
     }
     const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
       where: { id },
-      data: {
-        ...updateDiaryDataQuery,
-      },
+      data: { ...updateDiaryDataQuery },
     };
     const result = await this.diariesRepository.update(updateDiaryQuery);
 
