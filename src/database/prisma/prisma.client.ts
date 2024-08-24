@@ -14,6 +14,7 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
           return (context as any).update({
             where,
             data: {
+              updatedAt: setKoreaTime(),
               deletedAt: setKoreaTime(),
             },
           });
