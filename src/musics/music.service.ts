@@ -189,20 +189,22 @@ export class MusicService {
     const statistics = await Promise.all(
       uniqueMonths.map(async (month) => {
         const startDate = new Date(`${month}-01`);
-        const endDate = new Date(startDate).toISOString();
+        const endDate = new Date();
+        endDate.setMonth(endDate.getMonth() + 1);
 
         const latestMusic = await this.musicRepository.findOne({
           where: {
             userId,
-            createdAt: { gte: startDate, lte: endDate },
+            createdAt: { gte: startDate, lt: endDate },
           },
-          orderBy: { createdAt: 'desc' },
+          orderBy: { updatedAt: 'desc' },
           select: {
             id: true,
             songId: true,
             title: true,
             artist: true,
             albumUrl: true,
+            selected: true,
           },
         });
 
