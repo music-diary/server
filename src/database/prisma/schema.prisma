@@ -45,6 +45,7 @@ model Genres {
   order Int     @default(0)
   user  Users[] @relation("UserGenres")
 
+  @@unique([name])
   @@index([id, name, label])
   @@map("genres")
 }
@@ -106,6 +107,7 @@ model Emotions {
   parent   Emotions?       @relation("EmotionToEmotion", fields: [parentId], references: [id])
   diaries  DiaryEmotions[]
 
+  @@unique([name])
   @@index([id, parentId, rootId])
   @@map("emotions")
 }
@@ -135,6 +137,7 @@ model Topics {
   order   Int           @default(0)
   diaries DiaryTopics[]
 
+  @@unique([name])
   @@index([id])
   @@map("topics")
 }
@@ -232,6 +235,7 @@ model WithdrawalReasons {
 
   withdrawals Withdrawals[]
 
+  @@unique([name])
   @@index([id])
   @@map("withdraws_reasons")
 }
@@ -258,6 +262,7 @@ model ContactTypes {
   order          Int              @default(0)
   contactHistory ContactHistory[]
 
+  @@unique([name])
   @@index([id])
   @@map("contact_types")
 }
