@@ -126,7 +126,13 @@ export class DiaryService {
           },
           topics: { select: { topic: true } },
           musics: {
-            select: { songId: true, title: true, artist: true, albumUrl: true },
+            select: {
+              songId: true,
+              title: true,
+              artist: true,
+              albumUrl: true,
+              selected: true,
+            },
           },
         },
       }),
