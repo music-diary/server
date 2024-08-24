@@ -1,33 +1,18 @@
 import { DiariesStatus, PrismaClient } from '@prisma/client';
-import { tgUserData, ssUserData } from './users.seed';
+import { userData } from './users.seed';
+import { musicsData } from './musics.seed';
 
 const prisma = new PrismaClient();
 
 export async function demo() {
-  // seed users
-  const tgUser = await prisma.users.create({ data: tgUserData });
-  const ssUser = await prisma.users.create({ data: ssUserData });
-  const genres = await prisma.genres.findMany({
-    where: { OR: [{ name: 'pop' }, { name: 'fork' }] },
-  });
-
-  // link user with genres
-  await prisma.users.update({
-    where: { id: tgUser.id },
-    data: { genre: { connect: genres.map((genre) => ({ id: genre.id })) } },
-  });
-  await prisma.users.update({
-    where: { id: ssUser.id },
-    data: { genre: { connect: genres.map((genre) => ({ id: genre.id })) } },
-  });
-
-  // const positiveEmotions = await prisma.emotions.findMany({
-  //   where: { OR: [{ name: 'glad' }, { name: 'excited' }] },
-  // });
-  // const topic = await prisma.topics.findFirst({
-  //   where: { OR: [{ name: 'family' }] },
-  // });
-
+  // seed musics
+  console.info(`Seeding musics...`);
+  for (const musicData of musicsData) {
+    await prisma.musics.create({
+      data: musicData,
+    });
+  }
+  console.info(`Completed seeding musics...`);
   // create diary
   console.info(`Seeding diary...`);
   const selectedTopics = await prisma.topics.findMany({
@@ -44,12 +29,22 @@ export async function demo() {
   const selectedNegativeEmotions = await prisma.emotions.findMany({
     where: { OR: [{ name: 'tired' }, { name: 'uncomfortable' }] },
   });
-  const selectedMusics = await prisma.musics.findMany();
+  const selectedMusics = await prisma.musics.findMany({
+    where: {
+      id: {
+        in: [
+          'bce6d4bd-a10a-44a8-9d0a-2eca8703c57e',
+          'b63a1a98-eb43-44fc-9273-a43ed623492e',
+          '69947b75-0fa9-4f3c-a849-e6fe9cc8308e',
+        ],
+      },
+    },
+  });
 
   const positiveDiary = await prisma.diaries.create({
     data: {
       title: '오늘의 일기1',
-      userId: tgUser.id,
+      userId: userData.id,
       status: DiariesStatus.DONE,
       content: '내용',
       topics: {
@@ -57,7 +52,7 @@ export async function demo() {
           data: [
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
-              userId: tgUser.id,
+              userId: userData.id,
             })),
           ],
         },
@@ -68,20 +63,24 @@ export async function demo() {
             ...selectedPositiveEmotions.map((emotion) => ({
               emotionId: emotion.id,
               musicId: selectedMusics[0].id,
-              userId: tgUser.id,
+              userId: userData.id,
               createdAt: new Date('2024-06-30'),
+              updatedAt: new Date('2024-06-30'),
             })),
           ],
         },
       },
       createdAt: new Date('2024-06-30'),
+      updatedAt: new Date('2024-06-30'),
     },
   });
   await prisma.musics.update({
     data: {
-      userId: tgUser.id,
+      selected: true,
+      userId: userData.id,
       diaryId: positiveDiary.id,
       createdAt: new Date('2024-06-30'),
+      updatedAt: new Date('2024-06-30'),
     },
     where: {
       id: selectedMusics[0].id,
@@ -91,7 +90,7 @@ export async function demo() {
   const negativeDiary = await prisma.diaries.create({
     data: {
       title: '오늘의 일기2',
-      userId: tgUser.id,
+      userId: userData.id,
       status: DiariesStatus.DONE,
       content: '내용',
       topics: {
@@ -99,7 +98,7 @@ export async function demo() {
           data: [
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
-              userId: tgUser.id,
+              userId: userData.id,
             })),
           ],
         },
@@ -110,20 +109,24 @@ export async function demo() {
             ...selectedNegativeEmotions.map((emotion) => ({
               emotionId: emotion.id,
               musicId: selectedMusics[1].id,
-              userId: tgUser.id,
+              userId: userData.id,
               createdAt: new Date('2024-07-01'),
+              updatedAt: new Date('2024-07-01'),
             })),
           ],
         },
       },
       createdAt: new Date('2024-07-01'),
+      updatedAt: new Date('2024-07-01'),
     },
   });
   await prisma.musics.update({
     data: {
-      userId: tgUser.id,
+      selected: true,
+      userId: userData.id,
       diaryId: negativeDiary.id,
       createdAt: new Date('2024-07-01'),
+      updatedAt: new Date('2024-07-01'),
     },
     where: {
       id: selectedMusics[1].id,
@@ -133,7 +136,7 @@ export async function demo() {
   const normalDiary = await prisma.diaries.create({
     data: {
       title: '오늘의 일기3',
-      userId: tgUser.id,
+      userId: userData.id,
       status: DiariesStatus.DONE,
       content: '내용',
       topics: {
@@ -141,7 +144,7 @@ export async function demo() {
           data: [
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
-              userId: tgUser.id,
+              userId: userData.id,
             })),
           ],
         },
@@ -152,23 +155,28 @@ export async function demo() {
             ...selectedNormalEmotions.map((emotion) => ({
               emotionId: emotion.id,
               musicId: selectedMusics[2].id,
-              userId: tgUser.id,
+              userId: userData.id,
               createdAt: new Date('2024-07-15'),
+              updatedAt: new Date('2024-07-15'),
             })),
           ],
         },
       },
       createdAt: new Date('2024-07-15'),
+      updatedAt: new Date('2024-07-15'),
     },
   });
   await prisma.musics.update({
     data: {
-      userId: tgUser.id,
+      userId: userData.id,
       diaryId: normalDiary.id,
       createdAt: new Date('2024-07-15'),
+      updatedAt: new Date('2024-07-15'),
     },
     where: {
       id: selectedMusics[2].id,
     },
   });
+
+  console.info(`Completed seeding diary...`);
 }

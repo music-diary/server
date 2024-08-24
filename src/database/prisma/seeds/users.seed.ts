@@ -10,6 +10,7 @@ if (!tgPhone || !ssPhone) {
 }
 
 export const userData: Prisma.UsersCreateInput = {
+  id: '1ea6b340-a8a7-480c-b81a-b9a20a9e53f9',
   phoneNumber: '+821012345678',
   name: 'User1',
   birthDay: new Date('1999-01-01'),
@@ -28,27 +29,5 @@ export const adminUserData: Prisma.UsersCreateInput = {
   isGenreSuggested: false,
   isAgreedMarketing: false,
   role: Role.ADMIN,
-  status: UserStatus.ACTIVE,
-};
-
-export const tgUserData: Prisma.UsersCreateInput = {
-  phoneNumber: tgPhone,
-  name: '김태건01',
-  birthDay: new Date('1999-09-09'),
-  gender: Gender.MALE,
-  isGenreSuggested: true,
-  isAgreedMarketing: true,
-  role: Role.USER,
-  status: UserStatus.ACTIVE,
-};
-
-export const ssUserData: Prisma.UsersCreateInput = {
-  phoneNumber: ssPhone,
-  name: '이성수01',
-  birthDay: new Date('1998-08-08'),
-  gender: Gender.MALE,
-  isGenreSuggested: true,
-  isAgreedMarketing: false,
-  role: Role.USER,
   status: UserStatus.ACTIVE,
 };
