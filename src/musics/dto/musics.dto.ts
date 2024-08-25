@@ -76,6 +76,11 @@ export class MusicsDto implements Musics {
   @ApiProperty()
   @IsDate()
   updatedAt: Date;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsDate()
+  deletedAt: Date | null;
 }
 
 export class MusicModelDto implements MusicModel {
