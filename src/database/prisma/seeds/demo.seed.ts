@@ -53,6 +53,8 @@ export async function demo() {
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
               userId: userData.id,
+              createdAt: new Date('2024-06-30'),
+              updatedAt: new Date('2024-06-30'),
             })),
           ],
         },
@@ -99,6 +101,8 @@ export async function demo() {
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
               userId: userData.id,
+              createdAt: new Date('2024-07-01'),
+              updatedAt: new Date('2024-07-01'),
             })),
           ],
         },
@@ -145,6 +149,8 @@ export async function demo() {
             ...selectedTopics.map((topic) => ({
               topicId: topic.id,
               userId: userData.id,
+              createdAt: new Date('2024-07-15'),
+              updatedAt: new Date('2024-07-15'),
             })),
           ],
         },

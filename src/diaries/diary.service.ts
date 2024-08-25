@@ -32,6 +32,7 @@ import { AIService } from '@service/ai/ai.service';
 import { MusicModelDto } from '@music/dto/musics.dto';
 import { MusicPreModelRepository } from '@music/music-pre-model.repository';
 import { setKoreaTime } from '@common/util/date-time-converter';
+import { MusicRepository } from '@music/music.repository';
 
 @Injectable()
 export class DiaryService {
@@ -44,6 +45,7 @@ export class DiaryService {
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
     private readonly musicModelRepository: MusicModelRepository,
     private readonly musicPreModelRepository: MusicPreModelRepository,
+    private readonly musicsRepository: MusicRepository,
     private readonly prismaService: PrismaService,
     private readonly aiService: AIService,
     private readonly logService: LogService,
@@ -467,11 +469,20 @@ export class DiaryService {
   }
 
   async delete(id: string, userId: string): Promise<CommonDto> {
-    const deleteDiaryWhereParams = { id, userId };
-    const diary = await this.diariesRepository.softDelete(
-      deleteDiaryWhereParams,
+    await this.prismaService.$transaction(
+      async (tx: Prisma.TransactionClient) => {
+        await tx.diaries.update({
+          where: { id, userId },
+          data: { deletedAt: new Date() },
+        });
+        await tx.musics.updateMany({
+          where: { diaryId: id },
+          data: { deletedAt: new Date() },
+        });
+      },
     );
-    this.logService.verbose(`Delete diary by ${diary.id}`, DiaryService.name);
+
+    this.logService.verbose(`Delete diary by ${id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Delete diary',

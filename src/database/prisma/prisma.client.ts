@@ -19,6 +19,20 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
             },
           });
         },
+        async softDeleteMany<M, A>(
+          this: M,
+          where: Prisma.Args<M, 'updateMany'>['where'],
+        ): Promise<Prisma.Result<M, A, 'updateMany'>> {
+          const context = Prisma.getExtensionContext(this);
+
+          return (context as any).updateMany({
+            where,
+            data: {
+              updatedAt: setKoreaTime(),
+              deletedAt: setKoreaTime(),
+            },
+          });
+        },
         async findManyAvailable<M, A>(
           this: M,
           args?: Prisma.Args<M, 'findMany'>,

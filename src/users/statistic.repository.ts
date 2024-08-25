@@ -18,7 +18,7 @@ export class StatisticRepository {
   async findMusicsStatistic(
     query?: Prisma.MusicsFindManyArgs,
   ): Promise<MusicsDto[]> {
-    return await this.prismaService.musics.findMany(query);
+    return await this.prismaService.client.musics.findManyAvailable(query);
   }
 
   async findGenres(query?: Prisma.GenresFindManyArgs): Promise<GenresDto[]> {
@@ -53,7 +53,10 @@ export class StatisticRepository {
 
   async getEmotionStatistic(query: any): Promise<any> {
     const emotionsWithRoot = await this.prismaService.diaryEmotions.findMany({
-      where: { ...query, diary: { status: DiariesStatus.DONE } },
+      where: {
+        ...query,
+        diary: { status: DiariesStatus.DONE, deletedAt: null },
+      },
       select: {
         emotions: {
           select: {
