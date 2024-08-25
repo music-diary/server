@@ -39,10 +39,14 @@ export class MusicService {
     const startDate = new Date(startAt).toISOString();
     const endDate = new Date(endAt).toISOString();
     const findQuery: Prisma.MusicsFindManyArgs = {
-      where: { userId, createdAt: { gte: startDate, lte: endDate } },
+      where: {
+        userId,
+        createdAt: { gte: startDate, lte: endDate },
+        deletedAt: null,
+      },
       include: {
         diary: {
-          where: { userId, status: DiariesStatus.DONE },
+          where: { userId, status: DiariesStatus.DONE, deletedAt: null },
           select: {
             emotions: {
               select: {
@@ -177,7 +181,7 @@ export class MusicService {
 
   private async getMusicSummaryByMonth(userId: string) {
     const months = await this.prismaService.musics.findMany({
-      where: { userId },
+      where: { userId, deletedAt: null },
       select: { createdAt: true },
     });
     const uniqueMonths = Array.from(
@@ -269,6 +273,7 @@ export class MusicService {
       where: {
         userId,
         createdAt: { gte: startDate, lte: endDate },
+        deletedAt: null,
         status: DiariesStatus.DONE,
       },
     });
