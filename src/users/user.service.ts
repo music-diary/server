@@ -306,7 +306,7 @@ export class UserService {
     // ).getDate();
     // const diaryCountRatio = ((diaryCount / daysInMonth) * 100).toFixed(0);
     const emotions = await this.statisticRepository.getEmotionStatistic({
-      diary: { deletedAt: null },
+      diary: { status: DiariesStatus.DONE, deletedAt: null },
       ...whereQuery.where,
     });
 
@@ -318,7 +318,7 @@ export class UserService {
     const genreCounts = this.getGenreCount(genres, musics);
 
     const topics = await this.statisticRepository.findTopicsStatistic({
-      diary: { deletedAt: null },
+      diary: { status: DiariesStatus.DONE, deletedAt: null },
       ...whereQuery.where,
     });
     return { date, diaryCount, emotions, genreCounts, topics };
@@ -363,7 +363,7 @@ export class UserService {
     // ).getDate();
     // const diaryCountRatio = ((diaryCount / daysInMonth) * 100).toFixed(0);
     const emotions = await this.statisticRepository.getEmotionStatistic({
-      diary: { deletedAt: null },
+      diary: { status: DiariesStatus.DONE, deletedAt: null },
       ...whereQuery.where,
     });
 
@@ -375,7 +375,7 @@ export class UserService {
     const genreCounts = this.getGenreCount(genres, musics);
 
     const topics = await this.statisticRepository.findTopicsStatistic({
-      diary: { deletedAt: null },
+      diary: { status: DiariesStatus.DONE, deletedAt: null },
       ...whereQuery.where,
     });
     return { year, diaries, emotions, genreCounts, topics };
@@ -428,6 +428,7 @@ export class UserService {
                 lt: new Date(startDate.getFullYear() + 1, 0, 1),
               },
               status: DiariesStatus.DONE,
+              deletedAt: null,
             },
           });
 
@@ -455,6 +456,7 @@ export class UserService {
                       1,
                     ),
                   },
+                  deletedAt: null,
                 },
               });
 

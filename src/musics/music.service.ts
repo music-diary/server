@@ -71,7 +71,7 @@ export class MusicService {
     );
     return {
       statusCode: HttpStatus.OK,
-      message: 'Get all diaries archives',
+      message: 'Get all musics archives',
       data,
     };
   }
@@ -291,6 +291,10 @@ export class MusicService {
         createdAt: {
           gte: startDate,
           lte: endDate,
+        },
+        diary: {
+          status: DiariesStatus.DONE,
+          deletedAt: null,
         },
       },
       _count: {
