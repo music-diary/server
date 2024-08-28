@@ -295,9 +295,13 @@ export class DiaryService {
         const resultSongIds = Object.values(musicRecommendResult.songId).map(
           (songId) => songId.toString(),
         );
+        await this.musicsRepository.deleteMany({
+          where: { diaryId: diary.id },
+        });
         musicCandidates = await Promise.all(
           resultSongIds.map(async (songId) => {
             const condition = new Condition().filter('songId').contains(songId);
+            // TODO: 음악 추천 DB 바뀌면 수정 필요
             const [musicModels, musicPreModels] = await Promise.all([
               await this.musicModelRepository.findBySongId(condition),
               await this.musicPreModelRepository.findBySongId(condition),
@@ -372,6 +376,7 @@ export class DiaryService {
       title,
       content,
     };
+    // TODO: 이미 status : DONE 인 경우 수정 못하게 처리
     if ('templates' in body && typeof body.templates === 'object') {
       const createTemplateDataQuery: Prisma.TemplatesCreateArgs = {
         data: {

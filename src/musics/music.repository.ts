@@ -37,6 +37,12 @@ export class MusicRepository {
     return await this.prismaService.musics.delete(query);
   }
 
+  async deleteMany(
+    query?: Prisma.MusicsDeleteManyArgs,
+  ): Promise<{ count: number }> {
+    return await this.prismaService.musics.deleteMany(query);
+  }
+
   async softDelete(query?: Prisma.MusicsWhereUniqueInput): Promise<Musics> {
     return await this.prismaService.client.musics.softDelete(query);
   }
