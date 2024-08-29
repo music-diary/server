@@ -309,7 +309,7 @@ export class DiaryService {
               title: musicModel.title,
               albumUrl: musicModel.albumUrl,
               artist: musicModel.artist,
-              lyric: musicModel.lyric,
+              lyric: musicModel.lyric.replaceAll('\\n', '\n'),
               originalGenre: musicModel.genre.replaceAll('"', ''),
               youtubeUrl: musicModel.yt_url,
               editorPick:
