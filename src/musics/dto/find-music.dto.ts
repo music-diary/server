@@ -1,6 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { CommonDto } from '@common/dto/common.dto';
-import { MusicModelDto, MusicsDto } from './musics.dto';
+import { MusicAiModelDto, MusicsDto } from './musics.dto';
 
 export class FindAllMusicsResponse extends CommonDto {
   @ApiProperty({ type: MusicsDto, isArray: true })
@@ -23,8 +23,8 @@ export class FindMusicsResponse extends CommonDto {
 }
 
 export class FindMusicsModelResponse extends CommonDto {
-  @ApiProperty({ type: MusicModelDto, isArray: true })
-  musics: MusicModelDto[];
+  @ApiProperty({ type: MusicAiModelDto, isArray: true })
+  musics: MusicAiModelDto[];
 }
 
 export class FindMusicsArchiveSummaryResponse extends CommonDto {

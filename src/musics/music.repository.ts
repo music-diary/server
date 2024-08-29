@@ -1,7 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Musics, Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma/prisma.service';
-import { GetBatchResult } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class MusicRepository {

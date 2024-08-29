@@ -7,7 +7,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { MusicModel } from '../schema/music.type';
+import { MusicAiModel } from '@music/schema/music-ai.type';
 
 export class MusicsDto implements Musics {
   @ApiProperty()
@@ -83,7 +83,7 @@ export class MusicsDto implements Musics {
   deletedAt: Date | null;
 }
 
-export class MusicModelDto implements MusicModel {
+export class MusicAiModelDto implements MusicAiModel {
   @ApiProperty()
   @IsString()
   songId: string;
@@ -93,14 +93,20 @@ export class MusicModelDto implements MusicModel {
   title: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  artist?: string | null;
+  artist: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  albumUrl?: string | null;
+  editor_name: string;
+
+  @ApiProperty()
+  @IsString()
+  editor_pick: string;
+
+  @ApiProperty()
+  @IsString()
+  albumUrl: string;
 
   @ApiProperty()
   @IsString()
@@ -111,17 +117,14 @@ export class MusicModelDto implements MusicModel {
   genre: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  lyric?: string | null;
+  lyric: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  youtubeUrl?: string;
+  videoId: string;
 
   @ApiProperty()
-  @IsOptional()
   @IsString()
-  editor?: string;
+  yt_url: string;
 }

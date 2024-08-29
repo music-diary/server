@@ -26,13 +26,12 @@ import { DiaryTopicsRepository } from './repository/diary-topics.repository';
 import { DiaryEmotionsRepository } from './repository/diary-emotions.repository';
 import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 import { Condition } from 'dynamoose';
-import { MusicModelRepository } from '@music/music-model.repository';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { AIService } from '@service/ai/ai.service';
-import { MusicModelDto } from '@music/dto/musics.dto';
-import { MusicPreModelRepository } from '@music/music-pre-model.repository';
+import { MusicAiModelDto } from '@music/dto/musics.dto';
 import { setKoreaTime } from '@common/util/date-time-converter';
 import { MusicRepository } from '@music/music.repository';
+import { MusicAiModelRepository } from '@music/music-ai.repository';
 
 @Injectable()
 export class DiaryService {
@@ -43,8 +42,7 @@ export class DiaryService {
     private readonly diariesRepository: DiaryRepository,
     private readonly diaryTopicsRepository: DiaryTopicsRepository,
     private readonly diaryEmotionsRepository: DiaryEmotionsRepository,
-    private readonly musicModelRepository: MusicModelRepository,
-    private readonly musicPreModelRepository: MusicPreModelRepository,
+    private readonly musicAiModelRepository: MusicAiModelRepository,
     private readonly musicsRepository: MusicRepository,
     private readonly prismaService: PrismaService,
     private readonly aiService: AIService,
@@ -241,7 +239,7 @@ export class DiaryService {
     userId: string,
     id: string,
   ): Promise<RecommendMusicResponseDto> {
-    let musicCandidates: Partial<MusicModelDto>[];
+    let musicCandidates: Partial<MusicAiModelDto>[];
     await this.prismaService.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const diary = await tx.diaries.update({
@@ -302,22 +300,22 @@ export class DiaryService {
           resultSongIds.map(async (songId) => {
             const condition = new Condition().filter('songId').contains(songId);
             // TODO: 음악 추천 DB 바뀌면 수정 필요
-            const [musicModels, musicPreModels] = await Promise.all([
-              await this.musicModelRepository.findBySongId(condition),
-              await this.musicPreModelRepository.findBySongId(condition),
-            ]);
+            const musicAiModel =
+              await this.musicAiModelRepository.findBySongId(condition);
 
-            const musicModel = musicModels[0];
-            const musicPreModel = musicPreModels[0];
+            const musicModel = musicAiModel[0];
             const music = {
               songId: musicModel.songId,
               title: musicModel.title,
               albumUrl: musicModel.albumUrl,
               artist: musicModel.artist,
               lyric: musicModel.lyric,
-              originalGenre: musicModel.genre,
-              youtubeUrl: musicPreModel?.yt_url ?? null,
-              editorPick: musicModel?.editor_name ?? null,
+              originalGenre: musicModel.genre.replaceAll('"', ''),
+              youtubeUrl: musicModel.yt_url,
+              editorPick:
+                musicModel.editor_pick === 'None'
+                  ? null
+                  : musicModel.editor_name,
               diaryId: diary.id,
               userId,
               createdAt: setKoreaTime(),

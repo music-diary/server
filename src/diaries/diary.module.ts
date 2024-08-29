@@ -9,31 +9,22 @@ import { TopicsRepository } from './repository/topic.repository';
 import { DiaryEmotionsRepository } from './repository/diary-emotions.repository';
 import { DiaryTopicsRepository } from './repository/diary-topics.repository';
 import { DynamooseModule } from 'nestjs-dynamoose';
-import { MusicSchema } from '@music/schema/music.schema';
 import { DatabaseModule } from '@database/database.module';
 import { LogService } from '@common/log.service';
 import { PrismaService } from '@database/prisma/prisma.service';
-import { MusicModelRepository } from '@music/music-model.repository';
 import { MusicRepository } from '@music/music.repository';
 import { AIService } from '@service/ai/ai.service';
-import { MusicPreprocessSchema } from '@music/schema/music-preprocess.schema';
-import { MusicPreModelRepository } from '@music/music-pre-model.repository';
+import { MusicAiSchema } from '@music/schema/music-ai.schema';
+import { MusicAiModelRepository } from '@music/music-ai.repository';
 
 @Module({
   imports: [
     DynamooseModule.forFeature([
       {
-        name: 'Music',
-        schema: MusicSchema,
+        name: 'MusicAiModel',
+        schema: MusicAiSchema,
         options: {
-          tableName: 'musicdiary_table',
-        },
-      },
-      {
-        name: 'MusicPreprocess',
-        schema: MusicPreprocessSchema,
-        options: {
-          tableName: 'musicdiary_preprocess',
+          tableName: 'musicdiary_db',
         },
       },
     ]),
@@ -50,8 +41,7 @@ import { MusicPreModelRepository } from '@music/music-pre-model.repository';
     DiaryRepository,
     DiaryEmotionsRepository,
     DiaryTopicsRepository,
-    MusicModelRepository,
-    MusicPreModelRepository,
+    MusicAiModelRepository,
     MusicRepository,
     AIService,
   ],
