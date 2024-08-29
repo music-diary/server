@@ -193,8 +193,8 @@ export class MusicService {
     const statistics = await Promise.all(
       uniqueMonths.map(async (month) => {
         const startDate = new Date(`${month}-01`);
-        const endDate = new Date();
-        endDate.setMonth(endDate.getMonth() + 1);
+        const endDate = new Date(startDate);
+        endDate.setMonth(startDate.getMonth() + 1);
 
         const latestMusic = await this.musicRepository.findOne({
           where: {
@@ -212,8 +212,12 @@ export class MusicService {
           },
         });
 
-        const musicCount = await this.prismaService.musics.count({
-          where: { userId, createdAt: { gte: startDate, lte: endDate } },
+        const diaryCount = await this.prismaService.diaries.count({
+          where: {
+            userId,
+            status: DiariesStatus.DONE,
+            createdAt: { gte: startDate, lt: endDate },
+          },
         });
 
         const emotions = await this.prismaService.diaryEmotions.groupBy({
@@ -222,7 +226,7 @@ export class MusicService {
             userId,
             createdAt: {
               gte: startDate,
-              lte: endDate,
+              lt: endDate,
             },
           },
           _count: {
@@ -255,7 +259,7 @@ export class MusicService {
         return {
           date: month,
           music: latestMusic,
-          count: musicCount,
+          count: diaryCount,
           emotion: mostFrequentEmotion,
         };
       }),
