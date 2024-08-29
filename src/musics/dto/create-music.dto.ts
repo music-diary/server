@@ -1,10 +1,10 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { MusicModelDto } from './musics.dto';
+import { MusicAiModelDto } from './musics.dto';
 import { IsString } from 'class-validator';
 
 export class CreateDiaryMusicBodyDto {
-  @ApiProperty({ type: MusicModelDto, isArray: true })
-  musics: MusicModelDto[];
+  @ApiProperty({ type: MusicAiModelDto, isArray: true })
+  musics: MusicAiModelDto[];
 
   @ApiProperty()
   @IsString()

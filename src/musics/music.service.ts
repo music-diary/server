@@ -9,19 +9,19 @@ import {
 } from './dto/find-music.dto';
 import { DiariesStatus, Prisma } from '@prisma/client';
 import { InjectModel, Model } from 'nestjs-dynamoose';
-import { MusicKey, MusicModel } from './schema/music.type';
 import { CreateDiaryMusicBodyDto } from './dto/create-music.dto';
 import { CommonDto } from '@common/dto/common.dto';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
 import { DiaryRepository } from '@diary/repository/diary.repository';
+import { MusicAiKey, MusicAiModel } from './schema/music-ai.type';
 
 @Injectable()
 export class MusicService {
   constructor(
-    @InjectModel('Music')
-    private readonly model: Model<MusicModel, MusicKey>,
+    @InjectModel('MusicAiModel')
+    private readonly model: Model<MusicAiModel, MusicAiKey>,
     private readonly musicRepository: MusicRepository,
     private readonly diariesRepository: DiaryRepository,
     private readonly emotionsRepository: EmotionsRepository,
@@ -87,7 +87,7 @@ export class MusicService {
     if (songId) {
       conditions.filter('songId').contains(songId);
     }
-    const musics: MusicModel[] =
+    const musics: MusicAiModel[] =
       !title && !songId
         ? await this.model.scan().limit(20).exec()
         : await this.model.scan(conditions).all().exec();

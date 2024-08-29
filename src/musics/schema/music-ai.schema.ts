@@ -1,6 +1,6 @@
 import { Schema } from 'dynamoose';
 
-export const MusicPreprocessSchema = new Schema({
+export const MusicAiSchema = new Schema({
   songId: {
     type: String,
     required: true,
@@ -8,18 +8,29 @@ export const MusicPreprocessSchema = new Schema({
       name: 'songId-index',
     },
   },
+  editor_pick: {
+    type: String,
+    required: true,
+    index: {
+      name: 'editor_pick-index',
+    },
+  },
   title: {
     type: String,
     hashKey: true,
     required: true,
   },
-  albumUrl: {
+  artist: {
+    type: String,
+    required: true,
+  },
+  editor_name: {
     type: String,
     required: false,
   },
-  artist: {
+  albumUrl: {
     type: String,
-    required: false,
+    required: true,
   },
   feelings: {
     type: String,
@@ -33,20 +44,12 @@ export const MusicPreprocessSchema = new Schema({
     type: String,
     required: false,
   },
-  editor_pick: {
-    type: String,
-    required: false,
-  },
-  editor_name: {
-    type: String,
-    required: false,
-  },
   videoId: {
     type: String,
-    required: false,
+    required: true,
   },
   yt_url: {
     type: String,
-    required: false,
+    required: true,
   },
 });
