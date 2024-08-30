@@ -456,6 +456,11 @@ export class DiaryService {
           data: { ...restMusic, updatedAt: setKoreaTime() },
         },
       };
+      const unselectMusicQuery: Prisma.MusicsUpdateManyArgs = {
+        where: { AND: [{ diaryId: id }, { id: { not: musicId } }] },
+        data: { selected: false },
+      };
+      await this.musicsRepository.updateMany(unselectMusicQuery);
     }
     const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
       where: { id },
