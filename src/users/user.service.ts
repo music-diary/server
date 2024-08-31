@@ -286,7 +286,7 @@ export class UserService {
     const whereQuery = {
       where: {
         userId,
-        createdAt: { gte: startDate, lt: endDate },
+        updatedAt: { gte: startDate, lt: endDate },
       },
     };
     const whereDiaryQuery = {
@@ -343,8 +343,8 @@ export class UserService {
       },
     };
     const allDiaries = await this.statisticRepository.getDiaries({
-      distinct: ['createdAt'],
-      select: { createdAt: true },
+      distinct: ['updatedAt'],
+      select: { updatedAt: true },
       ...whereDiaryQuery,
     });
 
@@ -414,7 +414,7 @@ export class UserService {
     _endDate: Date,
   ): Promise<any> {
     const uniqueYears = Array.from(
-      new Set(diaries.map((diary) => diary.createdAt.getFullYear())),
+      new Set(diaries.map((diary) => diary.updatedAt.getFullYear())),
     );
 
     return await Promise.all(
@@ -423,7 +423,7 @@ export class UserService {
           await this.statisticRepository.getYearlyDiariesCount({
             where: {
               userId,
-              createdAt: {
+              updatedAt: {
                 gte: startDate,
                 lt: new Date(startDate.getFullYear() + 1, 0, 1),
               },
@@ -476,12 +476,11 @@ export class UserService {
     );
   }
 
-  private parseDate(date: string): { startDate: Date; endDate: Date } {
-    const [year, month] = date.split('-');
-    const startDate = new Date(+year, +month - 1, 1);
-    // TODO: Check if this is correct (offset?)
-    const endDate = new Date(+year, +month, 1);
-    return { startDate, endDate };
+  private parseDate(date: string): { startDate: string; endDate: string } {
+    const startDate = new Date(date).toISOString();
+    const endDate = new Date(date);
+    endDate.setMonth(endDate.getMonth() + 1);
+    return { startDate, endDate: endDate.toISOString() };
   }
 
   private parseYear(year: number): { startDate: Date; endDate: Date } {
