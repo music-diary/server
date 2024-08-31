@@ -1,14 +1,5 @@
 import { Gender, Prisma, Role, UserStatus } from '@prisma/client';
 
-const tgPhone = process.env.TG_PHONE_NUMBER;
-const ssPhone = process.env.SS_PHONE_NUMBER;
-if (!tgPhone || !ssPhone) {
-  console.error(
-    'Please set the TG_PHONE_NUMBER and SS_PHONE_NUMBER environment variables.',
-  );
-  process.exit(1);
-}
-
 export const userData: Prisma.UsersCreateInput = {
   id: '1ea6b340-a8a7-480c-b81a-b9a20a9e53f9',
   phoneNumber: '+821012345678',
