@@ -130,10 +130,7 @@ export const customPrismaClient = (prismaClient: PrismaClient) => {
 
           return (context as any).updateMany({
             where: { ...args?.where },
-            data: args?.data.map((data: any) => ({
-              ...data,
-              updatedAt: setKoreaTime(),
-            })),
+            data: { ...args?.data, updatedAt: setKoreaTime() },
           });
         },
       },

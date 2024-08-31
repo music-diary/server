@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { Musics, Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma/prisma.service';
+import { GetBatchResult } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class MusicRepository {
@@ -30,6 +31,12 @@ export class MusicRepository {
 
   async update(query?: Prisma.MusicsUpdateArgs): Promise<Musics> {
     return await this.prismaService.client.musics.updateAtKoreaTime(query);
+  }
+
+  async updateMany(
+    query?: Prisma.MusicsUpdateManyArgs,
+  ): Promise<GetBatchResult> {
+    return await this.prismaService.client.musics.updatedManyAtKoreaTime(query);
   }
 
   async delete(query?: Prisma.MusicsDeleteArgs): Promise<Musics> {

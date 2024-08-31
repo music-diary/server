@@ -102,19 +102,15 @@ export class DiaryService {
     endAt?: string,
     group?: string,
   ): Promise<FindDiariesResponseDto> {
+    const { startDate, endDate } = this.parseDateRange(startAt, endAt);
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
       where: {
         userId,
         status: DiariesStatus.DONE,
-        ...(startAt && { createdAt: { gte: new Date(startAt).toISOString() } }),
-        ...(endAt && { createdAt: { lte: new Date(endAt).toISOString() } }),
+        ...(startAt && { updatedAt: { gte: startDate } }),
+        ...(endAt && { updatedAt: { lte: endDate } }),
         ...(startAt &&
-          endAt && {
-            createdAt: {
-              gte: new Date(startAt).toISOString(),
-              lte: new Date(endAt).toISOString(),
-            },
-          }),
+          endAt && { updatedAt: { gte: startDate, lte: endDate } }),
       },
       ...(group && {
         include: {
@@ -456,6 +452,11 @@ export class DiaryService {
           data: { ...restMusic, updatedAt: setKoreaTime() },
         },
       };
+      const unselectMusicQuery: Prisma.MusicsUpdateManyArgs = {
+        where: { AND: [{ diaryId: id }, { id: { not: musicId } }] },
+        data: { selected: false },
+      };
+      await this.musicsRepository.updateMany(unselectMusicQuery);
     }
     const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
       where: { id },
@@ -505,9 +506,12 @@ export class DiaryService {
     return true;
   }
 
-  private getEndDate(endAt: string): string {
-    const endDate = new Date(endAt);
-    endDate.setDate(endDate.getDate() + 1);
-    return endDate.toISOString();
+  private parseDateRange(
+    startAt?: string,
+    endAt?: string,
+  ): { startDate: string; endDate: string } {
+    const startDate = startAt ? new Date(startAt).toISOString() : null;
+    const endDate = endAt ? new Date(endAt).toISOString() : null;
+    return { startDate, endDate };
   }
 }

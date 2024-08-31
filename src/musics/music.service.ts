@@ -36,17 +36,30 @@ export class MusicService {
     group?: string,
   ): Promise<FindAllMusicsArchiveResponse> {
     const data = {};
-    const startDate = new Date(startAt).toISOString();
-    const endDate = new Date(endAt).toISOString();
+    const { startDate, endDate } = this.parseDateRange(startAt, endAt);
+    const findTimeQuery = {
+      where: {
+        ...(startAt && { updatedAt: { gte: startDate } }),
+        ...(endAt && { updatedAt: { lte: endDate } }),
+        ...(startAt &&
+          endAt && { updatedAt: { gte: startDate, lte: endDate } }),
+      },
+    };
     const findQuery: Prisma.MusicsFindManyArgs = {
       where: {
         userId,
-        createdAt: { gte: startDate, lte: endDate },
+        selected: true,
         deletedAt: null,
+        ...findTimeQuery.where,
       },
       include: {
         diary: {
-          where: { userId, status: DiariesStatus.DONE, deletedAt: null },
+          where: {
+            userId,
+            status: DiariesStatus.DONE,
+            deletedAt: null,
+            ...findTimeQuery.where,
+          },
           select: {
             emotions: {
               select: {
@@ -182,11 +195,11 @@ export class MusicService {
   private async getMusicSummaryByMonth(userId: string) {
     const months = await this.prismaService.musics.findMany({
       where: { userId, deletedAt: null },
-      select: { createdAt: true },
+      select: { updatedAt: true },
     });
     const uniqueMonths = Array.from(
       new Set(
-        months.map((month) => month.createdAt.toISOString().substring(0, 7)),
+        months.map((month) => month.updatedAt.toISOString().substring(0, 7)),
       ),
     );
 
@@ -199,7 +212,8 @@ export class MusicService {
         const latestMusic = await this.musicRepository.findOne({
           where: {
             userId,
-            createdAt: { gte: startDate, lt: endDate },
+            selected: true,
+            updatedAt: { gte: startDate, lt: endDate },
           },
           orderBy: { updatedAt: 'desc' },
           select: {
@@ -216,7 +230,7 @@ export class MusicService {
           where: {
             userId,
             status: DiariesStatus.DONE,
-            createdAt: { gte: startDate, lt: endDate },
+            updatedAt: { gte: startDate, lt: endDate },
           },
         });
 
@@ -224,7 +238,7 @@ export class MusicService {
           by: ['emotionId'],
           where: {
             userId,
-            createdAt: {
+            updatedAt: {
               gte: startDate,
               lt: endDate,
             },
@@ -329,5 +343,14 @@ export class MusicService {
         : null;
 
     return mostFrequentEmotion;
+  }
+
+  private parseDateRange(
+    startAt?: string,
+    endAt?: string,
+  ): { startDate: string; endDate: string } {
+    const startDate = startAt ? new Date(startAt).toISOString() : null;
+    const endDate = endAt ? new Date(endAt).toISOString() : null;
+    return { startDate, endDate };
   }
 }
