@@ -32,7 +32,14 @@ export class StatisticRepository {
       where: query,
       distinct: ['topicId'],
       include: {
-        topic: { select: { id: true, label: true, emoji: true, _count: true } },
+        topic: {
+          select: {
+            id: true,
+            label: true,
+            emoji: true,
+            _count: { select: { diaries: { where: { ...query } } } },
+          },
+        },
       },
       orderBy: { topic: { diaries: { _count: 'desc' } } },
       take: 3,
