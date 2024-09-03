@@ -193,8 +193,8 @@ export class MusicService {
   }
 
   private async getMusicSummaryByMonth(userId: string) {
-    const months = await this.prismaService.musics.findMany({
-      where: { userId, deletedAt: null },
+    const months = await this.musicRepository.findMany({
+      where: { userId },
       select: { updatedAt: true },
     });
     const uniqueMonths = Array.from(
@@ -230,6 +230,7 @@ export class MusicService {
           where: {
             userId,
             status: DiariesStatus.DONE,
+            deletedAt: null,
             updatedAt: { gte: startDate, lt: endDate },
           },
         });
