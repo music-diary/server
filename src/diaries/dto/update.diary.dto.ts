@@ -8,6 +8,7 @@ export class UpdateDiaryBodyDto extends OmitType(DiaryDto, [
   'userId',
   'createdAt',
   'updatedAt',
+  'deletedAt',
   'users',
   'templateId',
 ]) {}

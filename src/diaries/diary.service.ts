@@ -32,6 +32,7 @@ import { MusicAiModelDto } from '@music/dto/musics.dto';
 import { setKoreaTime } from '@common/util/date-time-converter';
 import { MusicRepository } from '@music/music.repository';
 import { MusicAiModelRepository } from '@music/music-ai.repository';
+import { DiaryDto } from './dto/diaries.dto';
 
 @Injectable()
 export class DiaryService {
@@ -361,16 +362,73 @@ export class DiaryService {
     const existed = await this.diariesRepository.findUniqueOne({
       where: { id },
     });
-    if (!existed) {
+    if (
+      !existed ||
+      existed.deletedAt ||
+      existed.status === DiariesStatus.DONE
+    ) {
       throw new NotFoundException('Diary not found');
     }
-    const { status, title, content, ...restBody } = body;
+
+    const result = await this.updateDiary(id, userId, body);
+    this.logService.verbose(`Update diary by ${result.id}`, DiaryService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Update diary',
+      diaryId: result.id,
+    };
+  }
+
+  async delete(id: string, userId: string): Promise<CommonDto> {
+    await this.checkPermission(userId, id);
+    await this.prismaService.$transaction([
+      this.prismaService.diaries.update({
+        where: { id, userId },
+        data: { deletedAt: new Date() },
+      }),
+      this.prismaService.diaryTopics.deleteMany({
+        where: { diaryId: id },
+      }),
+      this.prismaService.diaryEmotions.deleteMany({
+        where: { diaryId: id },
+      }),
+      this.prismaService.musics.updateMany({
+        where: { diaryId: id },
+        data: { deletedAt: new Date() },
+      }),
+    ]);
+
+    this.logService.verbose(`Delete diary by ${id}`, DiaryService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Delete diary',
+    };
+  }
+
+  private async checkPermission(
+    userId: string,
+    targetId: string,
+  ): Promise<boolean> {
+    const existedDiary = await this.diariesRepository.findUniqueOne({
+      where: { id: targetId, userId },
+    });
+    if (existedDiary === undefined) {
+      throw new NotFoundException('Diary not found');
+    }
+    return true;
+  }
+
+  private async updateDiary(
+    id: string,
+    userId: string,
+    body: UpdateDiaryBodyDto,
+  ): Promise<DiaryDto> {
+    const { status, title, content, ..._restBody } = body;
     const updateDiaryDataQuery: Prisma.DiariesUpdateInput = {
       status,
       title,
       content,
     };
-    // TODO: 이미 status : DONE 인 경우 수정 못하게 처리
     if ('templates' in body && typeof body.templates === 'object') {
       const createTemplateDataQuery: Prisma.TemplatesCreateArgs = {
         data: {
@@ -462,48 +520,7 @@ export class DiaryService {
       where: { id },
       data: { ...updateDiaryDataQuery },
     };
-    const result = await this.diariesRepository.update(updateDiaryQuery);
-
-    this.logService.verbose(`Update diary by ${result.id}`, DiaryService.name);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Update diary',
-      diaryId: result.id,
-    };
-  }
-
-  async delete(id: string, userId: string): Promise<CommonDto> {
-    await this.prismaService.$transaction(
-      async (tx: Prisma.TransactionClient) => {
-        await tx.diaries.update({
-          where: { id, userId },
-          data: { deletedAt: new Date() },
-        });
-        await tx.musics.updateMany({
-          where: { diaryId: id },
-          data: { deletedAt: new Date() },
-        });
-      },
-    );
-
-    this.logService.verbose(`Delete diary by ${id}`, DiaryService.name);
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Delete diary',
-    };
-  }
-
-  private async checkPermission(
-    userId: string,
-    targetId: string,
-  ): Promise<boolean> {
-    const existedDiary = await this.diariesRepository.findUniqueOne({
-      where: { id: targetId, userId },
-    });
-    if (existedDiary === undefined) {
-      throw new NotFoundException('Diary not found');
-    }
-    return true;
+    return await this.diariesRepository.update(updateDiaryQuery);
   }
 
   private parseDateRange(
