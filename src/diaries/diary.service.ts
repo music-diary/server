@@ -236,6 +236,13 @@ export class DiaryService {
     id: string,
   ): Promise<RecommendMusicResponseDto> {
     let musicCandidates: Partial<MusicAiModelDto>[];
+    const user = await this.prismaService.users.findUnique({
+      where: { id: userId },
+      select: { isGenreSuggested: true, genre: { select: { label: true } } },
+    });
+    const allGenres = await this.prismaService.genres.findMany({
+      select: { label: true },
+    });
     await this.prismaService.$transaction(
       async (tx: Prisma.TransactionClient) => {
         const diary = await tx.diaries.update({
@@ -273,7 +280,9 @@ export class DiaryService {
                   )
                   .join(' '),
 
-          selected_genres: diary.user.genre.map((g) => g.label), // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
+          selected_genres: user.isGenreSuggested
+            ? allGenres.map((g) => g.label)
+            : diary.user.genre.map((g) => g.label), // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
           selected_feeling: diary.emotions.map(
             (emotion) => emotion.emotions.aiScale ?? 3,
           )[0], // # 1: 매우좋음, 2: 좋음, 3: 보통, 4:나쁨, 5:매우나쁨 --> 추후 다중선택
