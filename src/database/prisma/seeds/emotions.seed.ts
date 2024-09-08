@@ -211,14 +211,6 @@ export const positiveSecondDepthEmotionsData: Prisma.EmotionsCreateInput[][] = [
       order: 4,
       aiScale: 1,
     },
-    {
-      id: '904ae0fd-580a-449d-9492-1e67301317da',
-      name: 'tearfully',
-      label: '눈물나는',
-      level: 2,
-      order: 5,
-      aiScale: 1,
-    },
   ],
   // 편안한
   [
@@ -384,19 +376,11 @@ export const positiveSecondDepthEmotionsData: Prisma.EmotionsCreateInput[][] = [
       aiScale: 1,
     },
     {
-      id: '6dbcd772-29e3-4d7a-a28c-4a0a30099e9b',
-      name: 'moving',
-      label: '뭉클한',
-      level: 2,
-      order: 2,
-      aiScale: 1,
-    },
-    {
       id: '338f0ad3-d65a-4418-9d15-e6e0042c6268',
       name: 'overflowed',
       label: '눈물나는',
       level: 2,
-      order: 3,
+      order: 2,
       aiScale: 1,
     },
     {
@@ -404,7 +388,7 @@ export const positiveSecondDepthEmotionsData: Prisma.EmotionsCreateInput[][] = [
       name: 'nerve',
       label: '용기가득한',
       level: 2,
-      order: 4,
+      order: 3,
       aiScale: 1,
     },
     {
@@ -412,7 +396,7 @@ export const positiveSecondDepthEmotionsData: Prisma.EmotionsCreateInput[][] = [
       name: 'magnificent',
       label: '황홀한',
       level: 2,
-      order: 5,
+      order: 4,
       aiScale: 1,
     },
   ],
