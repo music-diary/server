@@ -33,6 +33,7 @@ import { setKoreaTime } from '@common/util/date-time-converter';
 import { MusicRepository } from '@music/music.repository';
 import { MusicAiModelRepository } from '@music/music-ai.repository';
 import { DiaryDto } from './dto/diaries.dto';
+import { parseDateRange } from '@common/util/parse-date-range';
 
 @Injectable()
 export class DiaryService {
@@ -103,15 +104,14 @@ export class DiaryService {
     endAt?: string,
     group?: string,
   ): Promise<FindDiariesResponseDto> {
-    const { startDate, endDate } = this.parseDateRange(startAt, endAt);
+    const { startDate, endDate } = parseDateRange(startAt, endAt);
     const findDiariesQuery: Prisma.DiariesFindManyArgs = {
       where: {
         userId,
         status: DiariesStatus.DONE,
         ...(startAt && { updatedAt: { gte: startDate } }),
-        ...(endAt && { updatedAt: { lte: endDate } }),
-        ...(startAt &&
-          endAt && { updatedAt: { gte: startDate, lte: endDate } }),
+        ...(endAt && { updatedAt: { lt: endDate } }),
+        ...(startAt && endAt && { updatedAt: { gte: startDate, lt: endDate } }),
       },
       ...(group && {
         include: {
@@ -530,14 +530,5 @@ export class DiaryService {
       data: { ...updateDiaryDataQuery },
     };
     return await this.diariesRepository.update(updateDiaryQuery);
-  }
-
-  private parseDateRange(
-    startAt?: string,
-    endAt?: string,
-  ): { startDate: string; endDate: string } {
-    const startDate = startAt ? new Date(startAt).toISOString() : null;
-    const endDate = endAt ? new Date(endAt).toISOString() : null;
-    return { startDate, endDate };
   }
 }
