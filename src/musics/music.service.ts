@@ -16,6 +16,7 @@ import { EmotionsRepository } from '../diaries/repository/emotion.repository';
 import { Condition } from 'dynamoose';
 import { DiaryRepository } from '@diary/repository/diary.repository';
 import { MusicAiKey, MusicAiModel } from './schema/music-ai.type';
+import { parseDateRange } from '@common/util/parse-date-range';
 
 @Injectable()
 export class MusicService {
@@ -36,13 +37,12 @@ export class MusicService {
     group?: string,
   ): Promise<FindAllMusicsArchiveResponse> {
     const data = {};
-    const { startDate, endDate } = this.parseDateRange(startAt, endAt);
+    const { startDate, endDate } = parseDateRange(startAt, endAt);
     const findTimeQuery = {
       where: {
         ...(startAt && { updatedAt: { gte: startDate } }),
-        ...(endAt && { updatedAt: { lte: endDate } }),
-        ...(startAt &&
-          endAt && { updatedAt: { gte: startDate, lte: endDate } }),
+        ...(endAt && { updatedAt: { lt: endDate } }),
+        ...(startAt && endAt && { updatedAt: { gte: startDate, lt: endDate } }),
       },
     };
     const findQuery: Prisma.MusicsFindManyArgs = {
@@ -344,14 +344,5 @@ export class MusicService {
         : null;
 
     return mostFrequentEmotion;
-  }
-
-  private parseDateRange(
-    startAt?: string,
-    endAt?: string,
-  ): { startDate: string; endDate: string } {
-    const startDate = startAt ? new Date(startAt).toISOString() : null;
-    const endDate = endAt ? new Date(endAt).toISOString() : null;
-    return { startDate, endDate };
   }
 }
