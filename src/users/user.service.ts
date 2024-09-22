@@ -363,7 +363,7 @@ export class UserService {
       where: { selected: true, ...whereQuery.where },
       select: { id: true, originalGenre: true },
     });
-    const genres = await this.statisticRepository.findGenres();
+    const genres = await this.genreRepository.findAll();
     const genreCounts = this.getGenreCount(genres, musics);
 
     const topics = await this.statisticRepository.findTopicsStatistic({
