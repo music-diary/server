@@ -14,10 +14,6 @@ export class StatisticRepository {
     return await this.prismaService.client.musics.findManyAvailable(query);
   }
 
-  async findGenres(query?: Prisma.GenresFindManyArgs): Promise<GenresDto[]> {
-    return await this.prismaService.genres.findMany(query);
-  }
-
   async findTopicsStatistic(
     query?: Prisma.DiaryTopicsWhereInput,
   ): Promise<any> {
