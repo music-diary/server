@@ -10,6 +10,7 @@ import { LogService } from '@common/log.service';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { GenreRepository } from '@genre/genre.repository';
 import { SimpleEmailService } from '@service/simple-email/simple-email.service';
+import { DiaryRepository } from '@diary/repository/diary.repository';
 
 @Module({
   controllers: [UserController],
@@ -23,6 +24,7 @@ import { SimpleEmailService } from '@service/simple-email/simple-email.service';
     WithdrawalReasonsRepository,
     ContactRepository,
     StatisticRepository,
+    DiaryRepository,
     SimpleEmailService,
   ],
 })

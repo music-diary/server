@@ -1,19 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { DiariesStatus, Prisma } from '@prisma/client';
 import { PrismaService } from '@database/prisma/prisma.service';
-import { DiaryDto } from '@diary/dto/diaries.dto';
 import { MusicsDto } from '@music/dto/musics.dto';
 import { GenresDto } from '@genre/dto/genres.dto';
 
 @Injectable()
 export class StatisticRepository {
   constructor(private readonly prismaService: PrismaService) {}
-
-  async findDiariesStatistic(
-    query?: Prisma.DiariesFindManyArgs,
-  ): Promise<DiaryDto[]> {
-    return await this.prismaService.diaries.findMany(query);
-  }
 
   async findMusicsStatistic(
     query?: Prisma.MusicsFindManyArgs,
@@ -46,23 +39,22 @@ export class StatisticRepository {
     });
   }
 
-  async getMonthlyDiaryCount(query: Prisma.DiariesCountArgs): Promise<number> {
-    return await this.prismaService.diaries.count(query);
-  }
-
-  async getYearlyDiariesCount(query: Prisma.DiariesCountArgs): Promise<number> {
-    return await this.prismaService.diaries.count(query);
-  }
-
-  async getDiaries(query: Prisma.DiariesFindManyArgs): Promise<DiaryDto[]> {
-    return await this.prismaService.diaries.findMany(query);
-  }
-
-  async getEmotionStatistic(query: any): Promise<any> {
+  async getEmotionStatistic(
+    query: Prisma.DiaryEmotionsWhereInput,
+  ): Promise<any> {
+    const rootEmotions = await this.prismaService.emotions.findMany({
+      where: { level: 0 },
+    });
+    const rootStandard = { good: 0, normal: 1, bad: 2 };
+    const rootEmotionStandard = rootEmotions.map((root) => {
+      const result = new Map();
+      if (Object.keys(rootStandard).includes(root.name)) {
+        return result.set(root.id, rootStandard[root.name]);
+      }
+    });
     const emotionsWithRoot = await this.prismaService.diaryEmotions.findMany({
       where: {
         ...query,
-        diary: { status: DiariesStatus.DONE, deletedAt: null },
       },
       select: {
         emotions: {
@@ -99,7 +91,10 @@ export class StatisticRepository {
     let mostFrequentRootId = '';
     if (Object.keys(rootIdFrequency).length > 0) {
       mostFrequentRootId = Object.keys(rootIdFrequency).reduce((a, b) =>
-        rootIdFrequency[a].count > rootIdFrequency[b].count ? a : b,
+        rootIdFrequency[a].count > rootIdFrequency[b].count &&
+        rootEmotionStandard[a] > rootEmotionStandard[b]
+          ? b
+          : a,
       );
     }
 
@@ -113,7 +108,6 @@ export class StatisticRepository {
     const rootIdStats = await Promise.all(
       Object.keys(rootIdFrequency).map(async (rootId) => {
         const { count, emotions } = rootIdFrequency[rootId];
-        // const percentage = ((count / totalEmotions) * 100).toFixed();
 
         const rootEmotion = await this.prismaService.emotions.findUnique({
           where: {

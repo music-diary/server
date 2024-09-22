@@ -30,6 +30,7 @@ import { MusicsDto } from '@music/dto/musics.dto';
 import { GenresDto } from '@genre/dto/genres.dto';
 import { DiaryDto } from '@diary/dto/diaries.dto';
 import { RedisRepository } from '@database/redis.repository';
+import { DiaryRepository } from '@diary/repository/diary.repository';
 
 @Injectable()
 export class UserService {
@@ -40,6 +41,7 @@ export class UserService {
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
     private readonly contactRepository: ContactRepository,
     private readonly statisticRepository: StatisticRepository,
+    private readonly diaryRepository: DiaryRepository,
     private readonly prismaService: PrismaService,
     private readonly simpleEmailService: SimpleEmailService,
     private readonly redisRepository: RedisRepository,
@@ -296,15 +298,8 @@ export class UserService {
         deletedAt: null,
       },
     };
-    const diaryCount =
-      await this.statisticRepository.getMonthlyDiaryCount(whereDiaryQuery);
-    // NOTE: This is not used (월별 일기 작성 비율)
-    // const daysInMonth = new Date(
-    //   startDate.getFullYear(),
-    //   startDate.getMonth() + 1,
-    //   0,
-    // ).getDate();
-    // const diaryCountRatio = ((diaryCount / daysInMonth) * 100).toFixed(0);
+    const diaryCount = await this.diaryRepository.count(whereDiaryQuery);
+
     const emotions = await this.statisticRepository.getEmotionStatistic({
       diary: { status: DiariesStatus.DONE, deletedAt: null },
       ...whereQuery.where,
@@ -332,7 +327,7 @@ export class UserService {
     const whereQuery = {
       where: {
         userId,
-        createdAt: { gte: startDate, lt: endDate },
+        updatedAt: { gte: startDate, lt: endDate },
       },
     };
     const whereDiaryQuery = {
@@ -342,7 +337,7 @@ export class UserService {
         deletedAt: null,
       },
     };
-    const allDiaries = await this.statisticRepository.getDiaries({
+    const allDiaries = await this.diaryRepository.findAll({
       distinct: ['updatedAt'],
       select: { updatedAt: true },
       ...whereDiaryQuery,
@@ -355,13 +350,6 @@ export class UserService {
       endDate,
     );
 
-    // NOTE: This is not used (월별 일기 작성 비율)
-    // const daysInMonth = new Date(
-    //   startDate.getFullYear(),
-    //   startDate.getMonth() + 1,
-    //   0,
-    // ).getDate();
-    // const diaryCountRatio = ((diaryCount / daysInMonth) * 100).toFixed(0);
     const emotions = await this.statisticRepository.getEmotionStatistic({
       diary: { status: DiariesStatus.DONE, deletedAt: null },
       ...whereQuery.where,
@@ -419,18 +407,17 @@ export class UserService {
 
     return await Promise.all(
       uniqueYears.map(async (year) => {
-        const yearDiaryCount =
-          await this.statisticRepository.getYearlyDiariesCount({
-            where: {
-              userId,
-              updatedAt: {
-                gte: startDate,
-                lt: new Date(startDate.getFullYear() + 1, 0, 1),
-              },
-              status: DiariesStatus.DONE,
-              deletedAt: null,
+        const yearDiaryCount = await this.diaryRepository.count({
+          where: {
+            userId,
+            updatedAt: {
+              gte: startDate,
+              lt: new Date(startDate.getFullYear() + 1, 0, 1),
             },
-          });
+            status: DiariesStatus.DONE,
+            deletedAt: null,
+          },
+        });
 
         // To get the timezone offset in hours
         const offset = parseInt(
@@ -443,22 +430,21 @@ export class UserService {
             const monthStart = new Date(year, monthIndex, 1, offset); // First day of the month
             const monthEnd = new Date(year, monthIndex + 1, 0, offset); // Last day of the month
 
-            const monthCount =
-              await this.statisticRepository.getMonthlyDiaryCount({
-                where: {
-                  userId,
-                  status: DiariesStatus.DONE,
-                  createdAt: {
-                    gte: monthStart,
-                    lt: new Date(
-                      monthStart.getFullYear(),
-                      monthStart.getMonth() + 1,
-                      1,
-                    ),
-                  },
-                  deletedAt: null,
+            const monthCount = await this.diaryRepository.count({
+              where: {
+                userId,
+                status: DiariesStatus.DONE,
+                updatedAt: {
+                  gte: monthStart,
+                  lt: new Date(
+                    monthStart.getFullYear(),
+                    monthStart.getMonth() + 1,
+                    1,
+                  ),
                 },
-              });
+                deletedAt: null,
+              },
+            });
 
             return {
               month: monthStart.toISOString().substring(0, 7),
