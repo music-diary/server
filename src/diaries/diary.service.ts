@@ -647,7 +647,7 @@ export class DiaryService {
 
           const music = {
             songId,
-            title,
+            title: title.replaceAll('"', ''),
             albumUrl,
             artist,
             lyric: lyric.replaceAll('\\n', '\n'),
