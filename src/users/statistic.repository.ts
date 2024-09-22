@@ -66,6 +66,9 @@ export class StatisticRepository {
         },
       },
     });
+    if (emotionsWithRoot.length < 1) {
+      return [];
+    }
 
     // Calculate frequency of each rootId and emotions within each rootId
     const rootIdFrequency = emotionsWithRoot.reduce(

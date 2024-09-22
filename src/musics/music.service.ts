@@ -290,14 +290,15 @@ export class MusicService {
       },
     );
 
-    const mostRoot = mostRootEmotions.filter(
-      (emotion) => emotion.topEmotions.length > 0,
-    );
+    const mostRoot =
+      mostRootEmotions.length > 0
+        ? mostRootEmotions.filter((emotion) => emotion.topEmotions.length > 0)
+        : null;
 
     const mostFrequentEmotion = mostRoot
       ? await this.emotionsRepository.findOne({
           where: {
-            rootId: mostRoot[0].emotionId,
+            rootId: mostRoot[0].rootId,
           },
         })
       : null;
