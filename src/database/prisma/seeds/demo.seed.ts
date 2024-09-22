@@ -174,6 +174,7 @@ export async function demo() {
   });
   await prisma.musics.update({
     data: {
+      selected: true,
       userId: userData.id,
       diaryId: normalDiary.id,
       createdAt: new Date('2024-07-15'),

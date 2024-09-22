@@ -17,6 +17,7 @@ import { Condition } from 'dynamoose';
 import { DiaryRepository } from '@diary/repository/diary.repository';
 import { MusicAiKey, MusicAiModel } from './schema/music-ai.type';
 import { parseDateRange } from '@common/util/parse-date-range';
+import { StatisticRepository } from '@user/statistic.repository';
 
 @Injectable()
 export class MusicService {
@@ -26,6 +27,7 @@ export class MusicService {
     private readonly musicRepository: MusicRepository,
     private readonly diariesRepository: DiaryRepository,
     private readonly emotionsRepository: EmotionsRepository,
+    private readonly statisticRepository: StatisticRepository,
     private readonly prismaService: PrismaService,
     private readonly logService: LogService,
   ) {}
@@ -77,6 +79,7 @@ export class MusicService {
       data['count'] = await this.getDiariesCount(userId, startDate, endDate);
       data['emotion'] = await this.getMostEmotion(userId, startDate, endDate);
     }
+    console.log('music archive emotion >>', data['emotion']);
 
     this.logService.verbose(
       `Get all musics archives from ${startAt} to ${endAt}`,
@@ -193,13 +196,16 @@ export class MusicService {
   }
 
   private async getMusicSummaryByMonth(userId: string) {
-    const months = await this.musicRepository.findMany({
+    const musicsUpdatedAt = await this.musicRepository.findMany({
       where: { userId },
       select: { updatedAt: true },
+      orderBy: { updatedAt: 'desc' },
     });
     const uniqueMonths = Array.from(
       new Set(
-        months.map((month) => month.updatedAt.toISOString().substring(0, 7)),
+        musicsUpdatedAt.map((music) =>
+          music.updatedAt.toISOString().substring(0, 7),
+        ),
       ),
     );
 
@@ -226,56 +232,23 @@ export class MusicService {
           },
         });
 
-        const diaryCount = await this.prismaService.diaries.count({
-          where: {
-            userId,
-            status: DiariesStatus.DONE,
-            deletedAt: null,
-            updatedAt: { gte: startDate, lt: endDate },
-          },
-        });
+        const diaryCount = await this.getDiariesCount(
+          userId,
+          startDate.toISOString(),
+          endDate.toISOString(),
+        );
 
-        const emotions = await this.prismaService.diaryEmotions.groupBy({
-          by: ['emotionId'],
-          where: {
-            userId,
-            updatedAt: {
-              gte: startDate,
-              lt: endDate,
-            },
-          },
-          _count: {
-            emotionId: true,
-          },
-          orderBy: {
-            _count: {
-              emotionId: 'desc',
-            },
-          },
-          take: 1,
-        });
-
-        const mostFrequentEmotion =
-          emotions.length > 0
-            ? await this.emotionsRepository.findUnique({
-                where: {
-                  id: emotions[0].emotionId,
-                },
-                select: {
-                  parent: {
-                    include: {
-                      parent: true,
-                    },
-                  },
-                },
-              })
-            : null;
+        const emotions = await this.getMostEmotion(
+          userId,
+          startDate.toISOString(),
+          endDate.toISOString(),
+        );
 
         return {
           date: month,
           music: latestMusic,
           count: diaryCount,
-          emotion: mostFrequentEmotion,
+          emotion: emotions,
         };
       }),
     );
@@ -287,13 +260,13 @@ export class MusicService {
     userId: string,
     startDate: string,
     endDate: string,
-  ) {
-    return await this.prismaService.diaries.count({
+  ): Promise<number> {
+    return await this.diariesRepository.count({
       where: {
         userId,
-        createdAt: { gte: startDate, lte: endDate },
-        deletedAt: null,
         status: DiariesStatus.DONE,
+        deletedAt: null,
+        updatedAt: { gte: startDate, lt: endDate },
       },
     });
   }
@@ -303,46 +276,32 @@ export class MusicService {
     startDate: string,
     endDate: string,
   ) {
-    const emotions = await this.prismaService.diaryEmotions.groupBy({
-      by: ['emotionId'],
-      where: {
+    const mostRootEmotions = await this.statisticRepository.getEmotionStatistic(
+      {
         userId,
-        createdAt: {
+        updatedAt: {
           gte: startDate,
-          lte: endDate,
+          lt: endDate,
         },
         diary: {
           status: DiariesStatus.DONE,
           deletedAt: null,
         },
       },
-      _count: {
-        emotionId: true,
-      },
-      orderBy: {
-        _count: {
-          emotionId: 'desc',
-        },
-      },
-      take: 1,
-    });
+    );
 
-    const mostFrequentEmotion =
-      emotions.length > 0
-        ? await this.emotionsRepository.findUnique({
-            where: {
-              id: emotions[0].emotionId,
-            },
-            select: {
-              parent: {
-                include: {
-                  parent: true,
-                },
-              },
-            },
-          })
-        : null;
+    const mostRoot = mostRootEmotions.filter(
+      (emotion) => emotion.topEmotions.length > 0,
+    );
 
-    return mostFrequentEmotion;
+    const mostFrequentEmotion = mostRoot
+      ? await this.emotionsRepository.findOne({
+          where: {
+            rootId: mostRoot[0].emotionId,
+          },
+        })
+      : null;
+
+    return { parent: mostFrequentEmotion };
   }
 }

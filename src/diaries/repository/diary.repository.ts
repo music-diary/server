@@ -33,4 +33,8 @@ export class DiaryRepository {
   async softDelete(query?: Prisma.DiariesWhereUniqueInput): Promise<Diaries> {
     return await this.prismaService.client.diaries.softDelete(query);
   }
+
+  async count(query?: Prisma.DiariesCountArgs): Promise<number> {
+    return await this.prismaService.client.diaries.count(query);
+  }
 }

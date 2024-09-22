@@ -9,6 +9,7 @@ import { DiaryRepository } from '@diary/repository/diary.repository';
 import { EmotionsRepository } from '@diary/repository/emotion.repository';
 import { LogService } from '@common/log.service';
 import { MusicAiSchema } from './schema/music-ai.schema';
+import { StatisticRepository } from '@user/statistic.repository';
 
 @Module({
   imports: [
@@ -29,6 +30,7 @@ import { MusicAiSchema } from './schema/music-ai.schema';
     MusicRepository,
     DiaryRepository,
     EmotionsRepository,
+    StatisticRepository,
     LogService,
     JwtService,
   ],
