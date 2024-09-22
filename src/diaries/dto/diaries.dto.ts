@@ -75,32 +75,4 @@ export class DiaryDto implements Diaries {
   @IsOptional()
   @IsDate()
   deletedAt: Date | null;
-
-  @ApiProperty({ type: UsersDto })
-  @IsOptional()
-  @IsObject()
-  @Type(() => UsersDto)
-  users?: UsersDto;
-
-  @ApiProperty({ type: TemplatesDto })
-  @Type(() => TemplatesDto)
-  @IsOptional()
-  templates?: TemplatesDto;
-
-  @ApiProperty({ type: TopicsDto, isArray: true })
-  @IsOptional()
-  @IsArray()
-  @Type(() => TopicsDto)
-  topics?: DiaryTopics[];
-
-  @ApiProperty({ type: EmotionsDto, isArray: true })
-  @IsOptional()
-  @IsArray()
-  @Type(() => EmotionsDto)
-  emotions?: DiaryEmotions[];
-
-  @ApiProperty({ type: MusicsDto })
-  @IsOptional()
-  @Type(() => MusicsDto)
-  music?: MusicsDto;
 }

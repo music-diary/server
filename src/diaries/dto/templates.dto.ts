@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { TemplateContents, Templates } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
+  IsArray,
   IsBoolean,
   IsNumber,
   IsOptional,
@@ -49,7 +50,7 @@ export class TemplatesDto implements Templates {
   @IsString()
   description: string;
 
-  @ApiProperty({ example: 'SCS' || 'KPT' || 'MSG' || '4L' || '5F' })
+  @ApiProperty({ examples: ['SCS', 'KPT', 'MSG', '4L', '5F'] })
   @IsString()
   type: string;
 
@@ -63,7 +64,9 @@ export class TemplatesDto implements Templates {
   @IsBoolean()
   isExample: boolean | null;
 
-  @ApiProperty({ type: templateContentsDto, isArray: true })
+  @ApiProperty({ type: [templateContentsDto] })
+  @IsOptional()
+  @IsArray()
   @Type(() => templateContentsDto)
-  templateContents: templateContentsDto[];
+  templateContents?: templateContentsDto[];
 }
