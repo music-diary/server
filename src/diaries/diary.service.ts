@@ -539,7 +539,11 @@ export class DiaryService {
   private async getUserWithGenres(userId: string): Promise<Partial<UsersDto>> {
     return await this.prismaService.users.findUnique({
       where: { id: userId },
-      select: { isGenreSuggested: true, genre: { select: { label: true } } },
+      select: {
+        id: true,
+        isGenreSuggested: true,
+        genre: { select: { label: true } },
+      },
     });
   }
 
@@ -601,7 +605,7 @@ export class DiaryService {
         (emotion) => emotion.emotions.aiScale,
       ) ?? [1, 2],
       genre_yn: Number(user.isGenreSuggested) === 0 ? 0 : 1,
-      userId: user.id,
+      userId: user['id'],
     };
   }
 
