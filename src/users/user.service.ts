@@ -306,10 +306,14 @@ export class UserService {
     });
 
     const musics = await this.statisticRepository.findMusicsStatistic({
-      where: { selected: true, ...whereQuery.where },
+      where: {
+        selected: true,
+        diary: { status: DiariesStatus.DONE },
+        ...whereQuery.where,
+      },
       select: { id: true, originalGenre: true },
     });
-    const genres = await this.statisticRepository.findGenres();
+    const genres = await this.genreRepository.findAll();
     const genreCounts = this.getGenreCount(genres, musics);
 
     const topics = await this.statisticRepository.findTopicsStatistic({
