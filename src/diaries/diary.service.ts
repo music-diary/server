@@ -301,6 +301,7 @@ export class DiaryService {
     userId: string,
     body: UpdateDiaryBodyDto,
   ): Promise<UpdateDiaryResponseDto> {
+    console.debug('UpdateDiaryBodyDto', body);
     await this.checkPermission(userId, id);
     const existed = await this.diariesRepository.findUniqueOne({
       where: { id },
