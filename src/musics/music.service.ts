@@ -79,7 +79,6 @@ export class MusicService {
       data['count'] = await this.getDiariesCount(userId, startDate, endDate);
       data['emotion'] = await this.getMostEmotion(userId, startDate, endDate);
     }
-    console.log('music archive emotion >>', data['emotion']);
 
     this.logService.verbose(
       `Get all musics archives from ${startAt} to ${endAt}`,
@@ -300,9 +299,10 @@ export class MusicService {
           where: {
             rootId: mostRoot[0].rootId,
           },
+          select: { parent: { include: { parent: true } } },
         })
       : null;
 
-    return { parent: mostFrequentEmotion };
+    return mostFrequentEmotion;
   }
 }
