@@ -219,6 +219,7 @@ export class MusicService {
             userId,
             selected: true,
             updatedAt: { gte: startDate, lt: endDate },
+            diary: { status: DiariesStatus.DONE },
           },
           orderBy: { updatedAt: 'desc' },
           select: {
