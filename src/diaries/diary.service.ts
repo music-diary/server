@@ -1,5 +1,16 @@
-import { HttpStatus, Injectable, NotFoundException } from '@nestjs/common';
-import { DiariesStatus, Prisma, TemplateContents } from '@prisma/client';
+import {
+  HttpStatus,
+  Injectable,
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
+import {
+  DiariesStatus,
+  Prisma,
+  TemplateContents,
+  DiaryTopics,
+  DiaryEmotions,
+} from '@prisma/client';
 import { LogService } from '@common/log.service';
 import {
   CreateDiaryBodyDto,
@@ -28,12 +39,18 @@ import { RecommendMusicResponseDto } from './dto/recommand-music.dto';
 import { Condition } from 'dynamoose';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { AIService } from '@service/ai/ai.service';
-import { MusicAiModelDto } from '@music/dto/musics.dto';
+import { MusicAiModelDto, MusicsDto } from '@music/dto/musics.dto';
 import { setKoreaTime } from '@common/util/date-time-converter';
 import { MusicRepository } from '@music/music.repository';
 import { MusicAiModelRepository } from '@music/music-ai.repository';
 import { DiaryDto } from './dto/diaries.dto';
 import { parseDateRange } from '@common/util/parse-date-range';
+import { TopicsDto } from './dto/topics.dto';
+import { EmotionsDto } from './dto/emotions.dto';
+import { TemplatesDto } from './dto/templates.dto';
+import { GenresDto } from '@genre/dto/genres.dto';
+import { UsersDto } from '@user/dto/user.dto';
+import { RecommendMusicToAIBodyDto } from '@service/ai/dto/recommend-ai.dto';
 
 @Injectable()
 export class DiaryService {
@@ -237,129 +254,46 @@ export class DiaryService {
     id: string,
   ): Promise<RecommendMusicResponseDto> {
     let musicCandidates: Partial<MusicAiModelDto>[];
-    const user = await this.prismaService.users.findUnique({
-      where: { id: userId },
-      select: { isGenreSuggested: true, genre: { select: { label: true } } },
-    });
-    const allGenres = await this.prismaService.genres.findMany({
-      select: { label: true },
-    });
-    await this.prismaService.$transaction(
-      async (tx: Prisma.TransactionClient) => {
-        const diary = await tx.diaries.update({
-          where: { id, userId },
-          data: { status: DiariesStatus.PENDING },
-          select: {
-            id: true,
-            userId: true,
-            content: true,
-            templates: { select: { templateContents: true } },
-            emotions: {
-              select: { emotions: { select: { id: true, aiScale: true } } },
-            },
-            user: {
-              select: {
-                id: true,
-                isGenreSuggested: true,
-                genre: { select: { label: true } },
-              },
-            },
-          },
-        });
-        if (!diary) {
-          throw new NotFoundException('Diary not found');
-        }
+    const user = await this.getUserWithGenres(userId);
 
-        const requestAiData = {
-          data:
-            diary['templates'] === null
-              ? diary.content
-              : diary['templates'].templateContents
-                  .map(
-                    (templateContent: TemplateContents) =>
-                      templateContent.content,
-                  )
-                  .join(' '),
+    try {
+      await this.prismaService.$transaction(
+        async (tx: Prisma.TransactionClient) => {
+          const diary = await this.updateDiaryStatusToPending(tx, id, userId);
+          const requestAiData = this.createRequestAiData(diary, user);
 
-          selected_genres: user.isGenreSuggested
-            ? allGenres.map((g) => g.label)
-            : diary.user.genre.map((g) => g.label), // ['pop', 'rock', 'hiphop', 'ballad', 'rnb'],
-          selected_feeling: diary.emotions.map(
-            (emotion) => emotion.emotions.aiScale ?? 3,
-          )[0], // # 1: 매우좋음, 2: 좋음, 3: 보통, 4:나쁨, 5:매우나쁨 --> 추후 다중선택
-          selected_feeling_2: diary.emotions.map(
-            (emotion) => emotion.emotions.aiScale,
-          ) ?? [1, 2],
-          genre_yn: Number(diary.user.isGenreSuggested) === 0 ? 0 : 1, // #0: 비선호 장르 추천 받지 않음, 1: 비선호 장르 추천 받음
-        };
+          const musicRecommendResult =
+            await this.aiService.recommendMusicsToAI(requestAiData);
+          const resultSongIds = this.extractSongIds(musicRecommendResult);
 
-        const musicRecommendResult =
-          await this.aiService.recommendMusicsToAI(requestAiData);
-
-        const resultSongIds = Object.values(musicRecommendResult.songId).map(
-          (songId) => songId.toString(),
-        );
-        await this.musicsRepository.deleteMany({
-          where: { diaryId: diary.id },
-        });
-        musicCandidates = await Promise.all(
-          resultSongIds.map(async (songId) => {
-            const condition = new Condition().filter('songId').contains(songId);
-            // TODO: 음악 추천 DB 바뀌면 수정 필요
-            const musicAiModel =
-              await this.musicAiModelRepository.findBySongId(condition);
-
-            const musicModel = musicAiModel[0];
-            const music = {
-              songId: musicModel.songId,
-              title: musicModel.title,
-              albumUrl: musicModel.albumUrl,
-              artist: musicModel.artist,
-              lyric: musicModel.lyric.replaceAll('\\n', '\n'),
-              originalGenre: musicModel.genre.replaceAll('"', ''),
-              youtubeUrl: musicModel.yt_url,
-              editorPick:
-                musicModel.editor_pick === 'None'
-                  ? null
-                  : musicModel.editor_name,
-              diaryId: diary.id,
-              userId,
-              createdAt: setKoreaTime(),
-              updatedAt: setKoreaTime(),
-            };
-            return await tx.musics.create({
-              data: music,
-              select: {
-                id: true,
-                title: true,
-                artist: true,
-                albumUrl: true,
-                selectedLyric: true,
-                lyric: true,
-                selected: true,
-                youtubeUrl: true,
-                editorPick: true,
-              },
-            });
-          }),
-        );
-        await tx.diaries.update({
-          where: { id, userId },
-          data: { status: DiariesStatus.EDIT },
-        });
-      },
-      {
-        maxWait: 5000,
-        timeout: 10000,
-      },
-    );
-
-    this.logService.verbose(`recommend musics by ${id}`, DiaryService.name);
-    return {
-      statusCode: HttpStatus.CREATED,
-      message: 'recommend musics',
-      data: musicCandidates,
-    };
+          await this.musicsRepository.deleteMany({
+            where: { diaryId: diary.id },
+          });
+          musicCandidates = await this.createMusicCandidates(
+            tx,
+            resultSongIds,
+            diary.id,
+            userId,
+          );
+          await this.updateDiaryStatusToEdit(tx, id, userId);
+        },
+        {
+          maxWait: 7000,
+          timeout: 13000,
+        },
+      );
+      this.logService.verbose(`recommend musics by ${id}`, DiaryService.name);
+      return {
+        statusCode: HttpStatus.CREATED,
+        message: 'recommend musics',
+        data: musicCandidates,
+      };
+    } catch (error) {
+      this.logService.error(JSON.stringify(error), DiaryService.name);
+      throw new InternalServerErrorException(
+        `Fail to Recommend Musics by diary ${id}`,
+      );
+    }
   }
 
   async update(
@@ -378,13 +312,17 @@ export class DiaryService {
     ) {
       throw new NotFoundException('Diary not found');
     }
+    if (body.status === DiariesStatus.EDIT) {
+      await this.updateDiaryToEdit(id, userId, body);
+    } else if (body.status === DiariesStatus.DONE) {
+      await this.updateDiaryToDone(id, userId, body);
+    }
 
-    const result = await this.updateDiary(id, userId, body);
-    this.logService.verbose(`Update diary by ${result.id}`, DiaryService.name);
+    this.logService.verbose(`Update diary by ${id}`, DiaryService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Update diary',
-      diaryId: result.id,
+      diaryId: id,
     };
   }
 
@@ -427,108 +365,325 @@ export class DiaryService {
     return true;
   }
 
-  private async updateDiary(
+  private async updateDiaryToEdit(
     id: string,
     userId: string,
     body: UpdateDiaryBodyDto,
   ): Promise<DiaryDto> {
-    const { status, title, content, ..._restBody } = body;
+    const {
+      status,
+      title,
+      content,
+      templates,
+      topics,
+      emotions,
+      music,
+      ..._restBody
+    } = body;
     const updateDiaryDataQuery: Prisma.DiariesUpdateInput = {
       status,
       title,
       content,
     };
-    if ('templates' in body && typeof body.templates === 'object') {
-      const createTemplateDataQuery: Prisma.TemplatesCreateArgs = {
-        data: {
-          ...body.templates,
-          templateContents: {
-            create: body.templates.templateContents.map((content) => ({
-              ...content,
-            })),
-          },
-        },
-      };
-      const template = await this.templatesRepository.create(
-        createTemplateDataQuery,
-      );
-      updateDiaryDataQuery.templates = {
-        connect: { id: template.id },
-      };
+
+    if ('templates' in body && typeof templates === 'object') {
+      const template = await this.updateEditedDiaryTemplate(templates);
+      updateDiaryDataQuery.templates = { connect: { id: template.id } };
     }
-    if ('topics' in body && typeof body.topics !== undefined) {
-      const diaryTopics = await this.diaryTopicsRepository.findAll({
-        where: { diaryId: id },
-      });
-      if (diaryTopics) {
-        const deleteDiaryTopicsQuery: Prisma.DiaryTopicsDeleteManyArgs = {
-          where: {
-            diaryId: id,
-            topicId: {
-              in: diaryTopics.map((diaryTopic) => diaryTopic.topicId),
-            },
-          },
-        };
-        await this.diaryTopicsRepository.deleteMany(deleteDiaryTopicsQuery);
-      }
-      const createDiaryTopicsData: Prisma.DiaryTopicsCreateManyInput[] =
-        body.topics.map((topic) => ({
-          diaryId: id,
-          topicId: topic.id,
-          musicId: body.music?.id ?? null,
-          userId,
-        }));
-      const createDiaryTopicsQuery: Prisma.DiaryTopicsCreateManyArgs = {
-        data: createDiaryTopicsData,
-      };
-      await this.diaryTopicsRepository.createMany(createDiaryTopicsQuery);
+
+    if (topics) {
+      await this.updateEditedDiaryTopics(id, userId, topics, music);
     }
-    if ('emotions' in body && typeof body.emotions === 'object') {
-      const findDiaryEmotionsQuery: Prisma.DiaryEmotionsFindManyArgs = {
-        where: { diaryId: id },
-      };
-      const diaryEmotions = await this.diaryEmotionsRepository.findAll(
-        findDiaryEmotionsQuery,
-      );
-      if (diaryEmotions) {
-        const deleteDiaryEmotionsQuery: Prisma.DiaryEmotionsDeleteManyArgs = {
-          where: {
-            diaryId: id,
-            emotionId: {
-              in: diaryEmotions.map((diaryEmotion) => diaryEmotion.emotionId),
-            },
-          },
-        };
-        await this.diaryEmotionsRepository.deleteMany(deleteDiaryEmotionsQuery);
-      }
-      const createDiaryEmotionsQuery: Prisma.DiaryEmotionsCreateManyArgs = {
-        data: body.emotions.map((emotion) => ({
-          diaryId: id,
-          emotionId: emotion.id,
-          musicId: body.music?.id ?? null,
-          userId,
-        })),
-      };
-      await this.diaryEmotionsRepository.createMany(createDiaryEmotionsQuery);
+
+    if (emotions && typeof emotions === 'object') {
+      await this.updateEditedDiaryEmotions(id, userId, emotions, music);
     }
-    if ('music' in body && typeof body.music === 'object') {
-      const { id: musicId, ...restMusic } = body.music;
+
+    if (music && typeof music === 'object') {
+      const { id: musicId, ...restMusic } = music;
       updateDiaryDataQuery.musics = {
         update: {
           where: { id: musicId },
           data: { ...restMusic, updatedAt: setKoreaTime() },
         },
       };
-      const unselectMusicQuery: Prisma.MusicsUpdateManyArgs = {
-        where: { AND: [{ diaryId: id }, { id: { not: musicId } }] },
-        data: { selected: false },
-      };
-      await this.musicsRepository.updateMany(unselectMusicQuery);
+      await this.updateEditedDiaryMusic(id, music);
     }
-    const updateDiaryQuery: Prisma.DiariesUpdateArgs = {
+    return await this.diariesRepository.update({
       where: { id },
       data: { ...updateDiaryDataQuery },
+    });
+  }
+
+  private async updateDiaryToDone(
+    id: string,
+    userId: string,
+    body: UpdateDiaryBodyDto,
+  ): Promise<DiaryDto> {
+    const { status, music, ..._restBody } = body;
+    const existedDiary = await this.diariesRepository.findUniqueOne({
+      where: { id },
+      include: { emotions: true, topics: true },
+    });
+    return await this.diariesRepository.update({
+      where: { id },
+      data: {
+        status,
+        musics: {
+          update: { where: { id: music.id }, data: music },
+        },
+        topics: {
+          updateMany: existedDiary['topics'].map((diaryTopic: DiaryTopics) => {
+            return {
+              where: { id: diaryTopic.id },
+              data: { updatedAt: setKoreaTime(), musicId: music.id },
+            };
+          }),
+        },
+        emotions: {
+          updateMany: existedDiary['emotions'].map(
+            (diaryEmotion: DiaryEmotions) => {
+              return {
+                where: { id: diaryEmotion.id },
+                data: { updatedAt: setKoreaTime(), musicId: music.id },
+              };
+            },
+          ),
+        },
+      },
+    });
+  }
+
+  private async updateEditedDiaryTemplate(
+    templates: TemplatesDto,
+  ): Promise<TemplatesDto> {
+    return await this.templatesRepository.create({
+      data: {
+        ...templates,
+        templateContents: {
+          create: templates.templateContents.map((content) => ({
+            ...content,
+          })),
+        },
+      },
+    });
+  }
+
+  private async updateEditedDiaryTopics(
+    id: string,
+    userId: string,
+    topics: Array<TopicsDto>,
+    music?: MusicsDto,
+  ): Promise<void> {
+    await this.diaryTopicsRepository.deleteMany({
+      where: {
+        diaryId: id,
+        topicId: {
+          in: (
+            await this.diaryTopicsRepository.findAll({
+              where: { diaryId: id },
+            })
+          ).map((dt) => dt.topicId),
+        },
+      },
+    });
+    await this.diaryTopicsRepository.createMany({
+      data: topics.map((topic) => ({
+        diaryId: id,
+        topicId: topic.id,
+        musicId: music?.id ?? null,
+        userId,
+      })),
+    });
+  }
+
+  private async updateEditedDiaryEmotions(
+    id: string,
+    userId: string,
+    emotions: Array<EmotionsDto>,
+    music?: MusicsDto,
+  ): Promise<void> {
+    await this.diaryEmotionsRepository.deleteMany({
+      where: {
+        diaryId: id,
+        emotionId: {
+          in: (
+            await this.diaryEmotionsRepository.findAll({
+              where: { diaryId: id },
+            })
+          ).map((de) => de.emotionId),
+        },
+      },
+    });
+    await this.diaryEmotionsRepository.createMany({
+      data: emotions.map((emotion) => ({
+        diaryId: id,
+        emotionId: emotion.id,
+        musicId: music?.id ?? null,
+        userId,
+      })),
+    });
+  }
+
+  private async updateEditedDiaryMusic(
+    id: string,
+    music: MusicsDto,
+  ): Promise<void> {
+    const { id: musicId, ..._restMusic } = music;
+    await this.musicsRepository.updateMany({
+      where: { AND: [{ diaryId: id }, { id: { not: musicId } }] },
+      data: { selected: false },
+    });
+  }
+
+  private async getUserWithGenres(userId: string): Promise<Partial<UsersDto>> {
+    return await this.prismaService.users.findUnique({
+      where: { id: userId },
+      select: { isGenreSuggested: true, genre: { select: { label: true } } },
+    });
+  }
+
+  private async getAllGenres(): Promise<Partial<GenresDto>[]> {
+    return await this.prismaService.genres.findMany({
+      select: { label: true },
+    });
+  }
+
+  private async updateDiaryStatusToPending(
+    tx: Prisma.TransactionClient,
+    id: string,
+    userId: string,
+  ): Promise<Partial<DiaryDto>> {
+    const diary = await tx.diaries.update({
+      where: { id, userId },
+      data: { status: DiariesStatus.PENDING },
+      select: {
+        id: true,
+        userId: true,
+        content: true,
+        templates: true,
+        emotions: {
+          select: { emotions: true },
+        },
+        user: {
+          select: {
+            id: true,
+            isGenreSuggested: true,
+            genre: { select: { label: true } },
+          },
+        },
+      },
+    });
+    if (!diary) {
+      throw new NotFoundException('Diary not found');
+    }
+    return diary;
+  }
+
+  private createRequestAiData(
+    diary: Partial<DiaryDto>,
+    user: Partial<UsersDto>,
+  ): RecommendMusicToAIBodyDto {
+    return {
+      data:
+        diary['templates'] === null
+          ? diary.content
+          : diary['templates'].templateContents
+              .map(
+                (templateContent: TemplateContents) => templateContent.content,
+              )
+              .join(' '),
+      selected_genres: user['genre'].map((genre: GenresDto) => genre.label),
+      selected_feeling: diary['emotions'].map(
+        (emotion) => emotion['emotions'].aiScale ?? 3,
+      )[0],
+      selected_feeling_2: diary['emotions'].map(
+        (emotion) => emotion.emotions.aiScale,
+      ) ?? [1, 2],
+      genre_yn: Number(user.isGenreSuggested) === 0 ? 0 : 1,
+      userId: user.id,
     };
-    return await this.diariesRepository.update(updateDiaryQuery);
+  }
+
+  private extractSongIds(musicRecommendResult: any): Array<string> {
+    return Object.values(musicRecommendResult.songId).map((songId) =>
+      songId.toString(),
+    );
+  }
+
+  private async createMusicCandidates(
+    tx: Prisma.TransactionClient,
+    resultSongIds: string[],
+    diaryId: string,
+    userId: string,
+  ): Promise<Partial<MusicsDto>[]> {
+    try {
+      return await Promise.all(
+        resultSongIds.map(async (resultSongId): Promise<Partial<MusicsDto>> => {
+          const condition = new Condition()
+            .filter('songId')
+            .contains(resultSongId);
+          const musicAiModel =
+            await this.musicAiModelRepository.findBySongId(condition);
+          const musicModel = musicAiModel[0];
+
+          const {
+            songId,
+            title,
+            albumUrl,
+            artist,
+            yt_url,
+            lyric,
+            genre,
+            editor_pick,
+            editor_name,
+            ..._restMusicModel
+          } = musicModel;
+
+          const music = {
+            songId,
+            title,
+            albumUrl,
+            artist,
+            lyric: lyric.replaceAll('\\n', '\n'),
+            originalGenre: genre.replaceAll('"', ''),
+            youtubeUrl: yt_url,
+            editorPick: editor_pick === 'None' ? null : editor_name,
+            diaryId,
+            userId,
+            createdAt: setKoreaTime(),
+            updatedAt: setKoreaTime(),
+          };
+          return await tx.musics.create({
+            data: music,
+            select: {
+              id: true,
+              title: true,
+              artist: true,
+              albumUrl: true,
+              selectedLyric: true,
+              lyric: true,
+              selected: true,
+              youtubeUrl: true,
+              editorPick: true,
+            },
+          });
+        }),
+      );
+    } catch (error) {
+      this.logService.error(JSON.stringify(error), DiaryService.name);
+      throw new InternalServerErrorException(`Fail to create Music Candidates`);
+    }
+  }
+
+  private async updateDiaryStatusToEdit(
+    tx: Prisma.TransactionClient,
+    id: string,
+    userId: string,
+  ): Promise<void> {
+    await tx.diaries.update({
+      where: { id, userId },
+      data: { status: DiariesStatus.EDIT },
+    });
   }
 }
