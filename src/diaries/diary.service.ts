@@ -408,7 +408,7 @@ export class DiaryService {
           data: { ...restMusic, updatedAt: setKoreaTime() },
         },
       };
-      await this.updateEditedDiaryMusic(id, music);
+      await this.updateDiaryMusic(id, music);
     }
     return await this.diariesRepository.update({
       where: { id },
@@ -424,14 +424,19 @@ export class DiaryService {
     const { status, music, ..._restBody } = body;
     const existedDiary = await this.diariesRepository.findUniqueOne({
       where: { id },
-      include: { emotions: true, topics: true },
+      include: { emotions: true, topics: true, musics: true },
     });
     return await this.diariesRepository.update({
       where: { id },
       data: {
         status,
         musics: {
-          update: { where: { id: music.id }, data: music },
+          updateMany: existedDiary['musics'].map((music: MusicsDto) => {
+            return {
+              where: { id: music.id },
+              data: { updatedAt: setKoreaTime() },
+            };
+          }),
         },
         topics: {
           updateMany: existedDiary['topics'].map((diaryTopic: DiaryTopics) => {
@@ -526,10 +531,7 @@ export class DiaryService {
     });
   }
 
-  private async updateEditedDiaryMusic(
-    id: string,
-    music: MusicsDto,
-  ): Promise<void> {
+  private async updateDiaryMusic(id: string, music: MusicsDto): Promise<void> {
     const { id: musicId, ..._restMusic } = music;
     await this.musicsRepository.updateMany({
       where: { AND: [{ diaryId: id }, { id: { not: musicId } }] },
@@ -545,12 +547,6 @@ export class DiaryService {
         isGenreSuggested: true,
         genre: { select: { label: true } },
       },
-    });
-  }
-
-  private async getAllGenres(): Promise<Partial<GenresDto>[]> {
-    return await this.prismaService.genres.findMany({
-      select: { label: true },
     });
   }
 
