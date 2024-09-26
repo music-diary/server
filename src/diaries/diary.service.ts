@@ -421,7 +421,7 @@ export class DiaryService {
     userId: string,
     body: UpdateDiaryBodyDto,
   ): Promise<DiaryDto> {
-    const { status, music, ..._restBody } = body;
+    const { status, ..._restBody } = body;
     const existedDiary = await this.diariesRepository.findUniqueOne({
       where: { id },
       include: { emotions: true, topics: true, musics: true },
@@ -442,7 +442,7 @@ export class DiaryService {
           updateMany: existedDiary['topics'].map((diaryTopic: DiaryTopics) => {
             return {
               where: { id: diaryTopic.id },
-              data: { updatedAt: setKoreaTime(), musicId: music.id },
+              data: { updatedAt: setKoreaTime() },
             };
           }),
         },
@@ -451,7 +451,7 @@ export class DiaryService {
             (diaryEmotion: DiaryEmotions) => {
               return {
                 where: { id: diaryEmotion.id },
-                data: { updatedAt: setKoreaTime(), musicId: music.id },
+                data: { updatedAt: setKoreaTime() },
               };
             },
           ),
