@@ -273,6 +273,7 @@ model Sponsors {
   id          Int    @id @default(autoincrement())
   phoneNumber String @map("phoneNumber")
 
+  @@unique([phoneNumber])
   @@index([id, phoneNumber])
   @@map("sponsors")
 }
