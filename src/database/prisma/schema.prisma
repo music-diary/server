@@ -58,6 +58,7 @@ enum Gender {
 
 enum Role {
   USER
+  SPONSOR
   ADMIN
 }
 
@@ -266,4 +267,13 @@ model ContactTypes {
   @@unique([name])
   @@index([id])
   @@map("contact_types")
+}
+
+model Sponsors {
+  id          Int    @id @default(autoincrement())
+  phoneNumber String @map("phoneNumber")
+
+  @@unique([phoneNumber])
+  @@index([id, phoneNumber])
+  @@map("sponsors")
 }

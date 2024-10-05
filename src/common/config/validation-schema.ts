@@ -16,6 +16,9 @@ export const validationSchema = Joi.object({
   JWT_ACCESS_SECRET: Joi.string().required(),
   JWT_ACCESS_EXPIRE_IN: Joi.string().required(),
 
+  ENCRYPTION_KEY: Joi.string().required(),
+  IV: Joi.string().required(),
+
   AWS_REGION: Joi.string().required(),
   AWS_ACCESS_KEY_ID: Joi.string().required(),
   AWS_SECRET_ACCESS_KEY: Joi.string().required(),

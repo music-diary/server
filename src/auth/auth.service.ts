@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, Users, UserStatus } from '@prisma/client';
+import { Prisma, Role, Users, UserStatus } from '@prisma/client';
 import { CommonDto } from '@common/dto/common.dto';
 import {
   LoginBody,
@@ -21,6 +21,8 @@ import { SimpleNotificationService } from '@service/simple-notification/simple-n
 import { UserRepository } from '@user/user.repository';
 import { generateSignUpCode } from '@common/util/code-generator';
 import { GenresDto } from '@genre/dto/genres.dto';
+import { SponsorRepository } from '../users/sponsor.repository';
+import { decrypt } from '../common/util/crypto';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -33,17 +35,19 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly userRepository: UserRepository,
+    private readonly sponsorRepository: SponsorRepository,
   ) {}
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
     const { phoneNumber } = body;
 
+    const isSponsor = await this.validateSponsor(phoneNumber);
     const existedUser = await this.userRepository.findOne({
       where: { phoneNumber, status: UserStatus.ACTIVE },
     });
     const { key, code } = generateSignUpCode(phoneNumber);
     const isVerified = existedUser ? true : false;
-    const value = { isVerified, code };
+    const value = { isVerified, code, isSponsor };
     await this.redisRepository.set(key, JSON.stringify(value), EXPIRE);
     await this.simpleNotificationService.publishSms(phoneNumber, code);
     this.logService.verbose(
@@ -65,7 +69,7 @@ export class AuthService {
     if (!existed) {
       throw new BadRequestException('The code has been expired.');
     }
-    const { isVerified, code: savedCode } = JSON.parse(existed);
+    const { isVerified, code: savedCode, isSponsor } = JSON.parse(existed);
     if (code !== savedCode) {
       throw new BadRequestException('The code is incorrect.');
     }
@@ -85,7 +89,10 @@ export class AuthService {
         token: accessToken,
       };
     } else {
-      await this.redisRepository.set(key, JSON.stringify({ isVerified: true }));
+      await this.redisRepository.set(
+        key,
+        JSON.stringify({ isVerified: true, isSponsor }),
+      );
       this.logService.verbose(
         `Successfully verified the phone number code for ${phoneNumber}`,
         AuthService.name,
@@ -106,7 +113,7 @@ export class AuthService {
     if (!verifiedPhoneNumber) {
       throw new UnauthorizedException('Phone number is not verified');
     }
-    const { isVerified } = JSON.parse(verifiedPhoneNumber);
+    const { isVerified, isSponsor } = JSON.parse(verifiedPhoneNumber);
     if (!isVerified) {
       throw new UnauthorizedException('Phone number is not verified');
     }
@@ -114,6 +121,7 @@ export class AuthService {
       {
         phoneNumber,
         birthDay: birthDayDate,
+        role: isSponsor ? Role.SPONSOR : Role.USER,
         ...data,
       },
       genres,
@@ -159,6 +167,38 @@ export class AuthService {
       },
     };
     return await this.userRepository.create(createUserQuery);
+  }
+
+  private async validateSponsor(phoneNumber: string): Promise<boolean> {
+    const sponsors = await this.redisRepository.get('sponsors');
+    const sponsorPhoneNumbers = sponsors
+      ? JSON.parse(sponsors)
+      : await this.fetchAndCacheSponsors();
+
+    return sponsorPhoneNumbers.some((phone: string) =>
+      this.isPhoneNumberMatch(phone, phoneNumber),
+    );
+  }
+
+  private async fetchAndCacheSponsors(): Promise<string[]> {
+    const allSponsors = await this.sponsorRepository.findMany({});
+    const sponsorPhoneNumbers = allSponsors.map(
+      (sponsor) => sponsor.phoneNumber,
+    );
+    await this.redisRepository.set(
+      'sponsors',
+      JSON.stringify(sponsorPhoneNumbers),
+    );
+    return sponsorPhoneNumbers;
+  }
+
+  private isPhoneNumberMatch(phone: string, phoneNumber: string): boolean {
+    try {
+      return decrypt(phone) === phoneNumber;
+    } catch (error) {
+      console.error('Decryption error:', error);
+      return false;
+    }
   }
 
   // NOTE: This is a temporary implementation for the test.

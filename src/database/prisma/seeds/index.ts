@@ -1,4 +1,4 @@
-import { DiariesStatus, PrismaClient } from '@prisma/client';
+import { PrismaClient } from '@prisma/client';
 import {
   basicEmotionsData,
   firstDepthsEmotionsData,
@@ -8,11 +8,11 @@ import { genresData } from './genres.seed';
 import { templateContentsData, templatesData } from './templates.seed';
 import { topicsData } from './topics.seed';
 import { adminUserData, userData } from './users.seed';
-import { musicsData } from './musics.seed';
 import { withdrawalData } from './withdrawal.seed';
 import { contactTypesData } from './contact.seed';
 import { parseArgs } from 'node:util';
 import { demo } from './demo.seed';
+import { sponsor } from './sponsor.seed';
 
 const prisma = new PrismaClient();
 
@@ -155,6 +155,17 @@ switch (environment) {
     break;
   case 'demo':
     demo()
+      .then(async () => {
+        await prisma.$disconnect();
+      })
+      .catch(async (e) => {
+        console.error(e);
+        await prisma.$disconnect();
+        process.exit(1);
+      });
+    break;
+  case 'sponsor':
+    sponsor()
       .then(async () => {
         await prisma.$disconnect();
       })
