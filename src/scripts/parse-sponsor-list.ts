@@ -9,7 +9,7 @@ function filterDuplicatedData(dataList: string[][]): Set<string> {
   const contactSet = new Set<string>();
   for (const data of dataList) {
     if (isNaN(parseInt(data[0])) || data[1].length < 1) continue;
-    if (parseInt(data[0])) contactSet.add(data[1]);
+    if (parseInt(data[0])) contactSet.add(`+82${data[1].replaceAll('-', '')}`);
   }
   return contactSet;
 }
