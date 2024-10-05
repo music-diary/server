@@ -26,6 +26,7 @@
     "db:push": "npx prisma db push",
     "db:seed": "npx prisma db seed -- --environment seed",
     "db:seed:demo": "npx prisma db seed -- --environment demo",
+    "db:seed:sponsor": "npx prisma db seed -- --environment sponsor",
     "db:reset": "npx prisma migrate reset"
   },
   "dependencies": {
