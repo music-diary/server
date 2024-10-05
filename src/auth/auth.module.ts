@@ -7,6 +7,7 @@ import { RedisRepository } from '@database/redis.repository';
 import { SimpleNotificationService } from '@service/simple-notification/simple-notification.service';
 import { UserRepository } from '@user/user.repository';
 import { PrismaService } from '@database/prisma/prisma.service';
+import { SponsorRepository } from '@user/sponsor.repository';
 
 @Module({
   controllers: [AuthController],
@@ -17,6 +18,7 @@ import { PrismaService } from '@database/prisma/prisma.service';
     SimpleNotificationService,
     JwtService,
     UserRepository,
+    SponsorRepository,
     PrismaService,
   ],
 })
