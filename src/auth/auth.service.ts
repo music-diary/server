@@ -23,6 +23,7 @@ import { generateSignUpCode } from '@common/util/code-generator';
 import { GenresDto } from '@genre/dto/genres.dto';
 import { SponsorRepository } from '../users/sponsor.repository';
 import { decrypt } from '../common/util/crypto';
+import { TEST_ACCOUNT_PHONE_NUMBER } from '@common/consts/data.const';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -40,6 +41,17 @@ export class AuthService {
 
   async sendPhoneNumberCode(body: SendPhoneNumberCodeBody): Promise<CommonDto> {
     const { phoneNumber } = body;
+
+    // NOTE: App Test 심사용
+    if (phoneNumber === TEST_ACCOUNT_PHONE_NUMBER) {
+      const key = `signUp:${phoneNumber}`;
+      const value = { isVerified: true, isSponsor: false };
+      await this.redisRepository.set(key, JSON.stringify(value));
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Successfully send the phone number code for test account.',
+      };
+    }
 
     const isSponsor = await this.validateSponsor(phoneNumber);
     const existedUser = await this.userRepository.findOne({
