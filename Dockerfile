@@ -21,7 +21,7 @@ WORKDIR /app
 COPY --from=builder /app/dist ./dist
 COPY --from=builder /app/node_modules ./node_modules
 COPY package*.json ./
-COPY .env ./
+COPY ./.env ./
 
 EXPOSE 5000
 CMD ["npm", "run", "start:prod"]
