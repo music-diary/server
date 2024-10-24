@@ -8,19 +8,22 @@ datasource db {
 }
 
 model Users {
-  id                 String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  phoneNumber        String     @map("phone_number") // TODO production 시, unique 처리 필수
-  name               String     @db.VarChar(6)
-  birthDay           DateTime   @map("birth_day") @db.Date()
-  gender             Gender     @default(FEMALE)
-  isGenreSuggested   Boolean    @map("is_genre_suggested") // 새로운 장르 추천 여부
-  isAgreedMarketing  Boolean    @map("is_agreed_marketing") // 마케팅 동의여부
-  useLimitCount      Int        @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
-  IsAgreedDiaryAlarm Boolean    @default(false) @map("is_agreed_diary_alarm")
-  diaryAlarmTime     String?    @map("diary_alarm_time")
-  role               Role       @default(USER)
-  status             UserStatus @default(ACTIVE)
-  withdrawalsId      String?    @map("withdrawals_id") @db.Uuid
+  id                 String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  phoneNumber        String        @map("phone_number") // TODO production 시, unique 처리 필수
+  email              String?
+  name               String        @db.VarChar(6)
+  birthDay           DateTime      @map("birth_day") @db.Date()
+  gender             Gender        @default(FEMALE)
+  isGenreSuggested   Boolean       @map("is_genre_suggested") // 새로운 장르 추천 여부
+  isAgreedMarketing  Boolean       @map("is_agreed_marketing") // 마케팅 동의여부
+  useLimitCount      Int           @default(1) @map("use_limit_count") // 무료인 경우 자정 기준 1번만 가능 (편지, 일기)
+  IsAgreedDiaryAlarm Boolean       @default(false) @map("is_agreed_diary_alarm")
+  diaryAlarmTime     String?       @map("diary_alarm_time")
+  role               Role          @default(USER)
+  status             UserStatus    @default(ACTIVE)
+  withdrawalsId      String?       @map("withdrawals_id") @db.Uuid
+  providerId         String?       @map("provider_id")
+  providerType       ProviderTypes @default(LOCAL) @map("provider_type")
 
   withdrawals    Withdrawals?     @relation(fields: [withdrawalsId], references: [id])
   diary          Diaries[]        @relation("UserDiaries")
@@ -276,4 +279,10 @@ model Sponsors {
   @@unique([phoneNumber])
   @@index([id, phoneNumber])
   @@map("sponsors")
+}
+
+enum ProviderTypes {
+  LOCAL
+  APPLE
+  GOOGLE
 }

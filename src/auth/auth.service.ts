@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, Role, Users, UserStatus } from '@prisma/client';
+import { Prisma, ProviderTypes, Role, Users, UserStatus } from '@prisma/client';
 import { CommonDto } from '@common/dto/common.dto';
 import {
   LoginBody,
@@ -24,6 +24,8 @@ import { GenresDto } from '@genre/dto/genres.dto';
 import { SponsorRepository } from '../users/sponsor.repository';
 import { decrypt } from '../common/util/crypto';
 import { TEST_ACCOUNT_PHONE_NUMBER } from '@common/consts/data.const';
+import { OauthLoginBody } from './dto/oauth-login.dto';
+import { AuthCode } from '../../dist/common/util/code-generator';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -230,5 +232,66 @@ export class AuthService {
       user: existedUser,
       token: accessToken,
     };
+  }
+
+  async oauthLogin(body: OauthLoginBody) {
+    const { provider, authCode } = body;
+    // verify the provider and authCode
+    const user = await this.userRepository.findOne({
+      where: { name: 'hi' },
+    });
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    const { accessToken } = await this.createAccessToken(user.id);
+    this.logService.verbose('Successfully logged in', AuthService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Successfully logged in',
+      data: user.id,
+      token: accessToken,
+    };
+  }
+
+  async validateOAuthLogin(profile: any, provider: ProviderTypes) {
+    try {
+      console.log(profile);
+      console.log(provider);
+      // 기존 사용자 확인
+      const user = await this.userRepository.findOne({
+        where: {
+          providerType: provider,
+          providerId: profile.AuthCode,
+        },
+      });
+
+      // if (!user) {
+      //   // 새 사용자 생성
+      //   user = await this.userRepository.create({
+      //     data: {
+      //       phoneNumber: profile.phoneNumber,
+      //       email: profile.email,
+      //       name: profile.firstName + profile.lastName,
+      //       providerType: provider,
+      //       providerId: profile.id,
+      //     },
+      //   });
+      // } else {
+      //   // 기존 사용자 정보 업데이트
+      //   user = await this.prisma.user.update({
+      //     where: { id: user.id },
+      //     data: {
+      //       firstName: profile.firstName,
+      //       lastName: profile.lastName,
+      //       profileImage: profile.picture,
+      //       lastLoginAt: new Date(),
+      //     },
+      //   });
+      // }
+
+      return user;
+    } catch (error) {
+      throw new UnauthorizedException('Failed to validate OAuth login');
+    }
   }
 }
