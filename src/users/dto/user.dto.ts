@@ -1,12 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import {
-  $Enums,
-  Gender,
-  ProviderTypes,
-  Role,
-  Users,
-  UserStatus,
-} from '@prisma/client';
+import { Gender, ProviderTypes, Role, Users, UserStatus } from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
@@ -33,8 +26,9 @@ export class UsersDto implements Users {
   id: string;
 
   @ApiProperty()
+  @IsOptional()
   @IsPhoneNumber('KR')
-  phoneNumber: string;
+  phoneNumber: string | null;
 
   @ApiProperty()
   @IsOptional()

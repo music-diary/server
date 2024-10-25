@@ -116,28 +116,65 @@ export class AuthService {
       };
     }
   }
-  async create(body: SignUpBody): Promise<SignUpResponseDto> {
-    const { phoneNumber, birthDay, genres, ...data } = body;
-    const birthDayDate = new Date(birthDay);
 
-    const key = `signUp:${phoneNumber}`;
-    const verifiedPhoneNumber = await this.redisRepository.get(key);
-    if (!verifiedPhoneNumber) {
-      throw new UnauthorizedException('Phone number is not verified');
+  // FIXME: DELETE THIS LATER
+  // async create(body: SignUpBody): Promise<SignUpResponseDto> {
+  //   const { phoneNumber, birthDay, genres, ...data } = body;
+  //   const birthDayDate = new Date(birthDay);
+
+  //   const key = `signUp:${phoneNumber}`;
+  //   const verifiedPhoneNumber = await this.redisRepository.get(key);
+  //   if (!verifiedPhoneNumber) {
+  //     throw new UnauthorizedException('Phone number is not verified');
+  //   }
+  //   const { isVerified, isSponsor } = JSON.parse(verifiedPhoneNumber);
+  //   if (!isVerified) {
+  //     throw new UnauthorizedException('Phone number is not verified');
+  //   }
+  //   const newUser: Users = await this.createUserAndGenres(
+  //     {
+  //       phoneNumber,
+  //       birthDay: birthDayDate,
+  //       role: isSponsor ? Role.SPONSOR : Role.USER,
+  //       ...data,
+  //     },
+  //     genres,
+  //   );
+  //   const { accessToken } = await this.createAccessToken(newUser.id);
+  //   this.logService.verbose(
+  //     `Successfully signed up - ${newUser.id}`,
+  //     AuthService.name,
+  //   );
+  //   return {
+  //     statusCode: HttpStatus.CREATED,
+  //     message: 'Successfully sign up',
+  //     user: newUser,
+  //     token: accessToken,
+  //   };
+  // }
+
+  async create(body: SignUpBody): Promise<SignUpResponseDto> {
+    const { phoneNumber, birthDay, genres, idToken, ...data } = body;
+    const birthDayDate = new Date(birthDay);
+    const key = `signUp:${idToken}`;
+    const verified = await this.redisRepository.get(key);
+    console.log('create verified: ', verified);
+    if (!verified) {
+      throw new UnauthorizedException('The token is not verified');
     }
-    const { isVerified, isSponsor } = JSON.parse(verifiedPhoneNumber);
-    if (!isVerified) {
-      throw new UnauthorizedException('Phone number is not verified');
-    }
-    const newUser: Users = await this.createUserAndGenres(
+    const { email, providerType } = JSON.parse(verified);
+    const newUser = await this.createUserAndGenres(
       {
+        email,
+        idToken,
+        providerType,
         phoneNumber,
         birthDay: birthDayDate,
-        role: isSponsor ? Role.SPONSOR : Role.USER,
         ...data,
       },
       genres,
     );
+    console.log('create newUser: ', newUser);
     const { accessToken } = await this.createAccessToken(newUser.id);
     this.logService.verbose(
       `Successfully signed up - ${newUser.id}`,
@@ -161,18 +198,18 @@ export class AuthService {
       secret,
       expiresIn,
     });
-    return {
-      accessToken,
-    };
+    return { accessToken };
   }
 
   private async createUserAndGenres(
     userData: SignUpBody,
     genresData: Array<Pick<GenresDto, 'id'>>,
   ): Promise<Users> {
+    const { idToken, ...data } = userData;
     const createUserQuery: Prisma.UsersCreateArgs = {
       data: {
-        ...userData,
+        ...data,
+        providerId: idToken,
         genre: {
           connect: genresData.map((genre) => ({ id: genre.id })),
         },
@@ -234,12 +271,37 @@ export class AuthService {
 
   async oauthLogin(user: any) {
     console.log('oauthLogin user: ', user);
+    const key = `signUp:${user.id}`;
+    const existed = await this.redisRepository.get(key);
+    console.log('oauthLogin existed cache: ', existed);
+    if (!existed) {
+      const value = { email: user.email, providerType: user.providerType };
+      await this.redisRepository.set(key, JSON.stringify(value));
+      await this.userRepository.create({
+        data: {
+          email: user.email,
+          providerType: user.providerType,
+          providerId: user.id,
+        },
+      });
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Successfully logged in',
+        data: undefined,
+        token: undefined,
+      };
+    }
     const { accessToken } = await this.createAccessToken(user.id);
+    console.log('oauthLogin accessToken: ', accessToken);
+    const existedUser = await this.userRepository.findOne({
+      where: { providerId: user.id },
+    });
+    console.log('oauthLogin existedUser: ', existedUser);
     this.logService.verbose('Successfully logged in', AuthService.name);
     return {
       statusCode: HttpStatus.OK,
       message: 'Successfully logged in',
-      data: user.id,
+      data: existedUser,
       token: accessToken,
     };
   }

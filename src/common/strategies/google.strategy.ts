@@ -41,18 +41,23 @@ export class GoogleTokenStrategy extends PassportStrategy(
       console.log('google payload:', payload);
 
       // 사용자 정보 검증 및 저장
-      const user = await this.authService.validateOAuthUser(
-        {
-          email: payload.email,
-          name: payload.name ?? undefined,
-          firstName: payload.given_name ?? undefined,
-          lastName: payload.family_name ?? undefined,
-          provideId: payload.sub,
-        },
-        ProviderTypes.GOOGLE,
-      );
-      console.log('google user:', user);
-      return user;
+      // const user = await this.authService.validateOAuthUser(
+      //   {
+      //     email: payload.email,
+      //     name: payload.name ?? undefined,
+      //     firstName: payload.given_name ?? undefined,
+      //     lastName: payload.family_name ?? undefined,
+      //     provideId: payload.sub,
+      //   },
+      //   ProviderTypes.GOOGLE,
+      // );
+      // console.log('google user:', user);
+      // return user;
+      return {
+        id: payload.sub,
+        email: payload.email,
+        providerType: ProviderTypes.GOOGLE,
+      };
     } catch (error) {
       console.error(error);
       throw new UnauthorizedException('Invalid Google token');

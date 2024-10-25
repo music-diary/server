@@ -4,10 +4,8 @@ import { Strategy } from 'passport-custom';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '@auth/auth.service';
 import { ProviderTypes } from '@prisma/client';
-
-import jwksClient, { JwksClient, SigningKey } from 'jwks-rsa';
+import { JwksClient } from 'jwks-rsa';
 import jwt from 'jsonwebtoken';
-import { AppleIdToken } from '@common/types/oauth.type';
 
 @Injectable()
 export class AppleTokenStrategy extends PassportStrategy(
@@ -15,8 +13,6 @@ export class AppleTokenStrategy extends PassportStrategy(
   'apple-token',
 ) {
   private jwksClient: JwksClient;
-  private APPLE_BASE_URL: string;
-  private JWKS_APPLE_URI: string;
   constructor(
     private readonly configService: ConfigService,
     private readonly authService: AuthService,
@@ -43,16 +39,16 @@ export class AppleTokenStrategy extends PassportStrategy(
       console.log('apple decoded:', decoded);
 
       // 사용자 정보 검증 및 저장
-      const user = await this.authService.validateOAuthUser(
-        {
-          email: decoded.email,
-          providerId: decoded.id,
-        },
-        ProviderTypes.APPLE,
-      );
-      console.log('apple user:', user);
+      // const user = await this.authService.validateOAuthUser(
+      //   {
+      //     email: decoded.email,
+      //     providerId: decoded.id,
+      //   },
+      //   ProviderTypes.APPLE,
+      // );
+      // console.log('apple user:', user);
 
-      return user;
+      return decoded;
     } catch (error) {
       console.error(error);
       throw new UnauthorizedException('Apple authentication failed');
@@ -86,6 +82,7 @@ export class AppleTokenStrategy extends PassportStrategy(
       id: payload.sub,
       email: payload.email,
       emailVerified: payload.email_verified,
+      providerType: ProviderTypes.APPLE,
     };
   }
 }
