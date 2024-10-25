@@ -9,7 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 import { AuthService } from './auth.service';
 import {
@@ -20,7 +20,13 @@ import {
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 import { CommonDto } from '@common/dto/common.dto';
 import { OauthLoginBody } from './dto/oauth-login.dto';
-import { AppleAuthGuard, GoogleAuthGuard } from '@common/guards/oauth.guard';
+import {
+  AppleAuthGuard,
+  AppleWebAuthGuard,
+  GoogleAuthGuard,
+  GoogleWebAuthGuard,
+} from '@common/guards/oauth.guard';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -108,7 +114,7 @@ export class AuthController {
     return;
   }
 
-  @ApiOperation({ summary: 'Oauth Login' })
+  @ApiOperation({ summary: 'Oauth Google Login' })
   @ApiResponse({
     status: HttpStatus.OK,
     type: CommonDto,
@@ -122,25 +128,14 @@ export class AuthController {
       },
     },
   })
-  @Post('login/oauth')
-  async oauthLogin(
-    @Body() body: OauthLoginBody,
-    @Res() response: Response,
-  ): Promise<Response> {
-    const result = await this.authService.oauthLogin(body);
-    const { token, ...data } = result;
-    response.header('Authorization', `Bearer ${token}`);
-    response.send(data);
-    return;
-  }
-
   @UseGuards(GoogleAuthGuard)
   @Post('login/oauth/google')
   async googleLogin(
     @Body() body: OauthLoginBody,
+    @Req() request: Request,
     @Res() response: Response,
   ): Promise<Response> {
-    const result = await this.authService.oauthLogin(body);
+    const result = await this.authService.oauthLogin(request.user);
     const { token, ...data } = result;
     response.header('Authorization', `Bearer ${token}`);
     response.send(data);
@@ -158,31 +153,5 @@ export class AuthController {
     response.header('Authorization', `Bearer ${token}`);
     response.send(data);
     return;
-  }
-
-  @Get('google')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuth() {
-    // Guard will redirect to Google
-  }
-
-  @Get('google/callback')
-  @UseGuards(GoogleAuthGuard)
-  async googleAuthCallback(@Req() req) {
-    // Handle successful Google authentication
-    return this.authService.login(req.user);
-  }
-
-  @Get('apple')
-  @UseGuards(AppleAuthGuard)
-  async appleAuth() {
-    // Guard will redirect to Apple
-  }
-
-  @Get('apple/callback')
-  @UseGuards(AppleAuthGuard)
-  async appleAuthCallback(@Req() req) {
-    // Handle successful Apple authentication
-    return this.authService.login(req.user);
   }
 }

@@ -1,20 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsOptional, IsString } from 'class-validator';
+import { IsString } from 'class-validator';
 import { CommonDto } from '@common/dto/common.dto';
 
 export class OauthLoginBody {
   @ApiProperty()
-  @IsOptional()
-  @IsEmail()
-  email?: string;
-
-  @ApiProperty()
   @IsString()
-  provider: string;
-
-  @ApiProperty()
-  @IsString()
-  authCode: string;
+  idToken: string;
 }
 
 export class OauthLoginResponseDto extends CommonDto {

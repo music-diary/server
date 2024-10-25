@@ -51,6 +51,7 @@
     "class-validator": "^0.14.1",
     "dynamoose": "^4.0.1",
     "express": "^4.21.0",
+    "google-auth-library": "^9.14.2",
     "ioredis": "^5.4.1",
     "joi": "^17.13.1",
     "luxon": "^3.4.4",
