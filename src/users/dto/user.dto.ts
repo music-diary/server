@@ -1,10 +1,18 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { Gender, Role, Users, UserStatus } from '@prisma/client';
+import {
+  $Enums,
+  Gender,
+  ProviderTypes,
+  Role,
+  Users,
+  UserStatus,
+} from '@prisma/client';
 import { Type } from 'class-transformer';
 import {
   IsBoolean,
   IsDate,
   IsDateString,
+  IsEmail,
   IsEnum,
   IsNumber,
   IsOptional,
@@ -27,6 +35,11 @@ export class UsersDto implements Users {
   @ApiProperty()
   @IsPhoneNumber('KR')
   phoneNumber: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsEmail()
+  email: string | null;
 
   @ApiProperty()
   @Type(() => String)
@@ -77,6 +90,16 @@ export class UsersDto implements Users {
   @IsUUID()
   @IsOptional()
   withdrawalsId: string | null;
+
+  @ApiProperty()
+  @IsString()
+  @IsOptional()
+  providerId: string | null;
+
+  @ApiProperty()
+  @IsEnum(ProviderTypes)
+  @IsOptional()
+  providerType: ProviderTypes;
 
   @ApiProperty()
   @IsDate()
