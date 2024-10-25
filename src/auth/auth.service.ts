@@ -22,10 +22,8 @@ import { UserRepository } from '@user/user.repository';
 import { generateSignUpCode } from '@common/util/code-generator';
 import { GenresDto } from '@genre/dto/genres.dto';
 import { SponsorRepository } from '../users/sponsor.repository';
-import { decrypt } from '../common/util/crypto';
+import { decrypt } from '@common/util/crypto';
 import { TEST_ACCOUNT_PHONE_NUMBER } from '@common/consts/data.const';
-import { OauthLoginBody } from './dto/oauth-login.dto';
-import { AuthCode } from '../../dist/common/util/code-generator';
 
 const EXPIRE = 60 * 3; // 3 min
 
@@ -234,15 +232,8 @@ export class AuthService {
     };
   }
 
-  async oauthLogin(body: OauthLoginBody) {
-    const { provider, authCode } = body;
-    // verify the provider and authCode
-    const user = await this.userRepository.findOne({
-      where: { name: 'hi' },
-    });
-    if (!user) {
-      throw new UnauthorizedException('User not found');
-    }
+  async oauthLogin(user: any) {
+    console.log('oauthLogin user: ', user);
     const { accessToken } = await this.createAccessToken(user.id);
     this.logService.verbose('Successfully logged in', AuthService.name);
     return {
@@ -253,44 +244,40 @@ export class AuthService {
     };
   }
 
-  async validateOAuthLogin(profile: any, provider: ProviderTypes) {
+  async validateOAuthUser(profile: any, providerType: ProviderTypes) {
     try {
-      console.log(profile);
-      console.log(provider);
+      console.log('validateOAuthUser profile: ', profile);
+      console.log('validateOAuthUser providerType: ', providerType);
       // 기존 사용자 확인
-      const user = await this.userRepository.findOne({
+      const existedUser = await this.userRepository.findOne({
         where: {
-          providerType: provider,
-          providerId: profile.AuthCode,
+          providerType,
+          providerId: profile.providerId,
         },
       });
+      console.log('validateOAuthUser existedUser: ', existedUser);
 
-      // if (!user) {
-      //   // 새 사용자 생성
-      //   user = await this.userRepository.create({
-      //     data: {
-      //       phoneNumber: profile.phoneNumber,
-      //       email: profile.email,
-      //       name: profile.firstName + profile.lastName,
-      //       providerType: provider,
-      //       providerId: profile.id,
-      //     },
-      //   });
-      // } else {
-      //   // 기존 사용자 정보 업데이트
-      //   user = await this.prisma.user.update({
-      //     where: { id: user.id },
-      //     data: {
-      //       firstName: profile.firstName,
-      //       lastName: profile.lastName,
-      //       profileImage: profile.picture,
-      //       lastLoginAt: new Date(),
-      //     },
-      //   });
-      // }
+      const user = existedUser
+        ? await this.userRepository.update({
+            where: { id: existedUser.id },
+            data: { email: profile.email },
+          })
+        : await this.userRepository.create({
+            data: {
+              email: profile.email,
+              name:
+                profile.name ??
+                profile.firstName + profile.lastName ??
+                undefined,
+              providerType: ProviderTypes.GOOGLE,
+              providerId: profile.id,
+            },
+          });
+      console.log('validateOAuthUser user: ', user);
 
       return user;
     } catch (error) {
+      this.logService.error(error, AuthService.name);
       throw new UnauthorizedException('Failed to validate OAuth login');
     }
   }

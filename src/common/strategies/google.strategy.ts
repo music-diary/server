@@ -1,10 +1,10 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
-import { Strategy } from 'passport-google-oauth20';
 import { ConfigService } from '@nestjs/config';
 import { AuthService } from '@auth/auth.service';
 import { ProviderTypes } from '@prisma/client';
 import { OAuth2Client } from 'google-auth-library';
+import { Strategy } from 'passport-custom';
 
 @Injectable()
 export class GoogleTokenStrategy extends PassportStrategy(
@@ -25,6 +25,9 @@ export class GoogleTokenStrategy extends PassportStrategy(
 
   async validate(req: any): Promise<any> {
     const token = req.body.idToken;
+    if (!token) {
+      throw new UnauthorizedException('Google token not found');
+    }
 
     try {
       // Google ID 토큰 검증
@@ -38,7 +41,7 @@ export class GoogleTokenStrategy extends PassportStrategy(
       console.log('google payload:', payload);
 
       // 사용자 정보 검증 및 저장
-      const user = await this.authService.validateOAuthLogin(
+      const user = await this.authService.validateOAuthUser(
         {
           email: payload.email,
           name: payload.name ?? undefined,

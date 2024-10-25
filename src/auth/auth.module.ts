@@ -9,14 +9,8 @@ import { UserRepository } from '@user/user.repository';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { SponsorRepository } from '@user/sponsor.repository';
 import { PassportModule } from '@nestjs/passport';
-import {
-  GoogleStrategy,
-  GoogleTokenStrategy,
-} from '@common/strategies/google.strategy';
-import {
-  AppleStrategy,
-  AppleTokenStrategy,
-} from '@common/strategies/apple.strategy';
+import { GoogleTokenStrategy } from '@common/strategies/google.strategy';
+import { AppleTokenStrategy } from '@common/strategies/apple.strategy';
 
 @Module({
   imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
@@ -30,8 +24,6 @@ import {
     UserRepository,
     SponsorRepository,
     PrismaService,
-    GoogleStrategy,
-    AppleStrategy,
     GoogleTokenStrategy,
     AppleTokenStrategy,
   ],

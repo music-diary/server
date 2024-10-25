@@ -1,7 +1,6 @@
 import {
   Body,
   Controller,
-  Get,
   HttpStatus,
   Post,
   Req,
@@ -20,13 +19,7 @@ import {
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 import { CommonDto } from '@common/dto/common.dto';
 import { OauthLoginBody } from './dto/oauth-login.dto';
-import {
-  AppleAuthGuard,
-  AppleWebAuthGuard,
-  GoogleAuthGuard,
-  GoogleWebAuthGuard,
-} from '@common/guards/oauth.guard';
-import { AuthGuard } from '@nestjs/passport';
+import { AppleAuthGuard, GoogleAuthGuard } from '@common/guards/oauth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
