@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import fs from 'fs';
 
 const prisma = new PrismaClient();
-const FILE_NAME = ''; // NOTE: Please write file's absolute path
+const FILE_NAME = 'src/scripts/tumblbug-result-1728138250204.csv'; // NOTE: Please write file's absolute path
 if (FILE_NAME.length < 1) throw new Error(`Please write file's path`);
 
 export async function sponsor() {
