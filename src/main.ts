@@ -18,6 +18,7 @@ async function bootstrap() {
   const corsOptions = {
     origin: [
       'http://localhost:5000',
+      'http://localhost:5001',
       'http://localhost:9988',
       `https://dev.${SERVER_DOMAIN}`,
     ],

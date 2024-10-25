@@ -35,6 +35,7 @@ import { AuthGuard } from '@common/guards/auth.guard';
 import { User } from '@common/decorator/user.decorator';
 import { RolesGuard } from '@common/guards/role.guard';
 import { Roles } from '@common/decorator/roles.decorator';
+import { VerifySponsorBodyDto } from './dto/sponsor.dto';
 
 @ApiTags('Users')
 @Controller('users')
@@ -102,6 +103,18 @@ export class UserController {
     @Body() body: WithdrawUserBodyDto,
   ): Promise<CommonDto> {
     return this.userService.withdraw(user.id, id, body);
+  }
+
+  @ApiOperation({ summary: 'Verify User to Sponsor' })
+  @ApiBody({ type: VerifySponsorBodyDto })
+  @ApiBearerAuth()
+  @UseGuards(AuthGuard)
+  @Post('sponsor/verification')
+  verifySponsor(
+    @User() user: UserPayload,
+    @Body() body: VerifySponsorBodyDto,
+  ): Promise<CommonDto> {
+    return this.userService.verifySponsor(user.id, body);
   }
 
   @ApiOperation({ summary: 'Get statistics in my page' })

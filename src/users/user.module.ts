@@ -11,6 +11,7 @@ import { PrismaService } from '@database/prisma/prisma.service';
 import { GenreRepository } from '@genre/genre.repository';
 import { SimpleEmailService } from '@service/simple-email/simple-email.service';
 import { DiaryRepository } from '@diary/repository/diary.repository';
+import { SponsorRepository } from './sponsor.repository';
 
 @Module({
   controllers: [UserController],
@@ -22,6 +23,7 @@ import { DiaryRepository } from '@diary/repository/diary.repository';
     UserRepository,
     GenreRepository,
     WithdrawalReasonsRepository,
+    SponsorRepository,
     ContactRepository,
     StatisticRepository,
     DiaryRepository,
