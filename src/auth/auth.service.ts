@@ -154,9 +154,11 @@ export class AuthService {
   }
 
   async oauthSignUp(body: SignUpBody): Promise<SignUpResponseDto> {
+    console.log('oauthSignUp body: ', body);
     const { phoneNumber, birthDay, genres, idToken, ...data } = body;
     const birthDayDate = new Date(birthDay);
     const key = `signUp:${idToken}`;
+    console.log('oauthSignUp key: ', key);
     const verified = await this.redisRepository.get(key);
     console.log('create verified: ', verified);
     if (!verified) {
