@@ -13,7 +13,7 @@ import { GoogleTokenStrategy } from '@common/strategies/google.strategy';
 import { AppleTokenStrategy } from '@common/strategies/apple.strategy';
 
 @Module({
-  imports: [PassportModule.register({ defaultStrategy: 'jwt' })],
+  imports: [PassportModule.register({ session: false })],
   controllers: [AuthController],
   providers: [
     AuthService,

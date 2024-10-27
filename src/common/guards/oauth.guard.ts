@@ -5,8 +5,6 @@ import { AuthGuard } from '@nestjs/passport';
 export class GoogleAuthGuard extends AuthGuard('google-token') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const activate = (await super.canActivate(context)) as boolean;
-    const request = context.switchToHttp().getRequest();
-    await super.logIn(request);
     return activate;
   }
 }
@@ -15,8 +13,6 @@ export class GoogleAuthGuard extends AuthGuard('google-token') {
 export class AppleAuthGuard extends AuthGuard('apple-token') {
   async canActivate(context: ExecutionContext): Promise<boolean> {
     const activate = (await super.canActivate(context)) as boolean;
-    const request = context.switchToHttp().getRequest();
-    await super.logIn(request);
     return activate;
   }
 }
