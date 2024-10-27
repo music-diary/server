@@ -20,6 +20,8 @@ import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 import { CommonDto } from '@common/dto/common.dto';
 import { OauthLoginBody } from './dto/oauth-login.dto';
 import { AppleAuthGuard, GoogleAuthGuard } from '@common/guards/oauth.guard';
+import { User } from '@common/decorator/user.decorator';
+import { Public } from '@common/decorator/public.decorator';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -31,6 +33,7 @@ export class AuthController {
     type: SendPhoneNumberCodeBody,
     examples: { example: { value: { phoneNumber: '+821012345678' } } },
   })
+  @Public()
   @Post('phone')
   sendPhoneNumberCode(
     @Body() body: SendPhoneNumberCodeBody,
@@ -41,6 +44,7 @@ export class AuthController {
   @ApiOperation({ summary: 'Verify phone number verification code' })
   @ApiBody({ type: VerifyPhoneNumberCodeBody })
   @ApiResponse({ status: HttpStatus.OK, type: CommonDto })
+  @Public()
   @Post('phone/verification')
   async verifyPhoneNumberCode(
     @Body() body: VerifyPhoneNumberCodeBody,
@@ -95,6 +99,7 @@ export class AuthController {
       },
     },
   })
+  @Public()
   @Post('login')
   async login(
     @Body() body: LoginBody,
@@ -121,9 +126,11 @@ export class AuthController {
       },
     },
   })
+  @Public()
   @UseGuards(GoogleAuthGuard)
   @Post('login/oauth/google')
   async googleLogin(
+    @User() user: any,
     @Body() body: OauthLoginBody,
     @Req() request: Request,
     @Res() response: Response,
@@ -135,6 +142,7 @@ export class AuthController {
     return;
   }
 
+  @Public()
   @UseGuards(AppleAuthGuard)
   @Post('login/oauth/apple')
   async appleLogin(

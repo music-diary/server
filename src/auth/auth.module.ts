@@ -11,6 +11,8 @@ import { SponsorRepository } from '@user/sponsor.repository';
 import { PassportModule } from '@nestjs/passport';
 import { GoogleTokenStrategy } from '@common/strategies/google.strategy';
 import { AppleTokenStrategy } from '@common/strategies/apple.strategy';
+import { APP_GUARD } from '@nestjs/core';
+import { AuthGuard } from '@common/guards/auth.guard';
 
 @Module({
   imports: [PassportModule.register({ session: false })],
@@ -26,6 +28,10 @@ import { AppleTokenStrategy } from '@common/strategies/apple.strategy';
     PrismaService,
     GoogleTokenStrategy,
     AppleTokenStrategy,
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard, // 전역 가드로 등록
+    },
   ],
 })
 export class AuthModule {}
