@@ -118,42 +118,42 @@ export class AuthService {
   }
 
   // FIXME: DELETE THIS LATER
-  // async create(body: SignUpBody): Promise<SignUpResponseDto> {
-  //   const { phoneNumber, birthDay, genres, ...data } = body;
-  //   const birthDayDate = new Date(birthDay);
+  async create(body: any): Promise<SignUpResponseDto> {
+    const { phoneNumber, birthDay, genres, ...data } = body;
+    const birthDayDate = new Date(birthDay);
 
-  //   const key = `signUp:${phoneNumber}`;
-  //   const verifiedPhoneNumber = await this.redisRepository.get(key);
-  //   if (!verifiedPhoneNumber) {
-  //     throw new UnauthorizedException('Phone number is not verified');
-  //   }
-  //   const { isVerified, isSponsor } = JSON.parse(verifiedPhoneNumber);
-  //   if (!isVerified) {
-  //     throw new UnauthorizedException('Phone number is not verified');
-  //   }
-  //   const newUser: Users = await this.createUserAndGenres(
-  //     {
-  //       phoneNumber,
-  //       birthDay: birthDayDate,
-  //       role: isSponsor ? Role.SPONSOR : Role.USER,
-  //       ...data,
-  //     },
-  //     genres,
-  //   );
-  //   const { accessToken } = await this.createAccessToken(newUser.id);
-  //   this.logService.verbose(
-  //     `Successfully signed up - ${newUser.id}`,
-  //     AuthService.name,
-  //   );
-  //   return {
-  //     statusCode: HttpStatus.CREATED,
-  //     message: 'Successfully sign up',
-  //     user: newUser,
-  //     token: accessToken,
-  //   };
-  // }
+    const key = `signUp:${phoneNumber}`;
+    const verifiedPhoneNumber = await this.redisRepository.get(key);
+    if (!verifiedPhoneNumber) {
+      throw new UnauthorizedException('Phone number is not verified');
+    }
+    const { isVerified, isSponsor } = JSON.parse(verifiedPhoneNumber);
+    if (!isVerified) {
+      throw new UnauthorizedException('Phone number is not verified');
+    }
+    const newUser: Users = await this.createUserAndGenres(
+      {
+        phoneNumber,
+        birthDay: birthDayDate,
+        role: isSponsor ? Role.SPONSOR : Role.USER,
+        ...data,
+      },
+      genres,
+    );
+    const { accessToken } = await this.createAccessToken(newUser.id);
+    this.logService.verbose(
+      `Successfully signed up - ${newUser.id}`,
+      AuthService.name,
+    );
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Successfully sign up',
+      user: newUser,
+      token: accessToken,
+    };
+  }
 
-  async create(body: SignUpBody): Promise<SignUpResponseDto> {
+  async oauthSignUp(body: SignUpBody): Promise<SignUpResponseDto> {
     const { phoneNumber, birthDay, genres, idToken, ...data } = body;
     const birthDayDate = new Date(birthDay);
     const key = `signUp:${idToken}`;
@@ -284,9 +284,13 @@ export class AuthService {
           providerId: user.id,
         },
       });
+      this.logService.verbose(
+        'Successfully logged in with new user',
+        AuthService.name,
+      );
       return {
         statusCode: HttpStatus.OK,
-        message: 'Successfully logged in',
+        message: 'Successfully oauth logged in with new user',
         data: undefined,
         token: undefined,
       };
@@ -297,10 +301,13 @@ export class AuthService {
       where: { providerId: user.id },
     });
     console.log('oauthLogin existedUser: ', existedUser);
-    this.logService.verbose('Successfully logged in', AuthService.name);
+    this.logService.verbose(
+      'Successfully logged in with existed user',
+      AuthService.name,
+    );
     return {
       statusCode: HttpStatus.OK,
-      message: 'Successfully logged in',
+      message: 'Successfully oauth logged in with existed user',
       data: existedUser,
       token: accessToken,
     };

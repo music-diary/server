@@ -80,6 +80,33 @@ export class AuthController {
     return;
   }
 
+  @ApiOperation({ summary: 'oauth Sign up' })
+  @ApiBody({ type: SignUpBody })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    type: SignUpResponseDto,
+    headers: {
+      Authorization: {
+        description: 'The access token',
+        schema: {
+          type: 'string',
+          example: 'Bearer <jwt-token>',
+        },
+      },
+    },
+  })
+  @Post('login/sign-up')
+  async oauthSignUp(
+    @Body() body: SignUpBody,
+    @Res() response: Response,
+  ): Promise<Response> {
+    const result = await this.authService.oauthSignUp(body);
+    const { token, ...data } = result;
+    response.header('Authorization', `Bearer ${token}`);
+    response.send(data);
+    return;
+  }
+
   // NOTE: This is a temporary implementation for the test.
   @ApiOperation({ summary: 'Login' })
   @ApiResponse({
