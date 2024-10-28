@@ -273,6 +273,11 @@ export class AuthService {
 
   async oauthLogin(user: any) {
     console.log('oauthLogin user: ', user);
+    if (!user.id) {
+      throw new UnauthorizedException(
+        `Failed to login with OAuth Type ${user.providerType}`,
+      );
+    }
     const key = `signUp:${user.id}`;
     const existed = await this.redisRepository.get(key);
     console.log('oauthLogin existed cache: ', existed);

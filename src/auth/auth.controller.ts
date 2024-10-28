@@ -166,9 +166,10 @@ export class AuthController {
   @Post('login/oauth/apple')
   async appleLogin(
     @Body() body: OauthLoginBody,
+    @Req() request: Request,
     @Res() response: Response,
   ): Promise<Response> {
-    const result = await this.authService.oauthLogin(body);
+    const result = await this.authService.oauthLogin(request.user);
     const { token, ...data } = result;
     response.header('Authorization', `Bearer ${token}`);
     response.send(data);
