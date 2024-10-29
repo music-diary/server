@@ -278,10 +278,27 @@ export class AuthService {
         `Failed to login with OAuth Type ${user.providerType}`,
       );
     }
-    const key = `signUp:${user.id}`;
-    const existed = await this.redisRepository.get(key);
-    console.log('oauthLogin existed cache: ', existed);
-    if (!existed) {
+
+    const existedUser = await this.userRepository.findOne({
+      where: { providerId: user.id, status: UserStatus.ACTIVE },
+    });
+    console.log('oauthLogin existedUser: ', existedUser);
+
+    if (existedUser) {
+      const { accessToken } = await this.createAccessToken(existedUser.id);
+      console.log('oauthLogin accessToken: ', accessToken);
+      this.logService.verbose(
+        'Successfully logged in with existed user',
+        AuthService.name,
+      );
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Successfully oauth logged in with existed user',
+        data: existedUser,
+        token: accessToken,
+      };
+    } else {
+      const key = `signUp:${user.id}`;
       const value = { email: user.email, providerType: user.providerType };
       await this.redisRepository.set(key, JSON.stringify(value));
       this.logService.verbose(
@@ -295,22 +312,6 @@ export class AuthService {
         token: undefined,
       };
     }
-    const existedUser = await this.userRepository.findOne({
-      where: { providerId: user.id, status: UserStatus.ACTIVE },
-    });
-    const { accessToken } = await this.createAccessToken(existedUser.id);
-    console.log('oauthLogin accessToken: ', accessToken);
-    console.log('oauthLogin existedUser: ', existedUser);
-    this.logService.verbose(
-      'Successfully logged in with existed user',
-      AuthService.name,
-    );
-    return {
-      statusCode: HttpStatus.OK,
-      message: 'Successfully oauth logged in with existed user',
-      data: existedUser,
-      token: accessToken,
-    };
   }
 
   async validateOAuthUser(profile: any, providerType: ProviderTypes) {
