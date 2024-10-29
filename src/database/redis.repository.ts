@@ -26,4 +26,11 @@ export class RedisRepository {
   async del(key: string): Promise<void> {
     await this.client.del(key);
   }
+
+  async delAll(key: string): Promise<void> {
+    const keys = await this.client.keys(key);
+    if (keys.length > 0) {
+      await this.client.del(...keys);
+    }
+  }
 }

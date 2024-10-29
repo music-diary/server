@@ -219,7 +219,7 @@ export class UserService {
       };
     }
     const key = `signUp:${existUser.providerId}`;
-    await this.redisRepository.del(key);
+    await this.redisRepository.delAll(key);
     await this.userRepository.update(createWithdrawalQuery);
 
     this.logService.verbose(`Withdraw user - ${id}`, UserService.name);
