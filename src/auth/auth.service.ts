@@ -284,13 +284,6 @@ export class AuthService {
     if (!existed) {
       const value = { email: user.email, providerType: user.providerType };
       await this.redisRepository.set(key, JSON.stringify(value));
-      await this.userRepository.create({
-        data: {
-          email: user.email,
-          providerType: user.providerType,
-          providerId: user.id,
-        },
-      });
       this.logService.verbose(
         'Successfully logged in with new user',
         AuthService.name,
