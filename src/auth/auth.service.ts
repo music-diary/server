@@ -302,11 +302,11 @@ export class AuthService {
         token: undefined,
       };
     }
-    const { accessToken } = await this.createAccessToken(user.id);
-    console.log('oauthLogin accessToken: ', accessToken);
     const existedUser = await this.userRepository.findOne({
       where: { providerId: user.id },
     });
+    const { accessToken } = await this.createAccessToken(existedUser.id);
+    console.log('oauthLogin accessToken: ', accessToken);
     console.log('oauthLogin existedUser: ', existedUser);
     this.logService.verbose(
       'Successfully logged in with existed user',
