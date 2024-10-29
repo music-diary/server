@@ -296,7 +296,7 @@ export class AuthService {
       };
     }
     const existedUser = await this.userRepository.findOne({
-      where: { providerId: user.id },
+      where: { providerId: user.id, status: UserStatus.ACTIVE },
     });
     const { accessToken } = await this.createAccessToken(existedUser.id);
     console.log('oauthLogin accessToken: ', accessToken);
