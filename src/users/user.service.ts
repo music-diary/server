@@ -218,7 +218,7 @@ export class UserService {
         data: { content: updateData.content },
       };
     }
-    const key = `signUp:${existUser.phoneNumber}`;
+    const key = `signUp:${existUser.providerId}`;
     await this.redisRepository.del(key);
     await this.userRepository.update(createWithdrawalQuery);
 
