@@ -6,6 +6,7 @@ import { AuthService } from '@auth/auth.service';
 import { ProviderTypes } from '@prisma/client';
 import { JwksClient } from 'jwks-rsa';
 import jwt from 'jsonwebtoken';
+import { OauthPayLoad } from '@auth/types/oauth.type';
 
 @Injectable()
 export class AppleTokenStrategy extends PassportStrategy(
@@ -25,29 +26,14 @@ export class AppleTokenStrategy extends PassportStrategy(
     });
   }
 
-  async validate(req: any): Promise<any> {
-    console.log('apple req:', req.body);
+  async validate(req: any): Promise<OauthPayLoad> {
     const idToken = req.body.idToken;
-    const user = req.body.user;
     if (!idToken) {
       throw new UnauthorizedException('Apple token not found');
     }
 
     try {
-      // ID 토큰 검증
       const decoded = await this.verifyAppleToken(idToken);
-      console.log('apple decoded:', decoded);
-
-      // 사용자 정보 검증 및 저장
-      // const user = await this.authService.validateOAuthUser(
-      //   {
-      //     email: decoded.email,
-      //     providerId: decoded.id,
-      //   },
-      //   ProviderTypes.APPLE,
-      // );
-      // console.log('apple user:', user);
-
       return decoded;
     } catch (error) {
       console.error(error);
@@ -55,16 +41,15 @@ export class AppleTokenStrategy extends PassportStrategy(
     }
   }
 
-  async verifyAppleToken(idToken: string) {
+  async verifyAppleToken(idToken: string): Promise<OauthPayLoad> {
     const decodedHeader = jwt.decode(idToken, { complete: true })?.header;
-    console.log('apple decodedHeader:', decodedHeader);
+    console.debug('apple decodedHeader:', decodedHeader);
 
     if (!decodedHeader || !decodedHeader.kid) {
       throw new UnauthorizedException('Invalid token header');
     }
     const signingKey = await this.jwksClient.getSigningKey(decodedHeader.kid);
     const publicKey = signingKey.getPublicKey();
-    console.log('apple signingKey:', signingKey);
 
     // 토큰 검증
     const payload = jwt.verify(idToken, publicKey, {
@@ -76,7 +61,7 @@ export class AppleTokenStrategy extends PassportStrategy(
     if (!payload) {
       throw new UnauthorizedException('Invalid token payload');
     }
-    console.log('apple payload:', payload);
+    console.debug('apple payload:', payload);
 
     return {
       id: payload.sub,

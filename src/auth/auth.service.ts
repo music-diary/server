@@ -154,13 +154,11 @@ export class AuthService {
   }
 
   async oauthSignUp(body: SignUpBody): Promise<SignUpResponseDto> {
-    console.log('oauthSignUp body: ', body);
-    const { phoneNumber, birthDay, genres, idToken, ...data } = body;
+    console.debug('oauthSignUp body: ', body);
+    const { phoneNumber, birthDay, genres, oauthUserId, ...data } = body;
     const birthDayDate = new Date(birthDay);
-    const key = `signUp:${idToken}`;
-    console.log('oauthSignUp key: ', key);
+    const key = `signUp:${oauthUserId}`;
     const verified = await this.redisRepository.get(key);
-    console.log('create verified: ', verified);
     if (!verified) {
       throw new UnauthorizedException('The token is not verified');
     }
@@ -168,7 +166,7 @@ export class AuthService {
     const newUser = await this.createUserAndGenres(
       {
         email,
-        idToken,
+        oauthUserId,
         providerType,
         phoneNumber,
         birthDay: birthDayDate,
@@ -176,7 +174,6 @@ export class AuthService {
       },
       genres,
     );
-    console.log('create newUser: ', newUser);
     const { accessToken } = await this.createAccessToken(newUser.id);
     this.logService.verbose(
       `Successfully signed up - ${newUser.id}`,
@@ -207,14 +204,12 @@ export class AuthService {
     userData: SignUpBody,
     genresData: Array<Pick<GenresDto, 'id'>>,
   ): Promise<Users> {
-    const { idToken, ...data } = userData;
+    const { oauthUserId, ...data } = userData;
     const createUserQuery: Prisma.UsersCreateArgs = {
       data: {
         ...data,
-        providerId: idToken,
-        genre: {
-          connect: genresData.map((genre) => ({ id: genre.id })),
-        },
+        providerId: oauthUserId,
+        genre: { connect: genresData.map((genre) => ({ id: genre.id })) },
       },
     };
     return await this.userRepository.create(createUserQuery);
@@ -272,7 +267,7 @@ export class AuthService {
   }
 
   async oauthLogin(user: any) {
-    console.log('oauthLogin user: ', user);
+    console.debug('oauthLogin user: ', user);
     if (!user.id) {
       throw new UnauthorizedException(
         `Failed to login with OAuth Type ${user.providerType}`,
@@ -282,11 +277,9 @@ export class AuthService {
     const existedUser = await this.userRepository.findOne({
       where: { providerId: user.id, status: UserStatus.ACTIVE },
     });
-    console.log('oauthLogin existedUser: ', existedUser);
 
     if (existedUser) {
       const { accessToken } = await this.createAccessToken(existedUser.id);
-      console.log('oauthLogin accessToken: ', accessToken);
       this.logService.verbose(
         'Successfully logged in with existed user',
         AuthService.name,
@@ -311,44 +304,6 @@ export class AuthService {
         data: undefined,
         token: undefined,
       };
-    }
-  }
-
-  async validateOAuthUser(profile: any, providerType: ProviderTypes) {
-    try {
-      console.log('validateOAuthUser profile: ', profile);
-      console.log('validateOAuthUser providerType: ', providerType);
-      // 기존 사용자 확인
-      const existedUser = await this.userRepository.findOne({
-        where: {
-          providerType,
-          providerId: profile.providerId,
-        },
-      });
-      console.log('validateOAuthUser existedUser: ', existedUser);
-
-      const user = existedUser
-        ? await this.userRepository.update({
-            where: { id: existedUser.id },
-            data: { email: profile.email },
-          })
-        : await this.userRepository.create({
-            data: {
-              email: profile.email,
-              name:
-                profile.name ??
-                profile.firstName + profile.lastName ??
-                undefined,
-              providerType: ProviderTypes.GOOGLE,
-              providerId: profile.id,
-            },
-          });
-      console.log('validateOAuthUser user: ', user);
-
-      return user;
-    } catch (error) {
-      this.logService.error(error, AuthService.name);
-      throw new UnauthorizedException('Failed to validate OAuth login');
     }
   }
 }

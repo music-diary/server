@@ -5,6 +5,7 @@ import { AuthService } from '@auth/auth.service';
 import { ProviderTypes } from '@prisma/client';
 import { OAuth2Client } from 'google-auth-library';
 import { Strategy } from 'passport-custom';
+import { OauthPayLoad } from '@auth/types/oauth.type';
 
 @Injectable()
 export class GoogleTokenStrategy extends PassportStrategy(
@@ -23,7 +24,7 @@ export class GoogleTokenStrategy extends PassportStrategy(
     );
   }
 
-  async validate(req: any): Promise<any> {
+  async validate(req: any): Promise<OauthPayLoad> {
     const token = req.body.idToken;
     if (!token) {
       throw new UnauthorizedException('Google token not found');
@@ -35,24 +36,9 @@ export class GoogleTokenStrategy extends PassportStrategy(
         idToken: token,
         audience: this.configService.get('GOOGLE_CLIENT_ID'),
       });
-      console.log('google ticket:', ticket);
-
       const payload = ticket.getPayload();
-      console.log('google payload:', payload);
+      console.debug('google payload:', payload);
 
-      // 사용자 정보 검증 및 저장
-      // const user = await this.authService.validateOAuthUser(
-      //   {
-      //     email: payload.email,
-      //     name: payload.name ?? undefined,
-      //     firstName: payload.given_name ?? undefined,
-      //     lastName: payload.family_name ?? undefined,
-      //     provideId: payload.sub,
-      //   },
-      //   ProviderTypes.GOOGLE,
-      // );
-      // console.log('google user:', user);
-      // return user;
       return {
         id: payload.sub,
         email: payload.email,
