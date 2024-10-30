@@ -29,9 +29,8 @@ export class SignUpBody extends PickType(UsersDto, [
   genres?: Array<Pick<GenresDto, 'id'>>;
 
   @ApiProperty()
-  @IsOptional() // #FIXME: 나중에 required로 변경
   @IsString()
-  idToken?: string;
+  oauthUserId: string;
 
   @ApiProperty()
   @IsOptional()
