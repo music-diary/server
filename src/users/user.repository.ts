@@ -15,7 +15,7 @@ export class UserRepository {
   }
 
   async findOne(query: Prisma.UsersFindFirstArgs): Promise<Users> {
-    return await this.prismaService.users.findFirst(query);
+    return await this.prismaService.client.users.findFirst(query);
   }
 
   async findUniqueOne(query: Prisma.UsersFindUniqueArgs): Promise<Users> {

@@ -8,8 +8,12 @@ import { SimpleNotificationService } from '@service/simple-notification/simple-n
 import { UserRepository } from '@user/user.repository';
 import { PrismaService } from '@database/prisma/prisma.service';
 import { SponsorRepository } from '@user/sponsor.repository';
+import { PassportModule } from '@nestjs/passport';
+import { GoogleTokenStrategy } from '@common/strategies/google.strategy';
+import { AppleTokenStrategy } from '@common/strategies/apple.strategy';
 
 @Module({
+  imports: [PassportModule.register({ session: false })],
   controllers: [AuthController],
   providers: [
     AuthService,
@@ -20,6 +24,8 @@ import { SponsorRepository } from '@user/sponsor.repository';
     UserRepository,
     SponsorRepository,
     PrismaService,
+    GoogleTokenStrategy,
+    AppleTokenStrategy,
   ],
 })
 export class AuthModule {}

@@ -1,10 +1,16 @@
 import { ApiProperty, PickType } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
-import { IsArray, IsEnum, IsOptional } from 'class-validator';
+import {
+  IsArray,
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+} from 'class-validator';
 import { CommonDto } from '@common/dto/common.dto';
 import { UsersDto } from '@user/dto/user.dto';
 import { GenresDto } from '@genre/dto/genres.dto';
-import { Role } from '@prisma/client';
+import { ProviderTypes } from '@prisma/client';
 
 export class SignUpBody extends PickType(UsersDto, [
   'phoneNumber',
@@ -22,10 +28,19 @@ export class SignUpBody extends PickType(UsersDto, [
   @Type(() => Array<Pick<GenresDto, 'id'>>)
   genres?: Array<Pick<GenresDto, 'id'>>;
 
-  @ApiProperty({ type: Role, enum: Role })
+  @ApiProperty()
+  @IsString()
+  oauthUserId: string;
+
+  @ApiProperty()
   @IsOptional()
-  @IsEnum(Role)
-  role?: Role;
+  @IsEmail()
+  email?: string;
+
+  @ApiProperty()
+  @IsOptional()
+  @IsEnum(ProviderTypes)
+  providerType?: ProviderTypes;
 }
 
 export class SignUpResponseDto extends CommonDto {

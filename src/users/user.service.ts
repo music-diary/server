@@ -5,7 +5,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { DiariesStatus, Prisma, Users, UserStatus } from '@prisma/client';
+import { DiariesStatus, Prisma, Role, Users, UserStatus } from '@prisma/client';
 import { UserRepository } from './user.repository';
 import { GenreRepository } from '@genre/genre.repository';
 import { WithdrawalReasonsRepository } from './withdrawal-reasons.repository';
@@ -31,6 +31,9 @@ import { GenresDto } from '@genre/dto/genres.dto';
 import { DiaryDto } from '@diary/dto/diaries.dto';
 import { RedisRepository } from '@database/redis.repository';
 import { DiaryRepository } from '@diary/repository/diary.repository';
+import { VerifySponsorBodyDto } from './dto/sponsor.dto';
+import { SponsorRepository } from './sponsor.repository';
+import { encrypt } from '../common/util/crypto';
 
 @Injectable()
 export class UserService {
@@ -39,6 +42,7 @@ export class UserService {
     private readonly userRepository: UserRepository,
     private readonly genreRepository: GenreRepository,
     private readonly withdrawalReasonsRepository: WithdrawalReasonsRepository,
+    private readonly sponsorRepository: SponsorRepository,
     private readonly contactRepository: ContactRepository,
     private readonly statisticRepository: StatisticRepository,
     private readonly diaryRepository: DiaryRepository,
@@ -214,8 +218,8 @@ export class UserService {
         data: { content: updateData.content },
       };
     }
-    const key = `signUp:${existUser.phoneNumber}`;
-    await this.redisRepository.del(key);
+    const key = `signUp:${existUser.providerId}`;
+    await this.redisRepository.delAll(key);
     await this.userRepository.update(createWithdrawalQuery);
 
     this.logService.verbose(`Withdraw user - ${id}`, UserService.name);
@@ -270,6 +274,28 @@ export class UserService {
       statusCode: HttpStatus.OK,
       message: 'Find Contact Types',
       contactTypes,
+    };
+  }
+
+  async verifySponsor(
+    userId: string,
+    body: VerifySponsorBodyDto,
+  ): Promise<CommonDto> {
+    const encryptedPhoneNumber = encrypt(body.phoneNumber);
+    const sponsor = await this.sponsorRepository.findUnique({
+      where: { phoneNumber: encryptedPhoneNumber },
+    });
+    if (!sponsor) {
+      throw new NotFoundException('User not found');
+    }
+    await this.userRepository.update({
+      where: { id: userId },
+      data: { role: Role.SPONSOR },
+    });
+    this.logService.verbose(`verify sponsor`, UserService.name);
+    return {
+      statusCode: HttpStatus.OK,
+      message: 'Verify sponsor',
     };
   }
 

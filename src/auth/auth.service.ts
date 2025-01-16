@@ -6,7 +6,7 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import { Prisma, Role, Users, UserStatus } from '@prisma/client';
+import { Prisma, ProviderTypes, Role, Users, UserStatus } from '@prisma/client';
 import { CommonDto } from '@common/dto/common.dto';
 import {
   LoginBody,
@@ -22,7 +22,7 @@ import { UserRepository } from '@user/user.repository';
 import { generateSignUpCode } from '@common/util/code-generator';
 import { GenresDto } from '@genre/dto/genres.dto';
 import { SponsorRepository } from '../users/sponsor.repository';
-import { decrypt } from '../common/util/crypto';
+import { decrypt } from '@common/util/crypto';
 import { TEST_ACCOUNT_PHONE_NUMBER } from '@common/consts/data.const';
 
 const EXPIRE = 60 * 3; // 3 min
@@ -116,7 +116,9 @@ export class AuthService {
       };
     }
   }
-  async create(body: SignUpBody): Promise<SignUpResponseDto> {
+
+  // FIXME: DELETE THIS LATER
+  async create(body: any): Promise<SignUpResponseDto> {
     const { phoneNumber, birthDay, genres, ...data } = body;
     const birthDayDate = new Date(birthDay);
 
@@ -151,6 +153,40 @@ export class AuthService {
     };
   }
 
+  async oauthSignUp(body: SignUpBody): Promise<SignUpResponseDto> {
+    console.debug('oauthSignUp body: ', body);
+    const { phoneNumber, birthDay, genres, oauthUserId, ...data } = body;
+    const birthDayDate = new Date(birthDay);
+    const key = `signUp:${oauthUserId}`;
+    const verified = await this.redisRepository.get(key);
+    if (!verified) {
+      throw new UnauthorizedException('The token is not verified');
+    }
+    const { email, providerType } = JSON.parse(verified);
+    const newUser = await this.createUserAndGenres(
+      {
+        email,
+        oauthUserId,
+        providerType,
+        phoneNumber,
+        birthDay: birthDayDate,
+        ...data,
+      },
+      genres,
+    );
+    const { accessToken } = await this.createAccessToken(newUser.id);
+    this.logService.verbose(
+      `Successfully signed up - ${newUser.id}`,
+      AuthService.name,
+    );
+    return {
+      statusCode: HttpStatus.CREATED,
+      message: 'Successfully sign up',
+      user: newUser,
+      token: accessToken,
+    };
+  }
+
   private async createAccessToken(
     id: string,
   ): Promise<{ accessToken: string }> {
@@ -161,21 +197,19 @@ export class AuthService {
       secret,
       expiresIn,
     });
-    return {
-      accessToken,
-    };
+    return { accessToken };
   }
 
   private async createUserAndGenres(
     userData: SignUpBody,
     genresData: Array<Pick<GenresDto, 'id'>>,
   ): Promise<Users> {
+    const { oauthUserId, ...data } = userData;
     const createUserQuery: Prisma.UsersCreateArgs = {
       data: {
-        ...userData,
-        genre: {
-          connect: genresData.map((genre) => ({ id: genre.id })),
-        },
+        ...data,
+        providerId: oauthUserId,
+        genre: { connect: genresData.map((genre) => ({ id: genre.id })) },
       },
     };
     return await this.userRepository.create(createUserQuery);
@@ -230,5 +264,46 @@ export class AuthService {
       user: existedUser,
       token: accessToken,
     };
+  }
+
+  async oauthLogin(user: any) {
+    console.debug('oauthLogin user: ', user);
+    if (!user.id) {
+      throw new UnauthorizedException(
+        `Failed to login with OAuth Type ${user.providerType}`,
+      );
+    }
+
+    const existedUser = await this.userRepository.findOne({
+      where: { providerId: user.id, status: UserStatus.ACTIVE },
+    });
+
+    if (existedUser) {
+      const { accessToken } = await this.createAccessToken(existedUser.id);
+      this.logService.verbose(
+        'Successfully logged in with existed user',
+        AuthService.name,
+      );
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Successfully oauth logged in with existed user',
+        data: existedUser,
+        token: accessToken,
+      };
+    } else {
+      const key = `signUp:${user.id}`;
+      const value = { email: user.email, providerType: user.providerType };
+      await this.redisRepository.set(key, JSON.stringify(value));
+      this.logService.verbose(
+        'Successfully logged in with new user',
+        AuthService.name,
+      );
+      return {
+        statusCode: HttpStatus.OK,
+        message: 'Successfully oauth logged in with new user',
+        data: undefined,
+        token: undefined,
+      };
+    }
   }
 }

@@ -1,6 +1,14 @@
-import { Body, Controller, HttpStatus, Post, Res } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  HttpStatus,
+  Post,
+  Req,
+  Res,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiBody, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagger';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 
 import { AuthService } from './auth.service';
 import {
@@ -10,6 +18,8 @@ import {
 } from './dto/auth.dto';
 import { SignUpBody, SignUpResponseDto } from './dto/sign-up.dto';
 import { CommonDto } from '@common/dto/common.dto';
+import { OauthLoginBody } from './dto/oauth-login.dto';
+import { AppleAuthGuard, GoogleAuthGuard } from '@common/guards/oauth.guard';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -70,6 +80,33 @@ export class AuthController {
     return;
   }
 
+  @ApiOperation({ summary: 'oauth Sign up' })
+  @ApiBody({ type: SignUpBody })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    type: SignUpResponseDto,
+    headers: {
+      Authorization: {
+        description: 'The access token',
+        schema: {
+          type: 'string',
+          example: 'Bearer <jwt-token>',
+        },
+      },
+    },
+  })
+  @Post('login/sign-up')
+  async oauthSignUp(
+    @Body() body: SignUpBody,
+    @Res() response: Response,
+  ): Promise<Response> {
+    const result = await this.authService.oauthSignUp(body);
+    const { token, ...data } = result;
+    response.header('Authorization', `Bearer ${token}`);
+    response.send(data);
+    return;
+  }
+
   // NOTE: This is a temporary implementation for the test.
   @ApiOperation({ summary: 'Login' })
   @ApiResponse({
@@ -91,6 +128,48 @@ export class AuthController {
     @Res() response: Response,
   ): Promise<Response> {
     const result = await this.authService.login(body);
+    const { token, ...data } = result;
+    response.header('Authorization', `Bearer ${token}`);
+    response.send(data);
+    return;
+  }
+
+  @ApiOperation({ summary: 'Oauth Google Login' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    type: CommonDto,
+    headers: {
+      Authorization: {
+        description: 'The access token',
+        schema: {
+          type: 'string',
+          example: 'Bearer <jwt-token>',
+        },
+      },
+    },
+  })
+  @UseGuards(GoogleAuthGuard)
+  @Post('login/oauth/google')
+  async googleLogin(
+    @Body() body: OauthLoginBody,
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<Response> {
+    const result = await this.authService.oauthLogin(request.user);
+    const { token, ...data } = result;
+    response.header('Authorization', `Bearer ${token}`);
+    response.send(data);
+    return;
+  }
+
+  @UseGuards(AppleAuthGuard)
+  @Post('login/oauth/apple')
+  async appleLogin(
+    @Body() body: OauthLoginBody,
+    @Req() request: Request,
+    @Res() response: Response,
+  ): Promise<Response> {
+    const result = await this.authService.oauthLogin(request.user);
     const { token, ...data } = result;
     response.header('Authorization', `Bearer ${token}`);
     response.send(data);

@@ -1,14 +1,14 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsPhoneNumber } from 'class-validator';
+import { IsString } from 'class-validator';
 import { CommonDto } from '@common/dto/common.dto';
 
-export class LoginBody {
+export class OauthLoginBody {
   @ApiProperty()
-  @IsPhoneNumber('KR')
-  phoneNumber: string;
+  @IsString()
+  idToken: string;
 }
 
-export class LoginResponseDto extends CommonDto {
+export class OauthLoginResponseDto extends CommonDto {
   @ApiProperty({ description: 'The user id' })
   data: string;
 
