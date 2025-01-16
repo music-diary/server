@@ -1,0 +1,31 @@
+name: Deploy Devleopment
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    # if: "!contains(github.event.head_commit.message, 'NOT DEPLOY')"
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      # - name: Generate deployment package
+      #   run: zip -r deploy.zip . -x '*.git*' 'node_modules/*'
+
+      # - name: Deploy to EB
+      #   uses: einaregilsson/beanstalk-deploy@v22
+      #   with:
+      #     aws_access_key: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      #     aws_secret_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      #     application_name: scale-diary-server-develop
+      #     environment_name: scale-diary-server-develop-env
+      #     version_label: develop-${{ github.sha }}
+      #     region: ap-northeast-2
+      #     deployment_package: deploy.zip

@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "esModuleInterop": true,
     "module": "commonjs",
     "declaration": true,
     "removeComments": true,
@@ -9,7 +10,18 @@
     "target": "ES2021",
     "sourceMap": true,
     "outDir": "./dist",
-    "baseUrl": "./",
+    "baseUrl": "./src",
+    "paths": {
+      "@auth/*": ["./auth/*"],
+      "@diary/*": ["./diaries/*"],
+      "@genre/*": ["./genres/*"],
+      "@music/*": ["./musics/*"],
+      "@user/*": ["./users/*"],
+      "@service/*": ["./services/*"],
+      "@common/*": ["./common/*"],
+      "@database/*": ["./database/*"],
+      "@test/*": ["../test/*"]
+    },
     "incremental": true,
     "skipLibCheck": true,
     "strictNullChecks": false,
