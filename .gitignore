@@ -37,3 +37,8 @@ lerna-debug.log*
 # ENV
 .env*
 !.env.example
+
+# Local deployment artifacts and secret files
+/deploy.zip
+.secret*
+*.secret
