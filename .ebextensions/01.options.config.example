@@ -1,0 +1,19 @@
+# Example only. Replace network IDs before enabling this file.
+option_settings:
+  aws:elasticbeanstalk:environment:process:default:
+    HealthCheckPath: /api/v1
+  aws:elasticbeanstalk:environment:
+    LoadBalancerType: application
+
+  aws:ec2:vpc:
+    VPCId: "vpc-REPLACE_ME"
+    Subnets: "subnet-REPLACE_ME,subnet-REPLACE_ME,subnet-REPLACE_ME,subnet-REPLACE_ME"
+    ELBSubnets: "subnet-REPLACE_ME,subnet-REPLACE_ME"
+
+  "aws:elasticbeanstalk:customoption":
+    CacheNodeType : cache.t2.micro
+    NumCacheNodes : 1
+    Engine : redis
+    CachePort : 6379
+    CacheSubnets: "subnet-REPLACE_ME"
+    VpcId: vpc-REPLACE_ME

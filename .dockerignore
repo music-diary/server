@@ -1,0 +1,15 @@
+.git
+.codex
+.omx
+node_modules
+dist
+coverage
+.env
+.env.*
+.secret
+.secret*
+*.secret
+*.pem
+*.key
+deploy.zip
+TEMP.md
